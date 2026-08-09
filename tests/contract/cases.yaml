@@ -892,6 +892,193 @@
     exit: 1
     stderr_contains: ["already there"]
 
+# ----------------------------------------------- Hard links and soft tags --
+#
+# `[[X]]` names a note and a missing one is a broken link. `#X` labels a topic
+# and promises nothing. The topics fixture is the vault this distinction is
+# for: `[[SF読書会]]` written for years as a label. A `#tag` argument looks one
+# up as a virtual subject; `demote` rewrites the exact form and nothing else.
+
+- name: topics / a tag selector finds every note carrying it
+  vault: topics
+  args: [backlinks, "#SF読書会", --format, json]
+  # Two inline in the daily note, one nested in Events's frontmatter, one org
+  # heading tag. Neither the excluded Archives/ note nor Code.md is an
+  # occurrence: code, inline spans and %%comments%% hold no references.
+  expect:
+    json_length: 4
+    json_contains:
+      - {"source": "Daily/2026-07-01.md", "line": 10, "tag": "SF読書会", "where": "inline"}
+      - {"source": "Daily/2026-07-01.md", "line": 22, "tag": "SF読書会", "where": "inline"}
+      - {"source": "Notes/Events.md", "line": 3, "tag": "SF読書会/発表", "where": "declared"}
+      - {"source": "Notes/Log.org", "line": 4, "tag": "SF読書会", "where": "declared"}
+    stdout_excludes: ["Archives/Old.md", "Code.md"]
+
+- name: topics / a tag selector answers in paths too
+  vault: topics
+  args: [backlinks, "#SF読書会", --format, paths]
+  expect:
+    lines: ["Daily/2026-07-01.md", "Notes/Events.md", "Notes/Log.org"]
+
+- name: topics / surrounding lines work the same way for a tag
+  vault: topics
+  args: [backlinks, "#SF読書会", -A, "1"]
+  expect:
+    stdout_contains:
+      - "Daily/2026-07-01.md (line 10) #SF読書会"
+      - "- 読書リストを書いた #SF読書会"
+      - "- 別の話題 #work/events"
+
+- name: topics / a tag covers the tags nested under it
+  vault: topics
+  args: [backlinks, "#work", --format, paths]
+  expect:
+    lines: ["Daily/2026-07-01.md", "Notes/Events.md", "Notes/Log.org"]
+
+- name: topics / a nested tag does not reach back up to its parent
+  vault: topics
+  args: [backlinks, "#SF読書会/発表", --format, json]
+  expect:
+    json_length: 1
+    json_at: {"0.source": "Notes/Events.md"}
+
+- name: topics / a tag that is not one is refused, not searched
+  vault: topics
+  args: [backlinks, "#8/18", --format, json]
+  expect:
+    exit: 1
+    stderr_contains: ["Not a tag", "#8/18"]
+
+- name: topics / context on a tag is a virtual subject, not a note
+  vault: topics
+  args: [context, "#SF読書会", --format, json]
+  expect:
+    json_at:
+      kind: "tag"
+      tag: "SF読書会"
+      selector: "#SF読書会"
+      notes: ["Daily/2026-07-01.md", "Notes/Events.md", "Notes/Log.org"]
+      nested_tags: ["SF読書会/発表"]
+      stats: {"notes": 3, "occurrences": 4}
+      "occurrences.0.text": "- 読書リストを書いた #SF読書会"
+      "tasks.0.text": "日程を設定する #SF読書会"
+  # A tag has no note, so it has no path and no content of its own.
+    stdout_excludes: ['"path"', '"headings"']
+
+- name: topics / context on a note is unchanged by any of this
+  vault: topics
+  args: [context, Notes/Events.md, --format, json]
+  expect:
+    json_at:
+      path: "Notes/Events.md"
+      title: "Events"
+    stdout_excludes: ['"kind"']
+
+- name: topics / a label written as a wikilink is still a broken link
+  vault: topics
+  args: [broken-links, --format, paths]
+  sorted: true
+  expect:
+    lines: ["Daily/2026-07-01.md", "Daily/2026-07-02.md", "Notes/Log.org"]
+
+- name: topics / a dry run reports the whole plan and writes nothing
+  vault: topics
+  args: [demote, SF読書会, --dry-run]
+  expect:
+    stdout_contains:
+      - "[DRY RUN] Demoting [[SF読書会]] -> #SF読書会"
+      - "9: [[SF読書会]] -> #SF読書会"
+      - "cannot be demoted (alias)"
+      - "cannot be demoted (anchor)"
+      - "cannot be demoted (embed)"
+      - "cannot be demoted (path-qualified)"
+      - "cannot be demoted (adjacent text)"
+      - "cannot be demoted (org-mode)"
+      - "Nothing was written."
+    file:
+      "Daily/2026-07-01.md":
+        contains: ["- 発表の準備をした [[SF読書会]]"]
+      "Daily/2026-07-02.md":
+        contains: ["[[SF読書会]] の続き。"]
+
+- name: topics / a dry run reports the plan as json
+  vault: topics
+  args: [demote, "[[SF読書会]]", --dry-run, --format, json]
+  expect:
+    json_at:
+      kind: "demote"
+      target: "SF読書会"
+      tag: "SF読書会"
+      dry_run: true
+      applied: false
+      links_updated: 2
+      files_updated: ["Daily/2026-07-01.md", "Daily/2026-07-02.md"]
+      "edits.0.changes.0": {"line": 9, "before": "[[SF読書会]]", "after": "#SF読書会"}
+      "skipped.0": {"file": "Daily/2026-07-01.md", "line": 15, "text": "[[SF読書会|読書の件]]", "reason": "alias"}
+
+- name: topics / a demote rewrites the exact form and only the exact form
+  vault: topics
+  args: [demote, SF読書会]
+  expect:
+    stdout_contains: ["Done! Demoted 2 links in 2 files."]
+    file:
+      "Daily/2026-07-01.md":
+        contains:
+          - "- 発表の準備をした #SF読書会"
+          # Everything a tag cannot hold survives untouched.
+          - "- an alias: [[SF読書会|読書の件]]"
+          - "- a heading: [[SF読書会#発表]]"
+          - "- a block: [[SF読書会^b12]]"
+          - "- an embed: ![[SF読書会]]"
+          - "- a path: [[Archives/SF読書会]]"
+          - "- 助詞が続く場合: [[SF読書会]]の進捗"
+      "Daily/2026-07-02.md":
+        contains: ["#SF読書会 の続き。"]
+      # Code, inline spans and comments are not prose and hold no references.
+      "Code.md":
+        contains: ["[[SF読書会]] and #SF読書会", "`[[SF読書会]]`", "%% [[SF読書会]] and #SF読書会 %%"]
+      # An excluded note is not the vault's to rewrite.
+      "Archives/Old.md":
+        contains: ["Its [[SF読書会]] and its #SF読書会"]
+      # knapper reads org and does not rewrite it.
+      "Notes/Log.org":
+        contains: ["this [[SF読書会]] is"]
+
+- name: topics / demoting a target that names a real note is refused
+  vault: topics
+  args: [demote, Events]
+  expect:
+    exit: 1
+    stderr_contains: ["Notes/Events.md", "--allow-existing-note"]
+
+- name: topics / a target nothing links to is an error rather than a no-op
+  vault: topics
+  args: [demote, SF読書会計画]
+  expect:
+    exit: 1
+    stderr_contains: ["No [[SF読書会計画]] wikilinks found."]
+
+- name: topics / a target that cannot be spelled as a tag says how to proceed
+  vault: topics
+  args: [demote, "Daily Tasks"]
+  expect:
+    exit: 1
+    stderr_contains: ["cannot be written as a tag", "--tag Daily-Tasks"]
+
+- name: topics / a path-qualified target is refused
+  vault: topics
+  args: [demote, "Archives/SF読書会"]
+  expect:
+    exit: 1
+    stderr_contains: ["Path-qualified target"]
+
+- name: topics / tags still lists what the vault carries
+  vault: topics
+  args: [tags, --format, json]
+  expect:
+    stdout_contains: ["SF読書会", "work/events", "SF読書会/発表"]
+    stdout_excludes: ["Archives"]
+
 # ------------------------------------------------------ The reference broker --
 #
 # A reference names a provider; the local provider config says what runs for

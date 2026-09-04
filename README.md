@@ -57,7 +57,7 @@ because they require understanding the *structure* of a vault:
 - 🔐 **External references** — `knapper://` links to values a provider command resolves, kept out of the vault
 
 It is built to survive real vaults: tags are Unicode-aware and nest
-(`#日本語` and `#parent/child` both work), and one malformed YAML header never
+(`#café` and `#parent/child` both work), and one malformed YAML header never
 aborts a whole-vault scan.
 
 ## Two tools you might want instead
@@ -302,7 +302,7 @@ passed over in silence, because those are the ones still to deal with by hand:
 | `anchor` | `[[X#Heading]]`, `[[X^b12]]` — a tag has no inside |
 | `embed` | `![[X]]` — an embed transcludes, a tag does not |
 | `path-qualified` | `[[Folder/X]]` — a path names a file, not a topic |
-| `adjacent text` | `見た[[X]]の` — `#Xの` would be a *different* tag |
+| `adjacent text` | `saw[[X]]again` — `#Xagain` would be a *different* tag |
 | `frontmatter` | a YAML value is not prose, and `#X` in one is a string |
 | `org-mode` | knapper reads org and does not rewrite it, here as elsewhere |
 
@@ -802,8 +802,8 @@ as written. Both halves still have a deliberate grammar. Provider names are
 lowercase letters, digits, `_` and `-`; locators use ASCII letters, digits,
 `.`, `_`, `-` and `/`, are at most 128 characters, and have no empty, `.` or
 `..` segments. A destination outside that grammar is not a reference: `refs`
-will not list it and `resolve` will refuse it. Keep names romanised —
-`address.billing`, not `Address`.
+will not list it and `resolve` will refuse it. Keep locators machine-readable —
+`address.billing`, not `Street Address`.
 
 ### Finding references
 
@@ -1094,7 +1094,7 @@ would hide a real mistake:
   says nothing about `[[Daily Tasks Archive]]` or `[[Sub/Daily Tasks]]`.
 - Comparison is **case-insensitive**, matching how knapper resolves links.
 - The target compared is the one knapper resolves, so `[[Daily Tasks]]`,
-  `[[Daily Tasks#2026]]`, `[[Daily Tasks|To-do]]` and
+  `[[Daily Tasks#2026]]`, `[[Daily Tasks|things to do]]` and
   `[Daily Tasks](Daily%20Tasks.md)` are all the same entry.
 - An entry may be written the way the link is written in a note:
   `[[Habits]]`, `Habits.md` and `Habits` are equivalent.

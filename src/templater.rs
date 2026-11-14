@@ -1,4 +1,4 @@
-//! Template expansion for daily notes.
+//! Template expansion for notes.
 //!
 //! Both engines use moment-style date tokens; templater adds `<% %>` blocks.
 
@@ -66,7 +66,9 @@ pub fn expand(content: &str, engine: &str, title: &str, date: NaiveDate) -> Stri
                 format_date(format, date + Duration::days(days))
             })
             .into_owned();
-        out = TP_FILE_TITLE.replace_all(&out, title).into_owned();
+        out = TP_FILE_TITLE
+            .replace_all(&out, regex::NoExpand(title))
+            .into_owned();
     }
 
     out = CORE_DATE
@@ -79,7 +81,9 @@ pub fn expand(content: &str, engine: &str, title: &str, date: NaiveDate) -> Stri
             format_time(c.get(1).map(|m| m.as_str()).unwrap_or(""))
         })
         .into_owned();
-    CORE_TITLE.replace_all(&out, title).into_owned()
+    CORE_TITLE
+        .replace_all(&out, regex::NoExpand(title))
+        .into_owned()
 }
 
 #[cfg(test)]

@@ -388,6 +388,38 @@ Built-in statuses: `open` `[ ]`, `wip` `[/]`, `done` `[x]`, `cancel` `[-]`.
 `tasks.statuses`. `done` stamps `✅ YYYY-MM-DD` and `cancel` stamps
 `❌ YYYY-MM-DD`; `date_format: null` on a status stops it stamping anything.
 
+## Create a note from a template
+
+Configure a name, template file, and destination folder in `knapper.yaml`:
+
+```yaml
+templates:
+  Project:
+    file: Templates/Project.md
+    folder: Projects
+```
+
+Create the template file with the frontmatter and headings your vault requires.
+The file and folder are relative to the vault. `folder: .` writes at its root.
+
+```bash
+knapper new "Example project" --template Project
+knapper lint "Projects/Example project.md"
+knapper new "Another project" --template Project --path-only
+```
+
+`new` writes `Projects/Example project.md`. It uses `template_engine`, including
+`{{title}}`, `{{date}}`, and the supported Templater expressions
+`<% tp.file.title %>` and `<% tp.date.now("YYYY-MM-DD") %>`. Dates use the local
+creation date. The title is a filename without an extension; `.md` is appended.
+Slashes, control characters, and empty titles are refused.
+
+An unknown or unreadable template, an existing destination, or a path outside
+the vault fails without overwriting a note. Template and destination paths must
+not contain symlinks. `--path-only` prints the vault-relative path; `--format json`
+returns `path`, `title`, `template`, and `created`. Both modes create the note.
+Run `lint` on the returned path to check your configured note rules.
+
 ## Daily notes
 
 ```bash

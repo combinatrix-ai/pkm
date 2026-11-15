@@ -29,7 +29,7 @@ being fine.
 - ✅ **Callouts** and **footnotes** — links inside them count, as they should
 - ✅ **Code and comments are excluded** — a `[[link]]` or `#tag` inside a fenced block, an inline span, or a `%%comment%%` is not a reference and is not counted
 - ✅ **Daily notes** — `knapper daily`, with template expansion
-- ✅ **Templates (core plugin)** — `{{date}}`, `{{time}}`, `{{title}}`, `{{date:YYYY/MM/DD}}`
+- ✅ **Templates (core plugin)** — `{{date}}`, `{{time}}`, `{{title}}`, and supported date/time formats. See [Template variables](CLI.md#template-variables).
 
 ### Tasks (community plugin)
 

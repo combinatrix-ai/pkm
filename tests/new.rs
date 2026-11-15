@@ -192,3 +192,76 @@ fn config_check_rejects_incomplete_or_misspelled_templates() {
         assert!(!run(dir.path(), &["config", "check"]).status.success());
     }
 }
+
+#[test]
+fn direct_template_needs_no_registration_and_requires_destination() {
+    let dir = vault("Projects", "core");
+    std::fs::write(
+        dir.path().join("knapper.yaml"),
+        "vault_path: .\ntemplate_engine: core\n",
+    )
+    .unwrap();
+    let missing = run(
+        dir.path(),
+        &["new", "Example", "--template", "Templates/Project.md"],
+    );
+    assert!(!missing.status.success());
+    assert!(String::from_utf8_lossy(&missing.stderr).contains("--folder"));
+    let output = run(
+        dir.path(),
+        &[
+            "new",
+            "Example",
+            "--template",
+            "Templates/Project.md",
+            "--folder",
+            "Notes",
+            "--path-only",
+        ],
+    );
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(
+        String::from_utf8_lossy(&output.stdout).trim(),
+        "Notes/Example.md"
+    );
+    assert!(std::fs::read_to_string(dir.path().join("Notes/Example.md"))
+        .unwrap()
+        .contains("# Example"));
+}
+
+#[test]
+fn destination_override_works_for_registered_templates() {
+    let dir = vault("Projects", "core");
+    let output = run(
+        dir.path(),
+        &["new", "Example", "--template", "Project", "--folder", "."],
+    );
+    assert!(output.status.success());
+    assert!(dir.path().join("Example.md").exists());
+    assert!(!dir.path().join("Projects").exists());
+}
+
+#[test]
+fn direct_template_and_destination_cannot_escape_vault() {
+    let outside = tempfile::tempdir().unwrap();
+    let dir = vault("Projects", "core");
+    for (template, folder) in [
+        ("../outside.md", "Notes"),
+        (outside.path().to_str().unwrap(), "Notes"),
+        ("Templates/Project.md", "../outside"),
+        ("Templates/Project.md", outside.path().to_str().unwrap()),
+    ] {
+        assert!(!run(
+            dir.path(),
+            &["new", "Example", "--template", template, "--folder", folder]
+        )
+        .status
+        .success());
+    }
+    assert!(!dir.path().join("Notes").exists());
+    assert_eq!(std::fs::read_dir(outside.path()).unwrap().count(), 0);
+}

@@ -1314,6 +1314,7 @@ pub fn new_note(
     config: &Config,
     title: &str,
     template: &str,
+    folder: Option<&str>,
     path_only: bool,
     format: &str,
 ) -> Result<()> {
@@ -1328,14 +1329,18 @@ pub fn new_note(
             "Title must be a non-empty filename without path separators or control characters"
         ));
     }
-    let settings = config.templates.get(template)
-        .ok_or_else(|| anyhow!("Unknown template {template:?}. Configure templates.{template}.file and folder in knapper.yaml"))?;
-    if settings.file.trim().is_empty() || settings.folder.trim().is_empty() {
+    let (file, destination) = match config.templates.get(template) {
+        Some(settings) => (settings.file.as_str(), folder.unwrap_or(&settings.folder)),
+        None => (template, folder.ok_or_else(|| anyhow!(
+            "Unknown template {template:?}. For a template file, pass --folder; otherwise configure templates.{template}.file and folder in knapper.yaml"
+        ))?),
+    };
+    if file.trim().is_empty() || destination.trim().is_empty() {
         return Err(anyhow!("Template file and folder must not be empty"));
     }
     let root = std::fs::canonicalize(&config.vault_path)?;
-    let source = template_path(&root, Path::new(&settings.file))?;
-    let folder = template_path(&root, Path::new(&settings.folder))?;
+    let source = template_path(&root, Path::new(file))?;
+    let folder = template_path(&root, Path::new(destination))?;
     let path = folder.join(format!("{title}.md"));
     if std::fs::symlink_metadata(&path).is_ok() {
         return Err(anyhow!(

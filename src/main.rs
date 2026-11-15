@@ -362,11 +362,14 @@ enum Command {
         #[arg(short = 'f', long = "format", default_value = "text")]
         format: String,
     },
-    /// Create a note from a named template configured in knapper.yaml.
+    /// Create a note from a configured template or a template file.
     New {
         title: String,
         #[arg(long)]
         template: String,
+        /// Vault-relative destination folder; required for a template file.
+        #[arg(long)]
+        folder: Option<String>,
         #[arg(short = 'p', long = "path-only")]
         path_only: bool,
         #[arg(short = 'f', long = "format", default_value = "text")]
@@ -760,9 +763,17 @@ fn run() -> Result<()> {
         Command::New {
             title,
             template,
+            folder,
             path_only,
             format,
-        } => notes_cmd::new_note(&config, &title, &template, path_only, &format),
+        } => notes_cmd::new_note(
+            &config,
+            &title,
+            &template,
+            folder.as_deref(),
+            path_only,
+            &format,
+        ),
         Command::Daily {
             date,
             path_only,

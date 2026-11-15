@@ -19,6 +19,7 @@ limitations, see the [compatibility matrix](COMPATIBILITY.md).
 - [Context and agent integration](#context-and-agent-integration)
 - [Tasks](#tasks)
 - [Create a note from a template](#create-a-note-from-a-template)
+- [Template variables](#template-variables)
 - [Daily notes](#daily-notes)
 - [External references](#external-references)
 - [Configuration](#configuration)
@@ -172,7 +173,7 @@ key. These write commands have no dry-run flag.
 | [`knapper context FILE`](#knapper-context) | Aggregated context; add `--line N` for focused Markdown context |
 | [`knapper tasks`](#knapper-tasks) | Find and filter `- [ ]` tasks |
 | [`knapper tasks new / done / wip / cancel / set`](#knapper-tasks) | Create a task or change its status |
-| [`knapper new TITLE --template NAME`](#knapper-new) | Create a note from a configured template |
+| [`knapper new TITLE --template NAME_OR_FILE`](#knapper-new) | Create a note from a configured template |
 | [`knapper daily [DATE]`](#knapper-daily) | Create or get a daily note |
 | [`knapper frontmatter get / set / delete`](#knapper-frontmatter) | Read and write YAML frontmatter |
 | [`knapper tags`](#knapper-tags) | List tags, or find files by tag with `--find` |
@@ -867,7 +868,14 @@ markers or add custom statuses, which `knapper tasks set STATUS TEXT` and
 
 Available in the current source; not included in v0.1.0.
 
-Configure a name, template file, and destination folder in `knapper.yaml`:
+Use a template file directly, with both paths relative to the vault:
+
+```bash
+knapper new "Example project" --template Templates/Project.md --folder Projects
+```
+
+`--folder` is required for a template file. To reuse a name and default folder,
+register them in `knapper.yaml`:
 
 ```yaml
 templates:
@@ -904,17 +912,55 @@ knapper lint "Projects/Example project.md"
 knapper new "Another project" --template Project --path-only
 ```
 
-`new` writes `Projects/Example project.md`. Both template engines expand
-`{{title}}` and `{{date}}`. The default `template_engine: templater` also expands
-`<% tp.file.title %>` and `<% tp.date.now("YYYY-MM-DD") %>`. Dates use the local
-creation date. The title is a filename without an extension; `.md` is appended.
+A registered name takes precedence over a file with the same name. `--folder`
+can also override a registered template's destination. `new` writes
+`Projects/Example project.md`; `.md` is always appended to the supplied title.
 Slashes, control characters, and empty titles are refused.
+See [Template variables](#template-variables) for date, time, and title expansion.
 
 An unknown or unreadable template, an existing destination, or a path outside
 the vault fails without overwriting a note. Template and destination paths must
 not contain symlinks. `--path-only` prints the vault-relative path; `--format json`
 returns `path`, `title`, `template`, and `created`. Both modes create the note.
 Run `lint` on the returned path to check your configured note rules.
+
+## Template variables
+
+`new` and `daily` use the same template expansion. Both `core` and `templater`
+engines support these placeholders:
+
+| Placeholder | Value |
+|---|---|
+| `{{title}}` | New note title, or the formatted daily-note filename without its extension |
+| `{{date}}` | Date in `YYYY-MM-DD` format |
+| `{{date:YYYY/MM/DD}}` | Date with the specified format |
+| `{{time}}` | Creation time in `HH:mm` format |
+| `{{time:HH:mm:ss}}` | Creation time with seconds |
+
+`new` uses the local creation date. `daily` uses the requested note date,
+even for a past or future note. Time always comes from the local clock when
+the note is created. Existing daily notes are not expanded again.
+
+Date formats replace `YYYY`, `MM`, and `DD`. Time formats replace `HH`, `mm`,
+and `ss`. Other characters are preserved; this is not a full Moment.js format
+engine. An empty format, such as `{{date:}}`, uses the default.
+
+The default `template_engine: templater` additionally supports:
+
+| Expression | Value |
+|---|---|
+| `<% tp.file.title %>` | Same title as `{{title}}` |
+| `<% tp.date.now() %>` | Same date as `{{date}}` |
+| `<% tp.date.now("YYYY/MM/DD") %>` | Formatted date |
+| `<% tp.date.now("YYYY-MM-DD", -1) %>` | Date shifted by the signed number of days |
+| `<% tp.date.yesterday() %>` | Date shifted by -1 day |
+| `<% tp.date.tomorrow("YYYY/MM/DD") %>` | Date shifted by +1 day, with an optional format |
+
+Templater format arguments use double quotes. Date helpers are relative to
+the requested note date for `daily`, and the creation date for `new`.
+`template_engine: core` leaves all `<% ... %>` expressions unchanged.
+Neither engine executes JavaScript or accepts user-defined variables.
+Unsupported expressions remain in the generated note unchanged.
 
 ## Daily notes
 
@@ -1309,7 +1355,7 @@ Commands:
   context       Get comprehensive context for a file or a '#tag' (for LLMs)
   frontmatter   Read and write frontmatter
   lint          Check vault health (exit 1 when any issues are found)
-  new           Create a note from a named template configured in knapper.yaml
+  new           Create a note from a configured template or a template file
   daily         Create or get daily note
   rename        Rename a note and update all links to it
   demote        Rewrite a hard [[target]] into a soft #tag
@@ -1665,7 +1711,7 @@ Options:
 ### knapper new
 
 ```text
-Create a note from a named template configured in knapper.yaml
+Create a note from a configured template or a template file
 
 Usage: knapper new [OPTIONS] --template <TEMPLATE> <TITLE>
 
@@ -1675,8 +1721,9 @@ Arguments:
 Options:
   -c, --config <CONFIG>      Path to config file
       --template <TEMPLATE>
-  -p, --path-only
+      --folder <FOLDER>      Vault-relative destination folder; required for a template file
   -v, --vault <VAULT>        Path to vault (overrides config)
+  -p, --path-only
   -f, --format <FORMAT>      [default: text]
   -h, --help                 Print help
 ```

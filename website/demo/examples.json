@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Create",
+    "command": "knapper new 'Field notes' --template Templates/Project.md --folder Projects",
+    "result": "Created: Projects/Field notes.md",
+    "caption": "Start a note from your template, with its title and metadata in place."
+  },
+  {
+    "name": "Query",
+    "command": "knapper query --where status=active --format paths",
+    "result": "Projects/Field notes.md",
+    "caption": "Find notes by metadata, tags, and link counts."
+  },
+  {
+    "name": "Links",
+    "command": "knapper backlinks 'Projects/Field notes.md'",
+    "result": "Index.md (line 3)",
+    "caption": "Follow the connections back to the notes that reference this one."
+  },
+  {
+    "name": "Tasks",
+    "command": "knapper tasks --due-to 2026-01-31",
+    "result": "Projects/Tasks.md:\n  3: - [ ] Review the field notes 📅 2026-01-15\n  4: - [ ] Plan the next visit 📅 2026-01-20\n\nFound 2 tasks in 1 files",
+    "caption": "Find tasks by dates, status, tags, or the notes they belong to."
+  },
+  {
+    "name": "Lint",
+    "command": "knapper lint Projects/Review.md --check broken-links",
+    "result": "Running lint checks...\n\nSelected notes: 1\n❌ Broken links: 1\n\nTotal issues: 1",
+    "caption": "Catch broken links, missing headings, and invalid frontmatter."
+  },
+  {
+    "name": "Refactor",
+    "command": "knapper rename 'Field notes' 'Research notes' --dry-run",
+    "result": "Renaming: Projects/Field notes.md -> Projects/Research notes.md\nFound 1 files with links to update\n\n[DRY RUN] Would update:\n  Index.md (1 links)",
+    "caption": "Preview a rename and its link updates before writing."
+  }
+]

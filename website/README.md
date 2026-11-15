@@ -18,3 +18,7 @@ organization's website pipeline when `combinatrix.ai/knapper/` is ready.
 VitePress is pinned to 2.0.0-alpha.21. The older stable series currently pulls
 dependencies with reported vulnerabilities; run `npm audit` when updating.
 The generated output is static and needs no Node.js runtime in production.
+
+The hero examples are real output from a synthetic vault. Regenerate them with
+`cargo build --bin knapper` and `python3 scripts/capture-examples.py`. No user
+notes or live account data are used.

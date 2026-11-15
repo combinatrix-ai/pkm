@@ -1,15 +1,10 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { withBase } from 'vitepress';
+import examples from '../../demo/examples.json';
 const copied = ref(false);
 const copyError = ref(false);
 const install = 'curl -fsSL https://raw.githubusercontent.com/combinatrix-ai/knapper/v0.1.0/install.sh | sh';
-const examples = [
-  { name: 'Create', command: 'knapper new "Field notes" \\\n  --template Templates/Project.md \\\n  --folder Projects', result: 'Created: Projects/Field notes.md', caption: 'Create a structured note from your template, then check it with lint.' },
-  { name: 'Query', command: "knapper query --where 'status=active' --format paths", result: 'Projects/Field notes.md', caption: 'Find notes by metadata, tags, and link counts.' },
-  { name: 'Refactor', command: 'knapper rename "Field notes" "Research notes" --dry-run', result: '', caption: 'Rename notes and update their links. Preview every change before writing.' },
-  { name: 'Tasks', command: 'knapper tasks --overdue --format json', result: '', caption: 'Find overdue tasks and pass structured output to your agent.' },
-];
 const active = ref(0);
 const paused = ref(false);
 const reducedMotion = ref(false);
@@ -99,6 +94,21 @@ async function copyInstall() {
     <section class="install-section" aria-labelledby="install-title">
       <div><h2 id="install-title">One binary.<br>A folder of notes.</h2><p>macOS and Linux. Markdown and Org.<br>Works from your laptop, over SSH, or in CI.</p><a class="text-link" :href="withBase('/reference/compatibility')">Check compatibility →</a></div>
       <div class="install-box"><div class="install-heading"><span>Install knapper</span><button @click="copyInstall">{{ copied ? 'Copied' : 'Copy' }}</button></div><pre tabindex="0"><code>{{ install }}</code></pre><p role="status">{{ copyError ? 'Copy unavailable. Select the command above.' : 'Already installed? Run knapper self-update.' }}</p><a href="https://github.com/combinatrix-ai/knapper/releases">Release notes and downloads ↗</a></div>
+    </section>
+
+    <section class="features-section" aria-labelledby="features-title">
+      <h2 id="features-title">The tools for a connected knowledge base.</h2>
+      <div class="feature-list">
+        <article><h3>Notes and templates</h3><p>Create notes and daily entries. Expand titles, dates, and times with Core or Templater syntax.</p><code>new · daily</code></article>
+        <article><h3>Queries and metadata</h3><p>Filter and sort notes by frontmatter, inline fields, tags, and computed link counts.</p><code>query · fields · frontmatter · tags</code></article>
+        <article><h3>Links and context</h3><p>Explore incoming and outgoing links, hubs, and orphans. Read a note with its surrounding context.</p><code>links · backlinks · context · hubs · orphans</code></article>
+        <article><h3>Tasks and recurrence</h3><p>Create and update tasks. Filter dates and statuses; generate the next occurrence when a recurring task is done.</p><code>tasks · tasks new · tasks done · tasks set</code></article>
+        <article><h3>Lint and validation</h3><p>Check broken links, duplicate names, required headings, and frontmatter. Limit checks to files or Git changes.</p><code>lint · broken-links · config check</code></article>
+        <article><h3>Link-preserving edits</h3><p>Rename or move notes and directories with link updates. Preview repairs or turn topic links into tags.</p><code>rename · move · repair-links · demote</code></article>
+        <article><h3>External references</h3><p>Keep references to external values in notes, with resolution handled by separately configured providers.</p><code>refs · resolve · provider</code></article>
+        <article><h3>Agent and CLI workflow</h3><p>Use JSON output, an embedded agent skill, and provenance-verified self-updates.</p><code>--format json · skill · self-update</code></article>
+      </div>
+      <a class="text-link" :href="withBase('/reference/cli')">Explore every command →</a>
     </section>
 
     <section class="docs-section" aria-labelledby="docs-title"><h2 id="docs-title">Keep the files. Bring your tools.</h2><p>Use an existing Obsidian vault or any linked folder of Markdown. Run <code>knapper skill</code> to give your agent the command reference.</p><div class="doc-links"><a :href="withBase('/reference/cli')">CLI reference <span>Commands, configuration, and examples →</span></a><a :href="withBase('/reference/cli#template-variables')">Template variables <span>Date, time, title, and Templater support →</span></a><a href="https://github.com/combinatrix-ai/knapper">Source code <span>Read the code, report an issue, contribute ↗</span></a></div></section>

@@ -61,3 +61,6 @@ a:focus-visible,button:focus-visible,pre:focus-visible{outline:3px solid #216546
 .compatibility-strip{text-align:center;padding:0 0 54px}
 .compatibility-strip ul{justify-content:center}
 @media(max-width:767px){.hero{padding:36px 0 36px;gap:30px}.hero h1{font-size:clamp(32px,7vw,44px)}.session [role="tabpanel"] pre{font-size:12px}.compatibility-strip ul{gap:20px 24px}.compatibility-strip li{font-size:16px}}
+
+.features-section{border-top:1px solid #cdd7cf;padding:64px 0}.feature-list{display:grid;grid-template-columns:1fr 1fr;gap:32px 64px;margin:36px 0}.feature-list article{border-top:1px solid #dce3de;padding-top:20px}.feature-list h3{font-size:19px;font-weight:600;margin:0 0 10px}.feature-list p{font-size:15px;line-height:1.7;color:var(--vp-c-text-2);margin:0 0 14px}.feature-list code{font:12px/1.8 var(--vp-font-family-mono);color:var(--vp-c-brand-1)}.example-tabs{overflow-x:auto}.example-tabs button{flex-shrink:0}.session [role="tabpanel"] pre{min-height:230px}
+@media(max-width:767px){.feature-list{grid-template-columns:1fr;gap:28px}.features-section{padding:48px 0}.example-tabs{justify-content:flex-start}.session [role="tabpanel"] pre{min-height:260px}}

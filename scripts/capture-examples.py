@@ -15,11 +15,11 @@ binary = root / 'target/debug/knapper'
 
 BASE = {
     'knapper.yaml': 'vault_path: .\nlint:\n  rules:\n    orphans: {enabled: false}\n',
-    'Index.md': '# Index\n\n- [[Projects/Recipe]]\n- [[Reading/Methods]]\n',
-    'Projects/Recipe.md': '---\ntype: project\nstatus: active\n---\n# Recipe\n\nBuilds on [[Reading/Methods]].\n',
-    'Reading/Methods.md': '# Methods\n\nBackground for [the recipe](../Projects/Recipe.md).\n',
-    'Diary/2026-01-12.md': '# 2026-01-12\n\nOutlined chapter two of [[Projects/Recipe]].\n',
-    'Projects/Tasks.md': '# Tasks\n\n- [ ] Review the field notes 📅 2026-01-15\n- [ ] Plan the next visit 📅 2026-01-20\n',
+    'Index.md': '# Index\n\n- [[Projects/Redesign]]\n- [[Meetings/Kickoff]]\n',
+    'Projects/Redesign.md': '---\ntype: project\nstatus: active\n---\n# Redesign\n\nScope agreed in [[Meetings/Kickoff]].\n',
+    'Meetings/Kickoff.md': '# Kickoff\n\nFirst meeting for [the redesign](../Projects/Redesign.md).\n',
+    'Diary/2026-01-12.md': '# 2026-01-12\n\nDrafted the new homepage for [[Projects/Redesign]].\n',
+    'Projects/Tasks.md': '# Tasks\n\n- [ ] Send the proposal 📅 2026-01-15\n- [ ] Book the user sessions 📅 2026-01-20\n',
 }
 
 RULES = '''lint:
@@ -32,12 +32,12 @@ RULES = '''lint:
 
 # name -> (extra files, argv, expected exit code)
 CASES = {
-    'rename': ({}, ['rename', 'Recipe', 'Cookbook'], 0),
+    'rename': ({}, ['rename', 'Redesign', 'Relaunch'], 0),
     'tasks': ({}, ['tasks', '--overdue'], 0),
-    'backlinks': ({}, ['backlinks', 'Projects/Recipe.md'], 0),
-    'broken': ({'Projects/Review.md': '# Review\n\nCompare with [[Field notes]].\n'}, ['broken-links'], 0),
+    'backlinks': ({}, ['backlinks', 'Projects/Redesign.md'], 0),
+    'broken': ({'Projects/Pricing.md': '# Pricing\n\nCompare with [[Competitor notes]].\n'}, ['broken-links'], 0),
     'repair': (
-        {'Index.md': '# Index\n\n- [[old/Reading/Methods.md]]\n- [[Projects/My%20Plan]]\n- [[Roam]]\n',
+        {'Index.md': '# Index\n\n- [[old/Meetings/Kickoff.md]]\n- [[Projects/My%20Plan]]\n- [[Roam]]\n',
          'Projects/My Plan.md': '# My Plan\n'},
         ['repair-links', '--dry-run'], 0),
     'demote': (
@@ -68,20 +68,20 @@ def capture(name):
 
 conversations = [
     {'name': 'Rename', 'case': 'rename',
-     'you': 'Rename the recipe project to cookbook.',
-     'agent': 'Renamed. The three notes that linked to it now point to Cookbook.',
+     'you': 'Rename the Redesign project to Relaunch.',
+     'agent': 'Renamed. The three notes that linked to it now point to Relaunch.',
      'caption': 'A rename that carries every link with it.'},
     {'name': 'Tasks', 'case': 'tasks',
      'you': "What's overdue?",
-     'agent': 'Two things: review the field notes (Jan 15) and plan the next visit (Jan 20). Want me to move either one?',
+     'agent': 'Two things: send the proposal (Jan 15) and book the user sessions (Jan 20). Want me to move either one?',
      'caption': 'Tasks from every note, filtered by date, status, or tag.'},
     {'name': 'Recall', 'case': 'backlinks',
-     'you': 'Where have I mentioned the recipe?',
-     'agent': 'Three places: your index, the methods reading note, and the Jan 12 diary entry.',
+     'you': 'Where have I mentioned the redesign?',
+     'agent': 'Three places: your index, the kickoff meeting note, and the Jan 12 diary entry.',
      'caption': 'The backlinks pane, as an answer.'},
     {'name': 'Health', 'case': 'broken',
      'you': 'Is anything broken?',
-     'agent': 'One broken link: Projects/Review.md points at "Field notes", which does not exist. Should I create it or fix the link?',
+     'agent': 'One broken link: Projects/Pricing.md points at "Competitor notes", which does not exist. Should I create it or fix the link?',
      'caption': 'Every broken link, with the line and the reason.'},
 ]
 

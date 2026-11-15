@@ -99,10 +99,10 @@ const more = [
       <div class="versus">
         <div class="vs bad">
           <header>Agent with shell tools</header>
-          <pre><b>$ mv Projects/Recipe.md Projects/Cookbook.md</b>
-$ grep -rl "Recipe" .
+          <pre><b>$ mv Projects/Redesign.md Projects/Relaunch.md</b>
+$ grep -rl "Redesign" .
 ./Index.md
-./Reading/Methods.md
+./Meetings/Kickoff.md
 ./Diary/2026-01-12.md</pre>
           <p>The file moved. The links did not. Next it edits your notes with sed.</p>
         </div>

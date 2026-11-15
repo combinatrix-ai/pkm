@@ -2,45 +2,45 @@
   "conversations": [
     {
       "name": "Rename",
-      "you": "Rename the recipe project to cookbook.",
-      "agent": "Renamed. The three notes that linked to it now point to Cookbook.",
+      "you": "Rename the Redesign project to Relaunch.",
+      "agent": "Renamed. The three notes that linked to it now point to Relaunch.",
       "caption": "A rename that carries every link with it.",
-      "command": "knapper rename Recipe Cookbook",
-      "result": "Renaming: Projects/Recipe.md -> Projects/Cookbook.md\nFound 3 files with links to update\n  Updated 1 links in Diary/2026-01-12.md\n  Updated 1 links in Reading/Methods.md\n  Updated 1 links in Index.md\n\nDone! Renamed and updated 3 links in 3 files."
+      "command": "knapper rename Redesign Relaunch",
+      "result": "Renaming: Projects/Redesign.md -> Projects/Relaunch.md\nFound 3 files with links to update\n  Updated 1 links in Diary/2026-01-12.md\n  Updated 1 links in Meetings/Kickoff.md\n  Updated 1 links in Index.md\n\nDone! Renamed and updated 3 links in 3 files."
     },
     {
       "name": "Tasks",
       "you": "What's overdue?",
-      "agent": "Two things: review the field notes (Jan 15) and plan the next visit (Jan 20). Want me to move either one?",
+      "agent": "Two things: send the proposal (Jan 15) and book the user sessions (Jan 20). Want me to move either one?",
       "caption": "Tasks from every note, filtered by date, status, or tag.",
       "command": "knapper tasks --overdue",
-      "result": "Projects/Tasks.md:\n  3: - [ ] Review the field notes 📅 2026-01-15\n  4: - [ ] Plan the next visit 📅 2026-01-20\n\nFound 2 tasks in 1 files"
+      "result": "Projects/Tasks.md:\n  3: - [ ] Send the proposal 📅 2026-01-15\n  4: - [ ] Book the user sessions 📅 2026-01-20\n\nFound 2 tasks in 1 files"
     },
     {
       "name": "Recall",
-      "you": "Where have I mentioned the recipe?",
-      "agent": "Three places: your index, the methods reading note, and the Jan 12 diary entry.",
+      "you": "Where have I mentioned the redesign?",
+      "agent": "Three places: your index, the kickoff meeting note, and the Jan 12 diary entry.",
       "caption": "The backlinks pane, as an answer.",
-      "command": "knapper backlinks Projects/Recipe.md",
-      "result": "Diary/2026-01-12.md (line 3)\n\nReading/Methods.md (line 3)\n\nIndex.md (line 3)"
+      "command": "knapper backlinks Projects/Redesign.md",
+      "result": "Diary/2026-01-12.md (line 3)\n\nMeetings/Kickoff.md (line 3)\n\nIndex.md (line 3)"
     },
     {
       "name": "Health",
       "you": "Is anything broken?",
-      "agent": "One broken link: Projects/Review.md points at \"Field notes\", which does not exist. Should I create it or fix the link?",
+      "agent": "One broken link: Projects/Pricing.md points at \"Competitor notes\", which does not exist. Should I create it or fix the link?",
       "caption": "Every broken link, with the line and the reason.",
       "command": "knapper broken-links",
-      "result": "Found 1 broken links in 1 files:\n\n  Projects/Review.md:\n    3: [[Field notes]] (missing-note, unresolved)\n\n0 could be repaired safely; see `knapper repair-links --dry-run`."
+      "result": "Found 1 broken links in 1 files:\n\n  Projects/Pricing.md:\n    3: [[Competitor notes]] (missing-note, unresolved)\n\n0 could be repaired safely; see `knapper repair-links --dry-run`."
     }
   ],
   "snippets": {
     "rename": {
-      "command": "knapper rename Recipe Cookbook",
-      "result": "Renaming: Projects/Recipe.md -> Projects/Cookbook.md\nFound 3 files with links to update\n  Updated 1 links in Diary/2026-01-12.md\n  Updated 1 links in Reading/Methods.md\n  Updated 1 links in Index.md\n\nDone! Renamed and updated 3 links in 3 files."
+      "command": "knapper rename Redesign Relaunch",
+      "result": "Renaming: Projects/Redesign.md -> Projects/Relaunch.md\nFound 3 files with links to update\n  Updated 1 links in Diary/2026-01-12.md\n  Updated 1 links in Meetings/Kickoff.md\n  Updated 1 links in Index.md\n\nDone! Renamed and updated 3 links in 3 files."
     },
     "repair": {
       "command": "knapper repair-links --dry-run",
-      "result": "[DRY RUN] repair-links: 3 broken link occurrence(s) in 1 file(s)\n  safe 2, ambiguous 0, unresolved 1\n\nsafe (2)\n  Index.md:3:3  [[old/Reading/Methods.md]] -> [[Reading/Methods.md]]\n      Reading/Methods.md (unique-path-suffix: the only file whose path ends with \"Reading/Methods.md\", and \"Reading/Methods.md\" resolves back to it)\n  Index.md:4:3  [[Projects/My%20Plan]] -> [[Projects/My Plan]]\n      Projects/My Plan.md (percent-decoding: decoding the target gives \"Projects/My Plan\", and \"Projects/My Plan\" resolves back to it)\n\nunresolved (1)\n  Index.md:5:3  [[Roam]]\n      missing-note: no file matches this target\n\nNothing was written. repair-links plans repairs; it never edits the vault."
+      "result": "[DRY RUN] repair-links: 3 broken link occurrence(s) in 1 file(s)\n  safe 2, ambiguous 0, unresolved 1\n\nsafe (2)\n  Index.md:3:3  [[old/Meetings/Kickoff.md]] -> [[Meetings/Kickoff.md]]\n      Meetings/Kickoff.md (unique-path-suffix: the only file whose path ends with \"Meetings/Kickoff.md\", and \"Meetings/Kickoff.md\" resolves back to it)\n  Index.md:4:3  [[Projects/My%20Plan]] -> [[Projects/My Plan]]\n      Projects/My Plan.md (percent-decoding: decoding the target gives \"Projects/My Plan\", and \"Projects/My Plan\" resolves back to it)\n\nunresolved (1)\n  Index.md:5:3  [[Roam]]\n      missing-note: no file matches this target\n\nNothing was written. repair-links plans repairs; it never edits the vault."
     },
     "demote": {
       "command": "knapper demote book-club --dry-run",
@@ -48,7 +48,7 @@
     },
     "rules": {
       "command": "knapper lint --check headings",
-      "result": "Running lint checks...\n\nMissing headings: 2\n  Projects/Recipe.md: Missing required heading: Next steps\n  Projects/Recipe.md: Missing required heading: Summary\n\nTotal issues: 2"
+      "result": "Running lint checks...\n\nMissing headings: 2\n  Projects/Redesign.md: Missing required heading: Next steps\n  Projects/Redesign.md: Missing required heading: Summary\n\nTotal issues: 2"
     },
     "refs": {
       "command": "knapper refs Projects/Application.md",

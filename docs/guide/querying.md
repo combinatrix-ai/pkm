@@ -46,3 +46,6 @@ knapper frontmatter delete Notes/Example.md score
 so numbers, booleans and lists retain their types; quote a YAML string inside
 the shell argument when a scalar must remain a string. `delete` removes one
 key. These write commands have no dry-run flag.
+
+Tags are covered in [Hard links and soft tags](links-and-tags.md): `knapper tags`
+lists them and `knapper tags --find NAME` finds the notes that carry one.

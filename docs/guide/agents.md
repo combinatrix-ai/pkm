@@ -10,6 +10,9 @@ knapper broken-links --format paths
 knapper frontmatter set "Projects/x.md" status done
 ```
 
+`knapper links FILE` lists a note's outgoing links and `knapper backlinks FILE`
+its incoming ones; both take `-A`/`-B` for surrounding lines.
+
 And `context` aggregates what a model would otherwise need five calls to
 gather — content, outgoing links, backlinks, tags, headings, stats:
 

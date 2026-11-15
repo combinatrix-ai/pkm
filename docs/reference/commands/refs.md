@@ -6,7 +6,7 @@ List external references (knapper://provider/locator) in the vault
 Usage: knapper refs [OPTIONS] [FILE]
 
 Arguments:
-  [FILE]  
+  [FILE]
 
 Options:
   -c, --config <CONFIG>      Path to config file

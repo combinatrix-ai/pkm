@@ -94,6 +94,7 @@ a:focus-visible,button:focus-visible,pre:focus-visible{outline:3px solid #216546
 .facts span{display:block;font-size:13px;font-weight:400;color:var(--vp-c-text-2);margin-top:6px;line-height:1.55}
 .facts a{color:var(--vp-c-brand-1)}
 
+.landing .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .docs-section{padding-bottom:66px}
 .doc-links{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;margin-top:30px}
 .doc-links a{font-weight:600;border-top:2px solid var(--vp-c-brand-1);padding-top:18px}
@@ -109,7 +110,7 @@ a:focus-visible,button:focus-visible,pre:focus-visible{outline:3px solid #216546
   .facts{grid-template-columns:1fr 1fr}
   .doc-links{grid-template-columns:1fr;gap:24px}
   .replaces,.replaces tbody,.replaces tr,.replaces td{display:block;width:100%!important}
-  .replaces thead{display:none}
+  .replaces thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
   .replaces tr{padding:14px 0;border-bottom:1px solid var(--line-soft)}
   .replaces td{border:0;padding:2px 0;text-align:left!important}
   .replaces td:first-child{font-size:13px;text-decoration:line-through}

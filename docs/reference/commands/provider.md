@@ -39,7 +39,7 @@ Define or replace one provider's command
 Usage: knapper provider set [OPTIONS] <NAME> -- <COMMAND>...
 
 Arguments:
-  <NAME>        
+  <NAME>
   <COMMAND>...  Command after `--`, e.g. -- op read 'op://Vault/{locator}/value'
 
 Options:
@@ -56,7 +56,7 @@ Forget one provider
 Usage: knapper provider remove [OPTIONS] <NAME>
 
 Arguments:
-  <NAME>  
+  <NAME>
 
 Options:
   -c, --config <CONFIG>  Path to config file

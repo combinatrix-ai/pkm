@@ -6,7 +6,7 @@ List outgoing links from a file
 Usage: knapper links [OPTIONS] <FILE>
 
 Arguments:
-  <FILE>  
+  <FILE>
 
 Options:
   -A, --after <AFTER>    Lines after match [default: 0]

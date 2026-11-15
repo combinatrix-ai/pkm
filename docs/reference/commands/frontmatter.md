@@ -25,8 +25,8 @@ Get frontmatter value(s)
 Usage: knapper frontmatter get [OPTIONS] <FILE> [KEY]
 
 Arguments:
-  <FILE>  
-  [KEY]   
+  <FILE>
+  [KEY]
 
 Options:
   -c, --config <CONFIG>  Path to config file
@@ -43,9 +43,9 @@ Set frontmatter value
 Usage: knapper frontmatter set [OPTIONS] <FILE> <KEY> <VALUE>
 
 Arguments:
-  <FILE>   
-  <KEY>    
-  <VALUE>  
+  <FILE>
+  <KEY>
+  <VALUE>
 
 Options:
   -c, --config <CONFIG>  Path to config file
@@ -61,8 +61,8 @@ Delete frontmatter key
 Usage: knapper frontmatter delete [OPTIONS] <FILE> <KEY>
 
 Arguments:
-  <FILE>  
-  <KEY>   
+  <FILE>
+  <KEY>
 
 Options:
   -c, --config <CONFIG>  Path to config file

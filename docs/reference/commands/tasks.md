@@ -31,31 +31,31 @@ Options:
       --available
           Hide tasks whose start date is after today
       --due-on <DUE_ON>
-          
+
       --due-from <DUE_FROM>
-          
+
       --due-to <DUE_TO>
-          
+
       --scheduled-on <SCHEDULED_ON>
-          
+
       --scheduled-from <SCHEDULED_FROM>
-          
+
       --scheduled-to <SCHEDULED_TO>
-          
+
       --start-on <START_ON>
-          
+
       --start-from <START_FROM>
-          
+
       --start-to <START_TO>
-          
+
       --created-from <CREATED_FROM>
-          
+
       --created-to <CREATED_TO>
-          
+
       --done-from <DONE_FROM>
-          
+
       --done-to <DONE_TO>
-          
+
       --file <FILE>
           Filter by file/folder path
       --exclude <EXCLUDE>
@@ -90,7 +90,7 @@ Create a new task
 Usage: knapper tasks new [OPTIONS] <TEXT>
 
 Arguments:
-  <TEXT>  
+  <TEXT>
 
 Options:
   -c, --config <CONFIG>        Path to config file
@@ -112,11 +112,11 @@ Mark a task as done, adding the next occurrence of a recurring one
 Usage: knapper tasks done [OPTIONS] <TEXT>
 
 Arguments:
-  <TEXT>  
+  <TEXT>
 
 Options:
   -c, --config <CONFIG>  Path to config file
-      --file <FILE>      
+      --file <FILE>
       --partial          Use partial matching (contains)
   -v, --vault <VAULT>    Path to vault (overrides config)
       --no-recur         Do not create the next occurrence of a recurring task
@@ -131,12 +131,12 @@ Mark a task as in progress
 Usage: knapper tasks wip [OPTIONS] <TEXT>
 
 Arguments:
-  <TEXT>  
+  <TEXT>
 
 Options:
   -c, --config <CONFIG>  Path to config file
-      --file <FILE>      
-      --partial          
+      --file <FILE>
+      --partial
   -v, --vault <VAULT>    Path to vault (overrides config)
   -h, --help             Print help
 ```
@@ -149,12 +149,12 @@ Mark a task as cancelled
 Usage: knapper tasks cancel [OPTIONS] <TEXT>
 
 Arguments:
-  <TEXT>  
+  <TEXT>
 
 Options:
   -c, --config <CONFIG>  Path to config file
-      --file <FILE>      
-      --partial          
+      --file <FILE>
+      --partial
   -v, --vault <VAULT>    Path to vault (overrides config)
   -h, --help             Print help
 ```
@@ -167,13 +167,13 @@ Transition a task to a named status
 Usage: knapper tasks set [OPTIONS] <STATUS> <TEXT>
 
 Arguments:
-  <STATUS>  
-  <TEXT>    
+  <STATUS>
+  <TEXT>
 
 Options:
   -c, --config <CONFIG>  Path to config file
-      --file <FILE>      
-      --partial          
+      --file <FILE>
+      --partial
   -v, --vault <VAULT>    Path to vault (overrides config)
   -h, --help             Print help
 ```

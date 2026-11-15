@@ -22,7 +22,7 @@ Options:
           Write this tag instead of the target itself
 
       --dry-run
-          
+
 
   -v, --vault <VAULT>
           Path to vault (overrides config)

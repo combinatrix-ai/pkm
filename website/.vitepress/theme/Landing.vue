@@ -118,15 +118,15 @@ $ grep -rl "Recipe" .
     <section class="band" aria-labelledby="replaces-title">
       <p class="eyebrow">What it replaces</p>
       <h2 id="replaces-title">Everything the app did.<br>Minus the app.</h2>
-      <p>Each pane and plugin you relied on is a command your agent can call, with JSON output.</p>
-      <table class="replaces">
-        <thead><tr><th>In the app</th><th>With knapper</th><th>You say</th><th></th></tr></thead>
-        <tbody>
-          <tr v-for="row in replaced" :key="row.app">
-            <td>{{ row.app }}</td>
-            <td><code>{{ row.commands }}</code></td>
-            <td>"{{ row.say }}"</td>
-            <td><a :href="withBase(row.guide)" :aria-label="`Guide: ${row.app}`">Guide →</a></td>
+      <p>Each pane and plugin you relied on is a command your agent can call. Queries answer in JSON.</p>
+      <table class="replaces" role="table">
+        <thead role="rowgroup"><tr role="row"><th role="columnheader">In the app</th><th role="columnheader">With knapper</th><th role="columnheader">You say</th><th role="columnheader"><span class="visually-hidden">Guide</span></th></tr></thead>
+        <tbody role="rowgroup">
+          <tr v-for="row in replaced" :key="row.app" role="row">
+            <td role="cell">{{ row.app }}</td>
+            <td role="cell"><code>{{ row.commands }}</code></td>
+            <td role="cell">"{{ row.say }}"</td>
+            <td role="cell"><a :href="withBase(row.guide)" :aria-label="`Guide: ${row.app}`">Guide →</a></td>
           </tr>
         </tbody>
       </table>

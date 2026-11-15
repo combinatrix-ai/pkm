@@ -1,10 +1,10 @@
 name: Website
 on:
   pull_request:
-    paths: ['website/**', 'scripts/prepare-docs.mjs', 'docs/**', 'package.json', 'package-lock.json', '.github/workflows/website.yml']
+    paths: ['website/**', 'scripts/prepare-docs.mjs', 'scripts/capture-examples.py', 'docs/**', 'package.json', 'package-lock.json', '.github/workflows/website.yml']
   push:
     branches: [main]
-    paths: ['website/**', 'scripts/prepare-docs.mjs', 'docs/**', 'package.json', 'package-lock.json', '.github/workflows/website.yml']
+    paths: ['website/**', 'scripts/prepare-docs.mjs', 'scripts/capture-examples.py', 'docs/**', 'package.json', 'package-lock.json', '.github/workflows/website.yml']
 permissions:
   contents: read
 jobs:

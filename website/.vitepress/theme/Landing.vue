@@ -48,7 +48,7 @@ const more = [
   { title: 'Names in notes, values elsewhere',
     text: 'An address or a licence key belongs in your notes by name, not by value. Write it as a knapper:// link and the value stays in your password manager until someone asks for that one item.',
     snippet: snippets.refs, guide: '/guide/external-references', link: 'External references',
-    works: [['1password', '1Password'], ['bitwarden', 'Bitwarden'], ['lastpass', 'LastPass']] },
+    works: [['1password', '1Password'], ['bitwarden', 'Bitwarden']] },
   { title: 'Whole folders move too',
     text: 'Archiving a year of projects is one command. Every note inside moves, and every link that pointed into the folder follows it.',
     snippet: snippets.movedir, guide: '/guide/refactoring', link: 'Renames and moves' },

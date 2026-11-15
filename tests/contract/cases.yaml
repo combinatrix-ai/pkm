@@ -956,6 +956,75 @@
       "source.md":
         contains: ["[x](Projects/Moved.md)"]
 
+# A wikilink may name its note with the extension, [[Recipe.md]]. The rename
+# pattern only knew the bare stem, so these links were left pointing at a file
+# that no longer existed.
+
+- name: md-extension / a rename follows a wikilink written with .md
+  vault: md-extension
+  args: [rename, Recipe, Argument]
+  expect:
+    stdout_contains: ["Updated 7 links in Index.md"]
+    file:
+      "Index.md":
+        contains:
+          - "bare: [[Argument.md]]"
+          - "[[Argument.md#Heading]]"
+          - "[[Argument.md^block]]"
+          - "[[Argument.md|the recipe]]"
+          - "![[Argument.md]]"
+          - "[[Argument.MD]]"
+          - "stay without it: [[Argument]]"
+          - "[[Recipe.mdx]]"
+          - "[[Recipe.md.bak]]"
+          - "[[Recipe2]]"
+          - "[[Recipe2.md]]"
+        excludes: ["[[Recipe.md]]", "[[Recipe.md#", "[[Recipe.md^", "[[Recipe.md|", "[[Recipe.MD]]"]
+
+- name: md-extension / a rename follows a folder-prefixed wikilink written with .md
+  vault: md-extension
+  args: [rename, Draft, Final]
+  expect:
+    file:
+      "Index.md":
+        contains: ["[[Papers/Final.md]]", "[[Papers/Final.md#Heading]]"]
+        excludes: ["Draft"]
+
+- name: md-extension / a move follows a wikilink written with .md
+  vault: md-extension
+  args: [move, Recipe.md, Archive/]
+  expect:
+    stdout_contains: ["Updated 7 links in Index.md"]
+    file:
+      "Index.md":
+        contains:
+          - "bare: [[Archive/Recipe.md]]"
+          - "[[Archive/Recipe.md#Heading]]"
+          - "[[Archive/Recipe.md^block]]"
+          - "[[Archive/Recipe.md|the recipe]]"
+          - "![[Archive/Recipe.md]]"
+          - "[[Archive/Recipe.MD]]"
+          - "stay without it: [[Archive/Recipe]]"
+          - "[[Recipe.mdx]]"
+          - "[[Recipe.md.bak]]"
+          - "[[Recipe2]]"
+          - "[[Recipe2.md]]"
+
+- name: md-extension / a move out of a folder follows a wikilink written with .md
+  vault: md-extension
+  args: [move, Papers/Draft.md, Archive/]
+  expect:
+    file:
+      "Index.md":
+        contains: ["[[Archive/Draft.md]]", "[[Archive/Draft.md#Heading]]"]
+        excludes: ["Papers/Draft"]
+
+- name: md-extension / a dry run counts wikilinks written with .md
+  vault: md-extension
+  args: [rename, Recipe, Argument, --dry-run]
+  expect:
+    stdout_contains: ["Found 1 files with links to update", "Index.md (7 links)"]
+
 # ------------------------------------- A name with a space in it, in links --
 # The forms Obsidian writes when a note's name holds a space. Each referrer
 # here holds nothing but the one link, which is the point: knapper used to

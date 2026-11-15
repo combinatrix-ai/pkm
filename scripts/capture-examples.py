@@ -41,9 +41,11 @@ CASES = {
          'Projects/My Plan.md': '# My Plan\n'},
         ['repair-links', '--dry-run'], 0),
     'demote': (
-        {'Diary/2026-01-12.md': '# 2026-01-12\n\n- Wrote the reading list [[book-club]]\n- Call about [[book-club|the hire]]\n',
-         'Diary/2026-01-13.md': '# 2026-01-13\n\n- First session [[book-club]]\n'},
-        ['demote', 'book-club', '--dry-run'], 0),
+        {'Diary/2026-01-12.md': '# 2026-01-12\n\n- The piece on pricing pages [[to-read]]\n- Asked Sam about [[to-read|the reading list]]\n',
+         'Diary/2026-01-13.md': '# 2026-01-13\n\n- Two papers on onboarding [[to-read]]\n'},
+        ['demote', 'to-read', '--dry-run'], 0),
+    'movedir': ({}, ['move', 'Projects', 'Archive/2025/'], 0),
+    'context': ({}, ['context', 'Projects/Redesign.md', '--format', 'json'], 0),
     'rules': ({'knapper.yaml': 'vault_path: .\n' + RULES}, ['lint', '--check', 'headings'], 1),
     'refs': (
         {'Projects/Application.md': '# Application\n\nAddress: [Home address](knapper://personal/address.home)\n'},
@@ -89,7 +91,7 @@ examples = {
     'conversations': [
         {**{k: c[k] for k in ('name', 'you', 'agent', 'caption')}, **capture(c['case'])} for c in conversations
     ],
-    'snippets': {name: capture(name) for name in ('rename', 'repair', 'demote', 'rules', 'refs')},
+    'snippets': {name: capture(name) for name in ('rename', 'repair', 'demote', 'rules', 'refs', 'movedir', 'context')},
     'rules_config': RULES.strip(),
 }
 (root / 'website/demo/examples.json').write_text(json.dumps(examples, ensure_ascii=False, indent=2) + '\n')

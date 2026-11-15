@@ -43,8 +43,8 @@
       "result": "[DRY RUN] repair-links: 3 broken link occurrence(s) in 1 file(s)\n  safe 2, ambiguous 0, unresolved 1\n\nsafe (2)\n  Index.md:3:3  [[old/Meetings/Kickoff.md]] -> [[Meetings/Kickoff.md]]\n      Meetings/Kickoff.md (unique-path-suffix: the only file whose path ends with \"Meetings/Kickoff.md\", and \"Meetings/Kickoff.md\" resolves back to it)\n  Index.md:4:3  [[Projects/My%20Plan]] -> [[Projects/My Plan]]\n      Projects/My Plan.md (percent-decoding: decoding the target gives \"Projects/My Plan\", and \"Projects/My Plan\" resolves back to it)\n\nunresolved (1)\n  Index.md:5:3  [[Roam]]\n      missing-note: no file matches this target\n\nNothing was written. repair-links plans repairs; it never edits the vault."
     },
     "demote": {
-      "command": "knapper demote book-club --dry-run",
-      "result": "[DRY RUN] Demoting [[book-club]] -> #book-club\n  Would update 2 links in 2 files:\n    Diary/2026-01-12.md\n      3: [[book-club]] -> #book-club\n    Diary/2026-01-13.md\n      3: [[book-club]] -> #book-club\n  ⚠️ Diary/2026-01-12.md:4: [[book-club|the hire]] cannot be demoted (alias)\n\nNothing was written."
+      "command": "knapper demote to-read --dry-run",
+      "result": "[DRY RUN] Demoting [[to-read]] -> #to-read\n  Would update 2 links in 2 files:\n    Diary/2026-01-12.md\n      3: [[to-read]] -> #to-read\n    Diary/2026-01-13.md\n      3: [[to-read]] -> #to-read\n  ⚠️ Diary/2026-01-12.md:4: [[to-read|the reading list]] cannot be demoted (alias)\n\nNothing was written."
     },
     "rules": {
       "command": "knapper lint --check headings",
@@ -53,6 +53,14 @@
     "refs": {
       "command": "knapper refs Projects/Application.md",
       "result": "Projects/Application.md:3:25  knapper://personal/address.home  Home address"
+    },
+    "movedir": {
+      "command": "knapper move Projects Archive/2025/",
+      "result": "Moving directory: Projects -> Archive/2025/Projects\n  2 files (2 notes) move with it\n  Updated 1 links in Diary/2026-01-12.md\n  Updated 1 links in Index.md\n  Updated 1 links in Meetings/Kickoff.md\n\nDone! Moved Projects -> Archive/2025/Projects and updated 3 links in 3 files."
+    },
+    "context": {
+      "command": "knapper context Projects/Redesign.md --format json",
+      "result": "{\n  \"path\": \"Projects/Redesign.md\",\n  \"title\": \"Redesign\",\n  \"content\": \"# Redesign\\n\\nScope agreed in [[Meetings/Kickoff]].\\n\",\n  \"links\": [\n    \"Meetings/Kickoff\"\n  ],\n  \"backlinks\": [\n    \"Diary/2026-01-12.md\",\n    \"Index.md\",\n    \"Meetings/Kickoff.md\"\n  ],\n  \"headings\": [\n    {\n      \"level\": 1,\n      \"text\": \"Redesign\",\n      \"line\": 1\n    }\n  ],\n  \"stats\": {\n    \"chars\": 50,\n    \"words\": 6,\n    \"lines\": 4\n  }\n}"
     }
   },
   "rules_config": "lint:\n  paths:\n    - path: ^Projects/\n      where: ['type=project']\n      headings:\n        required: [Summary, Next steps]"

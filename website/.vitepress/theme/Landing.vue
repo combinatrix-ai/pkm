@@ -40,14 +40,21 @@ const more = [
     text: 'Links also break while nobody is looking: a folder moved in Finder, an export with stale paths. knapper proposes a fix only where the filesystem settles it, and reports the rest instead of guessing.',
     snippet: snippets.repair, guide: '/guide/repairing-links', link: 'How repairs are decided' },
   { title: "Links that promise, tags that don't",
-    text: 'After a few years a vault is full of [[brackets]] used as a highlighter, with no note behind them. [[X]] is a promise that a note exists; #X is a topic that needs none. demote moves one to the other and reports what a tag cannot hold.',
+    text: 'After a few years a vault is full of [[brackets]] used as a highlighter, like [[to-read]], with no note behind them. [[X]] is a promise that a note exists; #X is a topic that needs none. demote moves one to the other and reports what a tag cannot hold.',
     snippet: snippets.demote, guide: '/guide/links-and-tags', link: 'Hard links and soft tags' },
   { title: 'House rules for your vault',
     text: 'Say what a project note must contain, by path or by metadata. Agents keep to your structure because the linter tells them when they did not.',
     config: rulesConfig, snippet: snippets.rules, guide: '/guide/lint', link: 'Lint rules' },
   { title: 'Names in notes, values elsewhere',
     text: 'An address or a licence key belongs in your notes by name, not by value. Write it as a knapper:// link and the value stays in your password manager until someone asks for that one item.',
-    snippet: snippets.refs, guide: '/guide/external-references', link: 'External references' },
+    snippet: snippets.refs, guide: '/guide/external-references', link: 'External references',
+    works: [['1password', '1Password'], ['bitwarden', 'Bitwarden'], ['lastpass', 'LastPass']] },
+  { title: 'Whole folders move too',
+    text: 'Archiving a year of projects is one command. Every note inside moves, and every link that pointed into the folder follows it.',
+    snippet: snippets.movedir, guide: '/guide/refactoring', link: 'Renames and moves' },
+  { title: 'One call, the whole picture',
+    text: 'Before your agent touches a note it can ask for everything around it: the text, what it links to, what links back, and its headings. One call instead of five greps.',
+    snippet: snippets.context, guide: '/guide/agents', link: 'Working with agents' },
 ];
 </script>
 
@@ -95,16 +102,14 @@ const more = [
     <section class="band" aria-labelledby="grep-title">
       <p class="eyebrow">Why not just grep</p>
       <h2 id="grep-title">grep finds words.<br>Your notes are a graph.</h2>
-      <p>An agent with only shell tools treats your notes as loose text. It renames a file and every link to it dies quietly. knapper makes the structure something the agent can ask about and change safely.</p>
+      <p>Without knapper, your agent improvises a <code>sed</code> or <code>awk</code> one-liner for every structural change. It spends tokens composing a regex, runs it across your vault, and has no way to tell what it missed. knapper turns each of those into one command that knows what a link is.</p>
       <div class="versus">
         <div class="vs bad">
           <header>Agent with shell tools</header>
           <pre><b>$ mv Projects/Redesign.md Projects/Relaunch.md</b>
-$ grep -rl "Redesign" .
-./Index.md
-./Meetings/Kickoff.md
-./Diary/2026-01-12.md</pre>
-          <p>The file moved. The links did not. Next it edits your notes with sed.</p>
+$ grep -rl "Redesign" . | xargs sed -i -E \
+  's/\[\[(Projects\/)?Redesign(#[^]|]*)?(\|[^]]*)?\]\]/[[\1Relaunch\2\3]]/g'</pre>
+          <p>A regex written from scratch, every time. This one skips <code>[the redesign](../Projects/Redesign.md)</code>, so that link is now broken and nothing says so.</p>
         </div>
         <div class="vs good">
           <header>Agent with knapper</header>
@@ -143,6 +148,10 @@ $ grep -rl "Redesign" .
           <pre v-if="item.config" class="config">{{ item.config }}</pre>
           <pre tabindex="0"><b>$ {{ item.snippet.command }}</b>
 {{ item.snippet.result }}</pre>
+          <ul v-if="item.works" class="works" aria-label="Works with">
+            <li v-for="[icon, name] in item.works" :key="icon"><img :src="withBase(`/icons/${icon}.svg`)" alt="" width="18" height="18">{{ name }}</li>
+            <li>or any CLI that prints a value</li>
+          </ul>
           <a class="text-link" :href="withBase(item.guide)">{{ item.link }} →</a>
         </article>
       </div>

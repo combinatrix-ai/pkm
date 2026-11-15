@@ -142,6 +142,10 @@ cargo clippy --all-targets -- -D warnings
 cargo fmt --check
 ```
 
+The website source is in [`website/`](website/README.md). Run `npm ci` and
+`npm run docs:build` to build the landing page and the documentation from this
+repository's Markdown sources.
+
 ## License
 
 MIT

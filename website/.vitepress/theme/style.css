@@ -1,0 +1,40 @@
+:root{--vp-c-brand-1:#216546;--vp-c-brand-2:#184e35;--vp-c-brand-3:#216546;--vp-c-bg:#f8faf9;--vp-c-bg-soft:#edf2ee;--vp-c-text-1:#17221d;--vp-c-text-2:#4b5e53;--vp-font-family-base:"Avenir Next",Avenir,"Segoe UI",sans-serif;--vp-font-family-mono:"SFMono-Regular",Consolas,monospace}
+.VPNavBarTitle .title{font-weight:800;letter-spacing:-.8px}
+.landing{max-width:1180px;margin:auto;padding:0 32px}
+.hero{display:grid;grid-template-columns:1fr 1.05fr;align-items:center;gap:60px;padding:76px 0 96px}
+.eyebrow{font:12px var(--vp-font-family-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--vp-c-brand-1);margin:0 0 24px}
+.hero h1{font-size:clamp(44px,5.2vw,70px);letter-spacing:-3px;line-height:1.04;font-weight:650;margin:0 0 28px}
+.hero-description{color:var(--vp-c-text-2);font-size:18px;line-height:1.7;margin:0 0 30px}
+.hero-actions{display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+.primary-link{background:var(--vp-c-brand-1);color:white;padding:13px 20px;border-radius:4px;font-weight:600;white-space:nowrap;display:inline-flex;gap:24px}
+.primary-link:hover{background:var(--vp-c-brand-2)}
+.primary-link:active,button:active{transform:translateY(1px)}
+.text-link{color:var(--vp-c-brand-1);font-size:15px;font-weight:600}
+.session{background:#14271d;border-radius:4px;color:#e5eee8;overflow:hidden;min-width:0}
+.session-heading{padding:16px 22px;border-bottom:1px solid #385042;display:flex;justify-content:space-between;font:11px var(--vp-font-family-mono);color:#bdcec2}
+.session-heading span:last-child{letter-spacing:.08em}
+.session pre{margin:0;padding:26px 22px;font:13px/1.85 var(--vp-font-family-mono);overflow:auto}
+.prompt{color:#97c7a8}.output,.comment{color:#b2c4b8}
+.session-foot{padding:15px 22px;border-top:1px solid #385042;font:11px var(--vp-font-family-mono);color:#bdcec2}
+.workflow,.docs-section{border-top:1px solid #cdd7cf;padding:66px 0}
+.section-intro{max-width:650px;margin-bottom:36px}
+.landing h2{font-size:36px;line-height:1.2;letter-spacing:-1.2px;font-weight:600;margin:0 0 18px}
+.section-intro p,.docs-section>p,.install-section p{font-size:17px;line-height:1.7;color:var(--vp-c-text-2)}
+.workflow-rows article{display:grid;grid-template-columns:48px 1fr 1fr;gap:24px;padding:26px 0;border-top:1px solid #dce3de;align-items:center}
+.number{font:12px var(--vp-font-family-mono);color:var(--vp-c-brand-1)}
+.landing h3{font-size:19px;font-weight:600;margin:0 0 7px}
+.workflow-rows p{font-size:15px;line-height:1.6;color:var(--vp-c-text-2);margin:0;max-width:410px}
+.workflow-rows code{font:12px/1.8 var(--vp-font-family-mono);color:var(--vp-c-brand-1);justify-self:end;max-width:100%;overflow-wrap:anywhere}
+.install-section{display:grid;grid-template-columns:1fr 1.25fr;gap:65px;border-top:1px solid #cdd7cf;padding:70px 0}
+.install-box{align-self:center;border:1px solid #cdd7cf;border-radius:4px;padding:22px;min-width:0}
+.install-heading{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:14px}
+.install-heading button{border:1px solid #afc1b5;border-radius:4px;padding:4px 12px;font:12px var(--vp-font-family-mono);cursor:pointer}
+.install-box pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#edf2ee;margin:20px 0 12px;padding:16px;font:12px/1.9 var(--vp-font-family-mono)}
+.install-box p,.install-box a{font-size:12px;line-height:1.7}.install-box a{color:var(--vp-c-brand-1)}
+.docs-section>p{max-width:660px}.doc-links{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;margin-top:36px}
+.doc-links a{font-weight:600;border-top:2px solid var(--vp-c-brand-1);padding-top:18px}
+.doc-links span{display:block;font-size:13px;line-height:1.6;font-weight:400;color:var(--vp-c-text-2);margin-top:10px}
+a:focus-visible,button:focus-visible,pre:focus-visible{outline:3px solid #216546;outline-offset:5px}
+@media(max-width:960px){.hero{gap:30px}.hero h1{font-size:54px}.workflow-rows article{grid-template-columns:32px 1fr}.workflow-rows code{grid-column:2;justify-self:start}.install-section{gap:32px}}
+@media(max-width:767px){.landing{padding:0 24px}.hero{grid-template-columns:1fr;padding:48px 0 56px;gap:36px}.hero h1{font-size:54px}.hero-actions{gap:20px}.session pre{font-size:12px}.install-section{grid-template-columns:1fr;padding:48px 0;gap:28px}.landing h2{font-size:30px}.workflow,.docs-section{padding:48px 0}.doc-links{grid-template-columns:1fr;gap:24px}.workflow-rows article{gap:12px}.hero-description{font-size:17px}.session-foot{font-size:10px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}

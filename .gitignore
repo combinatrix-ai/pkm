@@ -13,3 +13,9 @@
 # OS
 .DS_Store
 *.log
+
+# Website dependencies and generated documentation
+/node_modules/
+/website/reference/
+/website/.vitepress/cache/
+/website/.vitepress/dist/

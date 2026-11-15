@@ -53,3 +53,16 @@ a:focus-visible,button:focus-visible,pre:focus-visible{outline:3px solid #216546
 
 .rotation-progress{height:3px;background:#385042;overflow:hidden}
 .rotation-progress span{display:block;height:100%;background:#97c7a8;transform-origin:left;will-change:transform}
+
+.compatibility-strip li{display:flex;align-items:center;gap:9px}.compatibility-strip img{object-fit:contain;flex:none}
+
+/* Keep the command demo at the center of the landing page. */
+.hero{grid-template-columns:1fr;justify-items:center;gap:40px;padding:56px 0 48px;text-align:center}
+.hero>div:first-child{max-width:850px}
+.hero h1{font-size:clamp(38px,5vw,62px);letter-spacing:-2px}
+.hero-actions{justify-content:center}
+.hero .session{width:100%;max-width:780px;text-align:left}
+.session [role="tabpanel"] pre{min-height:184px;font-size:14px}
+.compatibility-strip{text-align:center;padding:0 0 54px}
+.compatibility-strip ul{justify-content:center}
+@media(max-width:767px){.hero{padding:36px 0 36px;gap:30px}.hero h1{font-size:clamp(32px,7vw,44px)}.session [role="tabpanel"] pre{font-size:12px}.compatibility-strip ul{gap:20px 24px}.compatibility-strip li{font-size:16px}}

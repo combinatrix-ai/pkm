@@ -82,14 +82,16 @@ async function copyInstall() {
     </section>
 
     <section class="compatibility-strip" aria-label="Supported note ecosystems">
-      <p>Your notes, from the tools you know.</p>
+      <p>Works with your notes.</p>
       <ul>
-        <li>Obsidian</li><li>Foam</li><li>Dendron</li>
-        <li>Logseq <small>file-level</small></li>
-        <li>Roam <small>file-level</small></li>
-        <li>Org-mode <small>read support</small></li>
+        <li><img :src="withBase('/icons/obsidian.svg')" alt="" width="26" height="26">Obsidian</li>
+        <li><img :src="withBase('/icons/foam.svg')" alt="" width="26" height="26">Foam</li>
+        <li><img :src="withBase('/icons/dendron.svg')" alt="" width="26" height="26">Dendron</li>
+        <li><img :src="withBase('/icons/logseq.svg')" alt="" width="26" height="26">Logseq</li>
+        <li><img :src="withBase('/icons/roamresearch.svg')" alt="" width="26" height="26">Roam</li>
+        <li><img :src="withBase('/icons/org.svg')" alt="" width="26" height="26">Org-mode</li>
       </ul>
-      <a class="text-link" :href="withBase('/reference/compatibility')">See supported formats and limits →</a>
+      <a class="text-link" :href="withBase('/reference/compatibility')">Compatibility and supported formats →</a>
     </section>
 
     <section class="workflow" aria-labelledby="workflow-title">

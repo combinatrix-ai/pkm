@@ -35,6 +35,8 @@ const replaced = [
   { app: 'Broken link checks', commands: 'broken-links · lint', say: 'Is anything broken?', guide: '/guide/link-health' },
 ];
 
+const spellings = ['[[Note]]', '[[Note.md]]', '[[Note#Heading]]', '[[Note|alias]]', '![[Note]]', '[text](Note.md)', '[text](My%20Note.md)'];
+
 const more = [
   { title: 'Repairs backed by evidence',
     text: 'Links also break while nobody is looking: a folder moved in Finder, an export with stale paths. knapper proposes a fix only where the filesystem settles it, and reports the rest instead of guessing.',
@@ -102,7 +104,11 @@ const more = [
     <section class="band" aria-labelledby="grep-title">
       <p class="eyebrow">Why not just grep</p>
       <h2 id="grep-title">grep finds words.<br>Your notes are a graph.</h2>
-      <p>Without knapper, your agent improvises a <code>sed</code> or <code>awk</code> one-liner for every structural change. It spends tokens composing a regex, runs it across your vault, and has no way to tell what it missed. knapper turns each of those into one command that knows what a link is.</p>
+      <p>One link, seven spellings:</p>
+      <ul class="spellings" aria-label="Seven ways to write one link">
+        <li v-for="form in spellings" :key="form"><code>{{ form }}</code></li>
+      </ul>
+      <p>Tasks, frontmatter, and tags each have dialects of their own. No one-liner covers them, so an agent with shell tools writes a new <code>sed</code> or <code>awk</code> regex for every job and cannot tell what it missed.</p>
       <div class="versus">
         <div class="vs bad">
           <header>Agent with shell tools</header>
@@ -118,6 +124,7 @@ $ grep -rl "Redesign" . | xargs sed -i -E \
           <p>One call. Wikilinks and Markdown links are both rewritten. Add <code>--dry-run</code> to see the plan first.</p>
         </div>
       </div>
+      <p class="weight">15,000 lines of Rust and more than 300 tests, so your agent never has to improvise this again.</p>
     </section>
 
     <section class="band" aria-labelledby="replaces-title">

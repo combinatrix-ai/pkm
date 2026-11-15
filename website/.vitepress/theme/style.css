@@ -50,3 +50,6 @@ a:focus-visible,button:focus-visible,pre:focus-visible{outline:3px solid #216546
 @media(max-width:767px){.hero h1{font-size:clamp(32px,7vw,44px)}.example-tabs{gap:0;justify-content:space-between}.example-tabs button{padding:12px 8px}}
 
 .compatibility-strip{padding:0 0 48px}.compatibility-strip>p{font-size:14px;color:var(--vp-c-text-2);margin-bottom:18px}.compatibility-strip ul{display:flex;flex-wrap:wrap;gap:20px 32px;list-style:none;padding:0;margin:0 0 20px}.compatibility-strip li{font-size:19px;font-weight:600}.compatibility-strip small{display:block;font-size:11px;font-weight:400;color:var(--vp-c-text-2)}
+
+.rotation-progress{height:3px;background:#385042;overflow:hidden}
+.rotation-progress span{display:block;height:100%;background:#97c7a8;transform-origin:left;will-change:transform}

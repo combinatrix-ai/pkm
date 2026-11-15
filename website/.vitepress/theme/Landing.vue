@@ -15,14 +15,17 @@ const hovering = ref(false);
 const focused = ref(false);
 const paused = ref(false);
 const reducedMotion = ref(false);
-let timer;
+const progress = ref(0);
+const rotationDuration = 6000;
+let frame;
+let lastFrame;
 let motion;
-function selectExample(index) { active.value = index; }
+function selectExample(index) { active.value = index; progress.value = 0; }
 function navigateExample(event) {
   const moves = { ArrowRight: 1, ArrowLeft: -1 };
   if (!(event.key in moves) && !['Home', 'End'].includes(event.key)) return;
   event.preventDefault();
-  active.value = event.key === 'Home' ? 0 : event.key === 'End' ? examples.length - 1 : (active.value + moves[event.key] + examples.length) % examples.length;
+  selectExample(event.key === 'Home' ? 0 : event.key === 'End' ? examples.length - 1 : (active.value + moves[event.key] + examples.length) % examples.length);
   event.currentTarget.querySelectorAll('[role="tab"]')[active.value].focus();
 }
 function motionChanged(event) { reducedMotion.value = event.matches; }
@@ -30,13 +33,19 @@ onMounted(() => {
   motion = window.matchMedia('(prefers-reduced-motion: reduce)');
   reducedMotion.value = motion.matches;
   motion.addEventListener('change', motionChanged);
-  timer = setInterval(() => {
+  function tick(now) {
+    const elapsed = lastFrame === undefined ? 0 : Math.min(now - lastFrame, 100);
+    lastFrame = now;
     if (!hovering.value && !focused.value && !paused.value && !reducedMotion.value && !document.hidden) {
-      active.value = (active.value + 1) % examples.length;
+      progress.value += elapsed / rotationDuration;
+      if (progress.value >= 1) selectExample((active.value + 1) % examples.length);
     }
-  }, 6000);
+    frame = requestAnimationFrame(tick);
+  }
+  frame = requestAnimationFrame(tick);
 });
-onUnmounted(() => { clearInterval(timer); motion?.removeEventListener('change', motionChanged); });
+onUnmounted(() => { cancelAnimationFrame(frame); motion?.removeEventListener('change', motionChanged); });
+
 async function copyInstall() {
   try {
     await navigator.clipboard.writeText(install);
@@ -67,6 +76,7 @@ async function copyInstall() {
           <pre><span class="prompt">$</span> {{ example.command }}<template v-if="example.result">
 <span class="output">{{ example.result }}</span></template></pre>
           <div class="session-foot">{{ example.caption }}</div>
+          <div class="rotation-progress" aria-hidden="true"><span :style="{ transform: `scaleX(${progress})` }"></span></div>
         </div>
       </div>
     </section>

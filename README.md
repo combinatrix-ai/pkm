@@ -34,7 +34,7 @@ brings those operations to the terminal, for people and agents alike:
 - 🩹 **Link repair planning** — `repair-links --dry-run` proposes repairs where the filesystem supplies unambiguous evidence.
 - 🏷️ **Tags and topics** — list tags, follow nested topics with `backlinks '#tag'` and `context '#tag'`, and use `demote` to turn topic-only wikilinks into tags.
 - ✅ **Tasks** — create, filter and update checkboxes across the tree, with dates, priorities, recurring markers and configurable statuses.
-- 📝 **Note templates** — create notes from configured templates with `new`. [Configuration](docs/CLI.md#create-a-note-from-a-template).
+- 📝 **Note templates** — create notes from template files or configured names with `new`. [Configuration](docs/CLI.md#create-a-note-from-a-template).
 - 📅 **Daily notes** — create or retrieve a dated note and expand Core Templates or supported Templater date expressions.
 - 📇 **Frontmatter** — read, set and delete typed YAML fields from the shell.
 - 🩺 **Vault health** — find broken links, orphans, duplicate names and stubs; enforce frontmatter and required-heading rules by path or metadata, across the vault or only changed files.

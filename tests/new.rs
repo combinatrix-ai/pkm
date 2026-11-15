@@ -57,7 +57,7 @@ fn creates_expanded_note_that_passes_targeted_lint() {
                 .replace("{{title}}", "<% tp.file.title %>");
             std::fs::write(p, s).unwrap();
         }
-        let title = "計画 $1 ${name}";
+        let title = "計画 $1 ${name} {{date}} {{time}} {{title}} <% tp.file.title %>";
         let out = run(
             dir.path(),
             &["new", title, "--template", "Project", "--format", "json"],
@@ -71,7 +71,7 @@ fn creates_expanded_note_that_passes_targeted_lint() {
         let path = value["path"].as_str().unwrap();
         let body = std::fs::read_to_string(dir.path().join(path)).unwrap();
         assert!(body.contains(&format!("# {title}\n")), "{body}");
-        assert!(!body.contains("<%") && !body.contains("{{"));
+        assert!(body.contains("updated: 20"));
         let lint = run(dir.path(), &["lint", path]);
         assert!(
             lint.status.success(),
@@ -96,6 +96,7 @@ fn rejects_invalid_titles_and_missing_templates_without_creating_folder() {
         " ",
         ".",
         "..",
+        ".draft",
         "../escape",
         "/tmp/escape",
         "a/b",
@@ -180,6 +181,9 @@ fn rejects_symlinked_folders_templates_and_existing_targets() {
 fn config_check_rejects_incomplete_or_misspelled_templates() {
     for template in [
         "file: Templates/Project.md",
+        "file: ../outside.md\n    folder: Projects",
+        "file: Templates/Project.md\n    folder: /tmp/outside",
+        "file: Templates/Project.md\n    folder: .hidden",
         "file: ''\n    folder: Projects",
         "file: Templates/Project.md\n    folder: Projects\n    typo: value",
     ] {
@@ -264,4 +268,23 @@ fn direct_template_and_destination_cannot_escape_vault() {
     }
     assert!(!dir.path().join("Notes").exists());
     assert_eq!(std::fs::read_dir(outside.path()).unwrap().count(), 0);
+}
+
+#[test]
+fn hidden_destination_is_refused() {
+    let dir = vault("Projects", "core");
+    assert!(!run(
+        dir.path(),
+        &[
+            "new",
+            "Example",
+            "--template",
+            "Project",
+            "--folder",
+            ".hidden"
+        ]
+    )
+    .status
+    .success());
+    assert!(!dir.path().join(".hidden").exists());
 }

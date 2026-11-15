@@ -1320,13 +1320,12 @@ pub fn new_note(
 ) -> Result<()> {
     use std::io::Write;
     if title.trim().is_empty()
-        || title == "."
-        || title == ".."
+        || title.starts_with('.')
         || title.contains(['/', '\\'])
         || title.chars().any(char::is_control)
     {
         return Err(anyhow!(
-            "Title must be a non-empty filename without path separators or control characters"
+            "Title must be a non-empty filename without a leading dot, path separators, or control characters"
         ));
     }
     let (file, destination) = match config.templates.get(template) {
@@ -1340,6 +1339,11 @@ pub fn new_note(
     }
     let root = std::fs::canonicalize(&config.vault_path)?;
     let source = template_path(&root, Path::new(file))?;
+    if Path::new(destination).components().any(|part| {
+        matches!(part, std::path::Component::Normal(name) if name.to_string_lossy().starts_with('.'))
+    }) {
+        return Err(anyhow!("Destination folders must not be hidden"));
+    }
     let folder = template_path(&root, Path::new(destination))?;
     let path = folder.join(format!("{title}.md"));
     if std::fs::symlink_metadata(&path).is_ok() {

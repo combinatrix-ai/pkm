@@ -437,7 +437,8 @@ knapper new "Another project" --template Project --path-only
 A registered name takes precedence over a file with the same name. `--folder`
 can also override a registered template's destination. `new` writes
 `Projects/Example project.md`; `.md` is always appended to the supplied title.
-Slashes, control characters, and empty titles are refused.
+Slashes, control characters, empty titles, and titles or destination folders
+starting with a dot are refused.
 See [Template variables](#template-variables) for date, time, and title expansion.
 
 An unknown or unreadable template, an existing destination, or a path outside
@@ -465,7 +466,8 @@ the note is created. Existing daily notes are not expanded again.
 
 Date formats replace `YYYY`, `MM`, and `DD`. Time formats replace `HH`, `mm`,
 and `ss`. Other characters are preserved; this is not a full Moment.js format
-engine. An empty format, such as `{{date:}}`, uses the default.
+engine. Empty Core formats such as `{{date:}}` remain unchanged;
+Templater date helpers accept an empty format as the default.
 
 The default `template_engine: templater` additionally supports:
 

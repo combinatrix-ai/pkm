@@ -1193,6 +1193,23 @@ pub fn config_from(raw: &str) -> Result<Config> {
                 "Template names, files, and folders must not be empty"
             ));
         }
+        for path in [&template.file, &template.folder] {
+            if Path::new(path).components().any(|part| {
+                !matches!(
+                    part,
+                    std::path::Component::Normal(_) | std::path::Component::CurDir
+                )
+            }) {
+                return Err(anyhow!(
+                    "Template paths must be relative to the vault without '..': {path}"
+                ));
+            }
+        }
+        if Path::new(&template.folder).components().any(|part| {
+            matches!(part, std::path::Component::Normal(name) if name.to_string_lossy().starts_with('.'))
+        }) {
+            return Err(anyhow!("Template destination folders must not be hidden"));
+        }
     }
 
     Ok(Config {

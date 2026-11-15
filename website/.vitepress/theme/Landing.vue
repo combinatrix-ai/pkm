@@ -11,8 +11,6 @@ const examples = [
   { name: 'Tasks', command: 'knapper tasks --overdue --format json', result: '', caption: 'Find overdue tasks and pass structured output to your agent.' },
 ];
 const active = ref(0);
-const hovering = ref(false);
-const focused = ref(false);
 const paused = ref(false);
 const reducedMotion = ref(false);
 const progress = ref(0);
@@ -20,7 +18,11 @@ const rotationDuration = 6000;
 let frame;
 let lastFrame;
 let motion;
-function selectExample(index) { active.value = index; progress.value = 0; }
+function selectExample(index) {
+  active.value = index;
+  progress.value = 0;
+  lastFrame = undefined;
+}
 function navigateExample(event) {
   const moves = { ArrowRight: 1, ArrowLeft: -1 };
   if (!(event.key in moves) && !['Home', 'End'].includes(event.key)) return;
@@ -36,7 +38,7 @@ onMounted(() => {
   function tick(now) {
     const elapsed = lastFrame === undefined ? 0 : Math.min(now - lastFrame, 100);
     lastFrame = now;
-    if (!hovering.value && !focused.value && !paused.value && !reducedMotion.value && !document.hidden) {
+    if (!paused.value && !reducedMotion.value && !document.hidden) {
       progress.value += elapsed / rotationDuration;
       if (progress.value >= 1) selectExample((active.value + 1) % examples.length);
     }
@@ -67,7 +69,7 @@ async function copyInstall() {
           <a class="text-link" :href="withBase('/reference/cli')">CLI manual <span aria-hidden="true">→</span></a>
         </div>
       </div>
-      <div class="session" aria-label="Example commands" @mouseenter="hovering = true" @mouseleave="hovering = false" @focusin="focused = true" @focusout="focused = $event.currentTarget.contains($event.relatedTarget)">
+      <div class="session" aria-label="Example commands">
         <div class="session-heading"><span>~/notes</span><button class="rotation-control" :aria-pressed="paused" @click="paused = !paused">{{ paused ? 'Resume' : 'Pause' }}</button></div>
         <div class="example-tabs" role="tablist" aria-label="CLI examples" @keydown="navigateExample">
           <button v-for="(example, index) in examples" :id="`example-tab-${index}`" :key="example.name" role="tab" :aria-selected="active === index" :aria-controls="`example-panel-${index}`" :tabindex="active === index ? 0 : -1" @click="selectExample(index)">{{ example.name }}</button>

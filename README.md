@@ -119,9 +119,10 @@ workspaces and plugin execution remain outside its scope. See the
 
 ## Status
 
-Alpha. This README describes the current source. `knapper new` is not in the
-published v0.1.0 release; build from source to use it. The CLI may still change
-before 1.0.
+Alpha. This README describes v0.1.0. Before 1.0, routine releases may include
+features and fixes in the patch number; minor versions mark larger milestones
+or changes that require users to adjust their commands or configuration.
+The CLI may still change before 1.0.
 
 knapper began as a Python tool and was rewritten in Rust so that installing
 it would not mean standing up an interpreter first. The two implementations

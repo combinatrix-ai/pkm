@@ -866,7 +866,7 @@ markers or add custom statuses, which `knapper tasks set STATUS TEXT` and
 
 ## Create a note from a template
 
-Available in the current source; not included in v0.1.0.
+Available since v0.1.0.
 
 Use a template file directly, with both paths relative to the vault:
 

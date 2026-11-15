@@ -1,7 +1,7 @@
 import { defineConfig } from 'vitepress';
 export default defineConfig({
   title: 'knapper',
-  description: 'Query, create, and reorganize connected Markdown notes from your terminal.',
+  description: 'App-less personal knowledge management. Connected Markdown notes, managed from your terminal.',
   base: '/knapper/',
   cleanUrls: true,
   appearance: false,

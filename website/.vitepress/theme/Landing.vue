@@ -1,9 +1,42 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { withBase } from 'vitepress';
 const copied = ref(false);
 const copyError = ref(false);
 const install = 'curl -fsSL https://raw.githubusercontent.com/combinatrix-ai/knapper/v0.1.0/install.sh | sh';
+const examples = [
+  { name: 'Create', command: 'knapper new "Field notes" \\\n  --template Templates/Project.md \\\n  --folder Projects', result: 'Created: Projects/Field notes.md', caption: 'Start with your template, title, and today’s date.' },
+  { name: 'Query', command: "knapper query --where 'status=active' --format paths", result: 'Projects/Field notes.md', caption: 'Find notes by metadata, tags, and connections.' },
+  { name: 'Refactor', command: 'knapper rename "Field notes" "Research notes" --dry-run', result: '', caption: 'Preview the rename and link updates before writing.' },
+  { name: 'Tasks', command: 'knapper tasks --overdue --format json', result: '', caption: 'Find overdue tasks and pass structured output to your agent.' },
+];
+const active = ref(0);
+const hovering = ref(false);
+const focused = ref(false);
+const paused = ref(false);
+const reducedMotion = ref(false);
+let timer;
+let motion;
+function selectExample(index) { active.value = index; }
+function navigateExample(event) {
+  const moves = { ArrowRight: 1, ArrowLeft: -1 };
+  if (!(event.key in moves) && !['Home', 'End'].includes(event.key)) return;
+  event.preventDefault();
+  active.value = event.key === 'Home' ? 0 : event.key === 'End' ? examples.length - 1 : (active.value + moves[event.key] + examples.length) % examples.length;
+  event.currentTarget.querySelectorAll('[role="tab"]')[active.value].focus();
+}
+function motionChanged(event) { reducedMotion.value = event.matches; }
+onMounted(() => {
+  motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  reducedMotion.value = motion.matches;
+  motion.addEventListener('change', motionChanged);
+  timer = setInterval(() => {
+    if (!hovering.value && !focused.value && !paused.value && !reducedMotion.value && !document.hidden) {
+      active.value = (active.value + 1) % examples.length;
+    }
+  }, 6000);
+});
+onUnmounted(() => { clearInterval(timer); motion?.removeEventListener('change', motionChanged); });
 async function copyInstall() {
   try {
     await navigator.clipboard.writeText(install);
@@ -18,28 +51,35 @@ async function copyInstall() {
   <main class="landing">
     <section class="hero">
       <div>
-        <p class="eyebrow">A CLI for connected notes</p>
-        <h1>Your notes.<br>Your terminal.</h1>
-        <p class="hero-description">Query, create, and reorganize Markdown notes.<br>Built for people and their agents.</p>
+        <h1>App-less personal<br>knowledge management.</h1>
+        <p class="hero-description">Connected Markdown notes, managed from your terminal.<br>For you and your AI agents.</p>
         <div class="hero-actions">
           <a class="primary-link" :href="withBase('/guide/quick-start')">Quick start <span aria-hidden="true">↗</span></a>
           <a class="text-link" :href="withBase('/reference/cli')">CLI manual <span aria-hidden="true">→</span></a>
         </div>
       </div>
-      <div class="session" aria-label="Example commands for a synthetic notes folder">
-        <div class="session-heading"><span>~/notes</span><span>EXAMPLE COMMANDS</span></div>
-        <pre><span class="prompt">$</span> knapper new "Field notes" \
-    --template Templates/Project.md \
-    --folder Projects
-<span class="output">Created: Projects/Field notes.md</span>
-
-<span class="comment"># Follow the incoming links</span>
-<span class="prompt">$</span> knapper backlinks "Projects/Field notes.md"
-
-<span class="comment"># Give your agent structured output</span>
-<span class="prompt">$</span> knapper tasks --overdue --format json</pre>
-        <div class="session-foot">Plain files. Explicit commands. No index to maintain.</div>
+      <div class="session" aria-label="Example commands" @mouseenter="hovering = true" @mouseleave="hovering = false" @focusin="focused = true" @focusout="focused = $event.currentTarget.contains($event.relatedTarget)">
+        <div class="session-heading"><span>~/notes</span><button class="rotation-control" :aria-pressed="paused" @click="paused = !paused">{{ paused ? 'Resume' : 'Pause' }}</button></div>
+        <div class="example-tabs" role="tablist" aria-label="CLI examples" @keydown="navigateExample">
+          <button v-for="(example, index) in examples" :id="`example-tab-${index}`" :key="example.name" role="tab" :aria-selected="active === index" :aria-controls="`example-panel-${index}`" :tabindex="active === index ? 0 : -1" @click="selectExample(index)">{{ example.name }}</button>
+        </div>
+        <div v-for="(example, index) in examples" v-show="active === index" :id="`example-panel-${index}`" :key="example.name" role="tabpanel" :aria-labelledby="`example-tab-${index}`" tabindex="0">
+          <pre><span class="prompt">$</span> {{ example.command }}<template v-if="example.result">
+<span class="output">{{ example.result }}</span></template></pre>
+          <div class="session-foot">{{ example.caption }}</div>
+        </div>
       </div>
+    </section>
+
+    <section class="compatibility-strip" aria-label="Supported note ecosystems">
+      <p>Your notes, from the tools you know.</p>
+      <ul>
+        <li>Obsidian</li><li>Foam</li><li>Dendron</li>
+        <li>Logseq <small>file-level</small></li>
+        <li>Roam <small>file-level</small></li>
+        <li>Org-mode <small>read support</small></li>
+      </ul>
+      <a class="text-link" :href="withBase('/reference/compatibility')">See supported formats and limits →</a>
     </section>
 
     <section class="workflow" aria-labelledby="workflow-title">

@@ -18,6 +18,7 @@ limitations, see the [compatibility matrix](COMPATIBILITY.md).
 - [Repairing links that broke somewhere else](#repairing-links-that-broke-somewhere-else)
 - [Context and agent integration](#context-and-agent-integration)
 - [Tasks](#tasks)
+- [Create a note from a template](#create-a-note-from-a-template)
 - [Daily notes](#daily-notes)
 - [External references](#external-references)
 - [Configuration](#configuration)
@@ -171,6 +172,7 @@ key. These write commands have no dry-run flag.
 | [`knapper context FILE`](#knapper-context) | Aggregated context; add `--line N` for focused Markdown context |
 | [`knapper tasks`](#knapper-tasks) | Find and filter `- [ ]` tasks |
 | [`knapper tasks new / done / wip / cancel / set`](#knapper-tasks) | Create a task or change its status |
+| [`knapper new TITLE --template NAME`](#knapper-new) | Create a note from a configured template |
 | [`knapper daily [DATE]`](#knapper-daily) | Create or get a daily note |
 | [`knapper frontmatter get / set / delete`](#knapper-frontmatter) | Read and write YAML frontmatter |
 | [`knapper tags`](#knapper-tags) | List tags, or find files by tag with `--find` |
@@ -863,6 +865,8 @@ markers or add custom statuses, which `knapper tasks set STATUS TEXT` and
 
 ## Create a note from a template
 
+Available in the current source; not included in v0.1.0.
+
 Configure a name, template file, and destination folder in `knapper.yaml`:
 
 ```yaml
@@ -872,8 +876,27 @@ templates:
     folder: Projects
 ```
 
-Create the template file with the frontmatter and headings your vault requires.
 The file and folder are relative to the vault. `folder: .` writes at its root.
+Add the template folder to `exclude` so lint does not check unexpanded templates.
+Then create `Templates/Project.md`, for example:
+
+```markdown
+---
+type: project
+status: active
+updated: {{date}}
+---
+# {{title}}
+
+## Summary
+
+## Next steps
+
+## References
+```
+
+The template controls the note structure; `Project` is a configured name with
+no built-in rules. Customize its frontmatter and headings for your vault.
 
 ```bash
 knapper new "Example project" --template Project
@@ -881,8 +904,8 @@ knapper lint "Projects/Example project.md"
 knapper new "Another project" --template Project --path-only
 ```
 
-`new` writes `Projects/Example project.md`. It uses `template_engine`, including
-`{{title}}`, `{{date}}`, and the supported Templater expressions
+`new` writes `Projects/Example project.md`. Both template engines expand
+`{{title}}` and `{{date}}`. The default `template_engine: templater` also expands
 `<% tp.file.title %>` and `<% tp.date.now("YYYY-MM-DD") %>`. Dates use the local
 creation date. The title is a filename without an extension; `.md` is appended.
 Slashes, control characters, and empty titles are refused.
@@ -1260,7 +1283,7 @@ The following help output is captured from the current source build. When
 changing CLI arguments, refresh the affected entries with the matching
 `--help` command. Global options are repeated so each entry stands alone.
 
-[knapper](#knapper) · [knapper links](#knapper-links) · [knapper backlinks](#knapper-backlinks) · [knapper orphans](#knapper-orphans) · [knapper hubs](#knapper-hubs) · [knapper broken-links](#knapper-broken-links) · [knapper repair-links](#knapper-repair-links) · [knapper init](#knapper-init) · [knapper config](#knapper-config) · [knapper config check](#knapper-config-check) · [knapper config schema](#knapper-config-schema) · [knapper skill](#knapper-skill) · [knapper self-update](#knapper-self-update) · [knapper context](#knapper-context) · [knapper frontmatter](#knapper-frontmatter) · [knapper frontmatter get](#knapper-frontmatter-get) · [knapper frontmatter set](#knapper-frontmatter-set) · [knapper frontmatter delete](#knapper-frontmatter-delete) · [knapper lint](#knapper-lint) · [knapper daily](#knapper-daily) · [knapper rename](#knapper-rename) · [knapper demote](#knapper-demote) · [knapper query](#knapper-query) · [knapper fields](#knapper-fields) · [knapper move](#knapper-move) · [knapper tasks](#knapper-tasks) · [knapper tasks new](#knapper-tasks-new) · [knapper tasks done](#knapper-tasks-done) · [knapper tasks wip](#knapper-tasks-wip) · [knapper tasks cancel](#knapper-tasks-cancel) · [knapper tasks set](#knapper-tasks-set) · [knapper tags](#knapper-tags) · [knapper refs](#knapper-refs) · [knapper resolve](#knapper-resolve) · [knapper provider](#knapper-provider) · [knapper provider list](#knapper-provider-list) · [knapper provider set](#knapper-provider-set) · [knapper provider remove](#knapper-provider-remove)
+[knapper](#knapper) · [knapper links](#knapper-links) · [knapper backlinks](#knapper-backlinks) · [knapper orphans](#knapper-orphans) · [knapper hubs](#knapper-hubs) · [knapper broken-links](#knapper-broken-links) · [knapper repair-links](#knapper-repair-links) · [knapper init](#knapper-init) · [knapper config](#knapper-config) · [knapper config check](#knapper-config-check) · [knapper config schema](#knapper-config-schema) · [knapper skill](#knapper-skill) · [knapper self-update](#knapper-self-update) · [knapper context](#knapper-context) · [knapper frontmatter](#knapper-frontmatter) · [knapper frontmatter get](#knapper-frontmatter-get) · [knapper frontmatter set](#knapper-frontmatter-set) · [knapper frontmatter delete](#knapper-frontmatter-delete) · [knapper lint](#knapper-lint) · [knapper new](#knapper-new) · [knapper daily](#knapper-daily) · [knapper rename](#knapper-rename) · [knapper demote](#knapper-demote) · [knapper query](#knapper-query) · [knapper fields](#knapper-fields) · [knapper move](#knapper-move) · [knapper tasks](#knapper-tasks) · [knapper tasks new](#knapper-tasks-new) · [knapper tasks done](#knapper-tasks-done) · [knapper tasks wip](#knapper-tasks-wip) · [knapper tasks cancel](#knapper-tasks-cancel) · [knapper tasks set](#knapper-tasks-set) · [knapper tags](#knapper-tags) · [knapper refs](#knapper-refs) · [knapper resolve](#knapper-resolve) · [knapper provider](#knapper-provider) · [knapper provider list](#knapper-provider-list) · [knapper provider set](#knapper-provider-set) · [knapper provider remove](#knapper-provider-remove)
 
 ### knapper
 
@@ -1286,6 +1309,7 @@ Commands:
   context       Get comprehensive context for a file or a '#tag' (for LLMs)
   frontmatter   Read and write frontmatter
   lint          Check vault health (exit 1 when any issues are found)
+  new           Create a note from a named template configured in knapper.yaml
   daily         Create or get daily note
   rename        Rename a note and update all links to it
   demote        Rewrite a hard [[target]] into a soft #tag
@@ -1636,6 +1660,25 @@ Options:
   -v, --vault <VAULT>    Path to vault (overrides config)
   -f, --format <FORMAT>  [default: text]
   -h, --help             Print help
+```
+
+### knapper new
+
+```text
+Create a note from a named template configured in knapper.yaml
+
+Usage: knapper new [OPTIONS] --template <TEMPLATE> <TITLE>
+
+Arguments:
+  <TITLE>
+
+Options:
+  -c, --config <CONFIG>      Path to config file
+      --template <TEMPLATE>
+  -p, --path-only
+  -v, --vault <VAULT>        Path to vault (overrides config)
+  -f, --format <FORMAT>      [default: text]
+  -h, --help                 Print help
 ```
 
 ### knapper daily

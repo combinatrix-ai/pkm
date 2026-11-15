@@ -34,7 +34,7 @@ brings those operations to the terminal, for people and agents alike:
 - 🩹 **Link repair planning** — `repair-links --dry-run` proposes repairs where the filesystem supplies unambiguous evidence.
 - 🏷️ **Tags and topics** — list tags, follow nested topics with `backlinks '#tag'` and `context '#tag'`, and use `demote` to turn topic-only wikilinks into tags.
 - ✅ **Tasks** — create, filter and update checkboxes across the tree, with dates, priorities, recurring markers and configurable statuses.
-- **Note templates** — create a note with `knapper new "Example project" --template Project`. [Configuration](docs/CLI.md#create-a-note-from-a-template).
+- 📝 **Note templates** — create notes from configured templates with `new`. [Configuration](docs/CLI.md#create-a-note-from-a-template).
 - 📅 **Daily notes** — create or retrieve a dated note and expand Core Templates or supported Templater date expressions.
 - 📇 **Frontmatter** — read, set and delete typed YAML fields from the shell.
 - 🩺 **Vault health** — find broken links, orphans, duplicate names and stubs; enforce frontmatter and required-heading rules by path or metadata, across the vault or only changed files.
@@ -119,8 +119,9 @@ workspaces and plugin execution remain outside its scope. See the
 
 ## Status
 
-Alpha. The documented CLI features are implemented and tested, but the CLI
-surface may still shift before 1.0.
+Alpha. This README describes the current source. `knapper new` is not in the
+published v0.1.0 release; build from source to use it. The CLI may still change
+before 1.0.
 
 knapper began as a Python tool and was rewritten in Rust so that installing
 it would not mean standing up an interpreter first. The two implementations

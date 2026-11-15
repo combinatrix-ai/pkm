@@ -399,8 +399,27 @@ templates:
     folder: Projects
 ```
 
-Create the template file with the frontmatter and headings your vault requires.
 The file and folder are relative to the vault. `folder: .` writes at its root.
+Add the template folder to `exclude` so lint does not check unexpanded templates.
+Then create `Templates/Project.md`, for example:
+
+```markdown
+---
+type: project
+status: active
+updated: {{date}}
+---
+# {{title}}
+
+## Summary
+
+## Next steps
+
+## References
+```
+
+The template controls the note structure; `Project` is a configured name with
+no built-in rules. Customize its frontmatter and headings for your vault.
 
 ```bash
 knapper new "Example project" --template Project
@@ -408,8 +427,8 @@ knapper lint "Projects/Example project.md"
 knapper new "Another project" --template Project --path-only
 ```
 
-`new` writes `Projects/Example project.md`. It uses `template_engine`, including
-`{{title}}`, `{{date}}`, and the supported Templater expressions
+`new` writes `Projects/Example project.md`. Both template engines expand
+`{{title}}` and `{{date}}`. The default `template_engine: templater` also expands
 `<% tp.file.title %>` and `<% tp.date.now("YYYY-MM-DD") %>`. Dates use the local
 creation date. The title is a filename without an extension; `.md` is appended.
 Slashes, control characters, and empty titles are refused.

@@ -5,9 +5,9 @@ const copied = ref(false);
 const copyError = ref(false);
 const install = 'curl -fsSL https://raw.githubusercontent.com/combinatrix-ai/knapper/v0.1.0/install.sh | sh';
 const examples = [
-  { name: 'Create', command: 'knapper new "Field notes" \\\n  --template Templates/Project.md \\\n  --folder Projects', result: 'Created: Projects/Field notes.md', caption: 'Start with your template, title, and today’s date.' },
-  { name: 'Query', command: "knapper query --where 'status=active' --format paths", result: 'Projects/Field notes.md', caption: 'Find notes by metadata, tags, and connections.' },
-  { name: 'Refactor', command: 'knapper rename "Field notes" "Research notes" --dry-run', result: '', caption: 'Preview the rename and link updates before writing.' },
+  { name: 'Create', command: 'knapper new "Field notes" \\\n  --template Templates/Project.md \\\n  --folder Projects', result: 'Created: Projects/Field notes.md', caption: 'Create a structured note from your template, then check it with lint.' },
+  { name: 'Query', command: "knapper query --where 'status=active' --format paths", result: 'Projects/Field notes.md', caption: 'Find notes by metadata, tags, and link counts.' },
+  { name: 'Refactor', command: 'knapper rename "Field notes" "Research notes" --dry-run', result: '', caption: 'Rename notes and update their links. Preview every change before writing.' },
   { name: 'Tasks', command: 'knapper tasks --overdue --format json', result: '', caption: 'Find overdue tasks and pass structured output to your agent.' },
 ];
 const active = ref(0);
@@ -92,15 +92,6 @@ async function copyInstall() {
         <li><img :src="withBase('/icons/org.svg')" alt="" width="26" height="26">Org-mode</li>
       </ul>
       <a class="text-link" :href="withBase('/reference/compatibility')">Compatibility and supported formats →</a>
-    </section>
-
-    <section class="workflow" aria-labelledby="workflow-title">
-      <div class="section-intro"><h2 id="workflow-title">Work with the connections.</h2><p>Text search finds words. knapper understands the links, metadata, and tasks around them.</p></div>
-      <div class="workflow-rows">
-        <article><span class="number">01</span><div><h3>Ask your notes</h3><p>Filter by status, tags, or link counts. Get a note's content and context in a single command.</p></div><code>knapper query --where 'status=active'</code></article>
-        <article><span class="number">02</span><div><h3>Give new notes a shape</h3><p>Start with your template. Fill the title and date, then check the result with your vault's lint rules.</p></div><code>knapper new "Field notes" --template Project</code></article>
-        <article><span class="number">03</span><div><h3>Move without losing references</h3><p>Preview a rename or move. knapper updates the links that point to the changed files.</p></div><code>knapper rename "Old" "New" --dry-run</code></article>
-      </div>
     </section>
 
     <section class="install-section" aria-labelledby="install-title">

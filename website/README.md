@@ -14,8 +14,9 @@ npm run docs:preview
 ```
 
 The output is `website/.vitepress/dist/`, configured for `/knapper/`.
-The PR builds the site but does not deploy it. Publish the output through the
-organization's website pipeline when `combinatrix.ai/knapper/` is ready.
+A pull request builds the site but does not deploy it. Pushing a `v*` release
+tag from `main` deploys it to GitHub Pages at `combinatrix.ai/knapper/`
+(`.github/workflows/pages.yml`); the same workflow can be run by hand.
 
 VitePress is pinned to 2.0.0-alpha.21. The older stable series currently pulls
 dependencies with reported vulnerabilities; run `npm audit` when updating.

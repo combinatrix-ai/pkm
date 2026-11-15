@@ -18,6 +18,8 @@ limitations, see the [compatibility matrix](COMPATIBILITY.md).
 - [Repairing links that broke somewhere else](#repairing-links-that-broke-somewhere-else)
 - [Context and agent integration](#context-and-agent-integration)
 - [Tasks](#tasks)
+- [Create a note from a template](#create-a-note-from-a-template)
+- [Template variables](#template-variables)
 - [Daily notes](#daily-notes)
 - [External references](#external-references)
 - [Configuration](#configuration)
@@ -171,6 +173,7 @@ key. These write commands have no dry-run flag.
 | [`knapper context FILE`](#knapper-context) | Aggregated context; add `--line N` for focused Markdown context |
 | [`knapper tasks`](#knapper-tasks) | Find and filter `- [ ]` tasks |
 | [`knapper tasks new / done / wip / cancel / set`](#knapper-tasks) | Create a task or change its status |
+| [`knapper new TITLE --template NAME_OR_FILE`](#knapper-new) | Create a note from a template file or configured name |
 | [`knapper daily [DATE]`](#knapper-daily) | Create or get a daily note |
 | [`knapper frontmatter get / set / delete`](#knapper-frontmatter) | Read and write YAML frontmatter |
 | [`knapper tags`](#knapper-tags) | List tags, or find files by tag with `--find` |
@@ -861,6 +864,106 @@ Statuses are configurable: `open` `[ ]`, `wip` `[/]`, `done` `[x]`, and
 markers or add custom statuses, which `knapper tasks set STATUS TEXT` and
 `--status` filters then understand.
 
+## Create a note from a template
+
+Available in the current source; not included in v0.1.0.
+
+Use a template file directly, with both paths relative to the vault:
+
+```bash
+knapper new "Example project" --template Templates/Project.md --folder Projects
+```
+
+`--folder` is required for a template file. To reuse a name and default folder,
+register them in `knapper.yaml`:
+
+```yaml
+templates:
+  Project:
+    file: Templates/Project.md
+    folder: Projects
+```
+
+The file and folder are relative to the vault. `folder: .` writes at its root.
+Add the template folder to `exclude` so lint does not check unexpanded templates.
+Then create `Templates/Project.md`, for example:
+
+```markdown
+---
+type: project
+status: active
+updated: {{date}}
+---
+# {{title}}
+
+## Summary
+
+## Next steps
+
+## References
+```
+
+The template controls the note structure; `Project` is a configured name with
+no built-in rules. Customize its frontmatter and headings for your vault.
+
+```bash
+knapper new "Example project" --template Project
+knapper lint "Projects/Example project.md"
+knapper new "Another project" --template Project --path-only
+```
+
+A registered name takes precedence over a file with the same name. `--folder`
+can also override a registered template's destination. `new` writes
+`Projects/Example project.md`; `.md` is always appended to the supplied title.
+Slashes, control characters, empty titles, and titles or destination folders
+starting with a dot are refused.
+See [Template variables](#template-variables) for date, time, and title expansion.
+
+An unknown or unreadable template, an existing destination, or a path outside
+the vault fails without overwriting a note. Template and destination paths must
+not contain symlinks. `--path-only` prints the vault-relative path; `--format json`
+returns `path`, `title`, `template`, and `created`. Both modes create the note.
+Run `lint` on the returned path to check your configured note rules.
+
+## Template variables
+
+`new` and `daily` use the same template expansion. Both `core` and `templater`
+engines support these placeholders:
+
+| Placeholder | Value |
+|---|---|
+| `{{title}}` | New note title, or the formatted daily-note filename without its extension |
+| `{{date}}` | Date in `YYYY-MM-DD` format |
+| `{{date:YYYY/MM/DD}}` | Date with the specified format |
+| `{{time}}` | Creation time in `HH:mm` format |
+| `{{time:HH:mm:ss}}` | Creation time with seconds |
+
+`new` uses the local creation date. `daily` uses the requested note date,
+even for a past or future note. Time always comes from the local clock when
+the note is created. Existing daily notes are not expanded again.
+
+Date formats replace `YYYY`, `MM`, and `DD`. Time formats replace `HH`, `mm`,
+and `ss`. Other characters are preserved; this is not a full Moment.js format
+engine. Empty Core formats such as `{{date:}}` remain unchanged;
+Templater date helpers accept an empty format as the default.
+
+The default `template_engine: templater` additionally supports:
+
+| Expression | Value |
+|---|---|
+| `<% tp.file.title %>` | Same title as `{{title}}` |
+| `<% tp.date.now() %>` | Same date as `{{date}}` |
+| `<% tp.date.now("YYYY/MM/DD") %>` | Formatted date |
+| `<% tp.date.now("YYYY-MM-DD", -1) %>` | Date shifted by the signed number of days |
+| `<% tp.date.yesterday() %>` | Date shifted by -1 day |
+| `<% tp.date.tomorrow("YYYY/MM/DD") %>` | Date shifted by +1 day, with an optional format |
+
+Templater format arguments use double quotes. Date helpers are relative to
+the requested note date for `daily`, and the creation date for `new`.
+`template_engine: core` leaves all `<% ... %>` expressions unchanged.
+Neither engine executes JavaScript or accepts user-defined variables.
+Unsupported expressions remain in the generated note unchanged.
+
 ## Daily notes
 
 `--path-only` changes the output, not the operation: it still creates the
@@ -1228,7 +1331,7 @@ The following help output is captured from the current source build. When
 changing CLI arguments, refresh the affected entries with the matching
 `--help` command. Global options are repeated so each entry stands alone.
 
-[knapper](#knapper) · [knapper links](#knapper-links) · [knapper backlinks](#knapper-backlinks) · [knapper orphans](#knapper-orphans) · [knapper hubs](#knapper-hubs) · [knapper broken-links](#knapper-broken-links) · [knapper repair-links](#knapper-repair-links) · [knapper init](#knapper-init) · [knapper config](#knapper-config) · [knapper config check](#knapper-config-check) · [knapper config schema](#knapper-config-schema) · [knapper skill](#knapper-skill) · [knapper self-update](#knapper-self-update) · [knapper context](#knapper-context) · [knapper frontmatter](#knapper-frontmatter) · [knapper frontmatter get](#knapper-frontmatter-get) · [knapper frontmatter set](#knapper-frontmatter-set) · [knapper frontmatter delete](#knapper-frontmatter-delete) · [knapper lint](#knapper-lint) · [knapper daily](#knapper-daily) · [knapper rename](#knapper-rename) · [knapper demote](#knapper-demote) · [knapper query](#knapper-query) · [knapper fields](#knapper-fields) · [knapper move](#knapper-move) · [knapper tasks](#knapper-tasks) · [knapper tasks new](#knapper-tasks-new) · [knapper tasks done](#knapper-tasks-done) · [knapper tasks wip](#knapper-tasks-wip) · [knapper tasks cancel](#knapper-tasks-cancel) · [knapper tasks set](#knapper-tasks-set) · [knapper tags](#knapper-tags) · [knapper refs](#knapper-refs) · [knapper resolve](#knapper-resolve) · [knapper provider](#knapper-provider) · [knapper provider list](#knapper-provider-list) · [knapper provider set](#knapper-provider-set) · [knapper provider remove](#knapper-provider-remove)
+[knapper](#knapper) · [knapper links](#knapper-links) · [knapper backlinks](#knapper-backlinks) · [knapper orphans](#knapper-orphans) · [knapper hubs](#knapper-hubs) · [knapper broken-links](#knapper-broken-links) · [knapper repair-links](#knapper-repair-links) · [knapper init](#knapper-init) · [knapper config](#knapper-config) · [knapper config check](#knapper-config-check) · [knapper config schema](#knapper-config-schema) · [knapper skill](#knapper-skill) · [knapper self-update](#knapper-self-update) · [knapper context](#knapper-context) · [knapper frontmatter](#knapper-frontmatter) · [knapper frontmatter get](#knapper-frontmatter-get) · [knapper frontmatter set](#knapper-frontmatter-set) · [knapper frontmatter delete](#knapper-frontmatter-delete) · [knapper lint](#knapper-lint) · [knapper new](#knapper-new) · [knapper daily](#knapper-daily) · [knapper rename](#knapper-rename) · [knapper demote](#knapper-demote) · [knapper query](#knapper-query) · [knapper fields](#knapper-fields) · [knapper move](#knapper-move) · [knapper tasks](#knapper-tasks) · [knapper tasks new](#knapper-tasks-new) · [knapper tasks done](#knapper-tasks-done) · [knapper tasks wip](#knapper-tasks-wip) · [knapper tasks cancel](#knapper-tasks-cancel) · [knapper tasks set](#knapper-tasks-set) · [knapper tags](#knapper-tags) · [knapper refs](#knapper-refs) · [knapper resolve](#knapper-resolve) · [knapper provider](#knapper-provider) · [knapper provider list](#knapper-provider-list) · [knapper provider set](#knapper-provider-set) · [knapper provider remove](#knapper-provider-remove)
 
 ### knapper
 
@@ -1254,6 +1357,7 @@ Commands:
   context       Get comprehensive context for a file or a '#tag' (for LLMs)
   frontmatter   Read and write frontmatter
   lint          Check vault health (exit 1 when any issues are found)
+  new           Create a note from a configured template or a template file
   daily         Create or get daily note
   rename        Rename a note and update all links to it
   demote        Rewrite a hard [[target]] into a soft #tag
@@ -1604,6 +1708,26 @@ Options:
   -v, --vault <VAULT>    Path to vault (overrides config)
   -f, --format <FORMAT>  [default: text]
   -h, --help             Print help
+```
+
+### knapper new
+
+```text
+Create a note from a configured template or a template file
+
+Usage: knapper new [OPTIONS] --template <TEMPLATE> <TITLE>
+
+Arguments:
+  <TITLE>
+
+Options:
+  -c, --config <CONFIG>      Path to config file
+      --template <TEMPLATE>
+      --folder <FOLDER>      Vault-relative destination folder; required for a template file
+  -v, --vault <VAULT>        Path to vault (overrides config)
+  -p, --path-only
+  -f, --format <FORMAT>      [default: text]
+  -h, --help                 Print help
 ```
 
 ### knapper daily

@@ -42,6 +42,10 @@ exclude:                  # subtrees no whole-vault command should read
 #   #         status:
 #   #           type: string
 #   #           enum: [open, deciding, decided, dropped]
+# templates:              # named templates for `knapper new TITLE --template NAME`
+#   Project:
+#     file: Templates/Project.md
+#     folder: Projects
 daily_notes:
   folder: Daily
   template: Templates/daily.md

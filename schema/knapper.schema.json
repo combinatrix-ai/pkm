@@ -13,7 +13,20 @@
     "template_engine": {
       "type": "string",
       "enum": ["templater", "core"],
-      "description": "Template expansion engine used by daily notes."
+      "description": "Template expansion engine used by daily notes and named templates."
+    },
+    "templates": {
+      "type": "object",
+      "description": "Named templates for knapper new. Paths are relative to the vault.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["file", "folder"],
+        "properties": {
+          "file": { "type": "string", "minLength": 1 },
+          "folder": { "type": "string", "minLength": 1 }
+        }
+      }
     },
     "flavor": {
       "type": "string",

@@ -388,6 +388,104 @@ Built-in statuses: `open` `[ ]`, `wip` `[/]`, `done` `[x]`, `cancel` `[-]`.
 `tasks.statuses`. `done` stamps `✅ YYYY-MM-DD` and `cancel` stamps
 `❌ YYYY-MM-DD`; `date_format: null` on a status stops it stamping anything.
 
+## Create a note from a template
+
+Use a template file directly, with both paths relative to the vault:
+
+```bash
+knapper new "Example project" --template Templates/Project.md --folder Projects
+```
+
+`--folder` is required for a template file. To reuse a name and default folder,
+register them in `knapper.yaml`:
+
+```yaml
+templates:
+  Project:
+    file: Templates/Project.md
+    folder: Projects
+```
+
+The file and folder are relative to the vault. `folder: .` writes at its root.
+Add the template folder to `exclude` so lint does not check unexpanded templates.
+Then create `Templates/Project.md`, for example:
+
+```markdown
+---
+type: project
+status: active
+updated: {{date}}
+---
+# {{title}}
+
+## Summary
+
+## Next steps
+
+## References
+```
+
+The template controls the note structure; `Project` is a configured name with
+no built-in rules. Customize its frontmatter and headings for your vault.
+
+```bash
+knapper new "Example project" --template Project
+knapper lint "Projects/Example project.md"
+knapper new "Another project" --template Project --path-only
+```
+
+A registered name takes precedence over a file with the same name. `--folder`
+can also override a registered template's destination. `new` writes
+`Projects/Example project.md`; `.md` is always appended to the supplied title.
+Slashes, control characters, empty titles, and titles or destination folders
+starting with a dot are refused.
+See [Template variables](#template-variables) for date, time, and title expansion.
+
+An unknown or unreadable template, an existing destination, or a path outside
+the vault fails without overwriting a note. Template and destination paths must
+not contain symlinks. `--path-only` prints the vault-relative path; `--format json`
+returns `path`, `title`, `template`, and `created`. Both modes create the note.
+Run `lint` on the returned path to check your configured note rules.
+
+## Template variables
+
+`new` and `daily` use the same template expansion. Both `core` and `templater`
+engines support these placeholders:
+
+| Placeholder | Value |
+|---|---|
+| `{{title}}` | New note title, or the formatted daily-note filename without its extension |
+| `{{date}}` | Date in `YYYY-MM-DD` format |
+| `{{date:YYYY/MM/DD}}` | Date with the specified format |
+| `{{time}}` | Creation time in `HH:mm` format |
+| `{{time:HH:mm:ss}}` | Creation time with seconds |
+
+`new` uses the local creation date. `daily` uses the requested note date,
+even for a past or future note. Time always comes from the local clock when
+the note is created. Existing daily notes are not expanded again.
+
+Date formats replace `YYYY`, `MM`, and `DD`. Time formats replace `HH`, `mm`,
+and `ss`. Other characters are preserved; this is not a full Moment.js format
+engine. Empty Core formats such as `{{date:}}` remain unchanged;
+Templater date helpers accept an empty format as the default.
+
+The default `template_engine: templater` additionally supports:
+
+| Expression | Value |
+|---|---|
+| `<% tp.file.title %>` | Same title as `{{title}}` |
+| `<% tp.date.now() %>` | Same date as `{{date}}` |
+| `<% tp.date.now("YYYY/MM/DD") %>` | Formatted date |
+| `<% tp.date.now("YYYY-MM-DD", -1) %>` | Date shifted by the signed number of days |
+| `<% tp.date.yesterday() %>` | Date shifted by -1 day |
+| `<% tp.date.tomorrow("YYYY/MM/DD") %>` | Date shifted by +1 day, with an optional format |
+
+Templater format arguments use double quotes. Date helpers are relative to
+the requested note date for `daily`, and the creation date for `new`.
+`template_engine: core` leaves all `<% ... %>` expressions unchanged.
+Neither engine executes JavaScript or accepts user-defined variables.
+Unsupported expressions remain in the generated note unchanged.
+
 ## Daily notes
 
 ```bash

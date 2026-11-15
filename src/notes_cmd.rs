@@ -1280,6 +1280,109 @@ fn parse_relative_date(spec: &str) -> Option<NaiveDate> {
     }
 }
 
+/// Resolve a relative path without allowing symlinks to redirect note creation.
+fn template_path(root: &Path, relative: &Path) -> Result<PathBuf> {
+    use std::path::Component;
+    let mut path = root.to_path_buf();
+    for component in relative.components() {
+        match component {
+            Component::Normal(name) => path.push(name),
+            Component::CurDir => continue,
+            _ => {
+                return Err(anyhow!(
+                    "Path must stay inside the vault: {}",
+                    relative.display()
+                ))
+            }
+        }
+        match std::fs::symlink_metadata(&path) {
+            Ok(meta) if meta.file_type().is_symlink() => {
+                return Err(anyhow!(
+                    "Symlinks are not allowed in template paths: {}",
+                    path.display()
+                ));
+            }
+            Ok(_) => {}
+            Err(err) if err.kind() == std::io::ErrorKind::NotFound => {}
+            Err(err) => return Err(err.into()),
+        }
+    }
+    Ok(path)
+}
+
+pub fn new_note(
+    config: &Config,
+    title: &str,
+    template: &str,
+    folder: Option<&str>,
+    path_only: bool,
+    format: &str,
+) -> Result<()> {
+    use std::io::Write;
+    if title.trim().is_empty()
+        || title.starts_with('.')
+        || title.contains(['/', '\\'])
+        || title.chars().any(char::is_control)
+    {
+        return Err(anyhow!(
+            "Title must be a non-empty filename without a leading dot, path separators, or control characters"
+        ));
+    }
+    let (file, destination) = match config.templates.get(template) {
+        Some(settings) => (settings.file.as_str(), folder.unwrap_or(&settings.folder)),
+        None => (template, folder.ok_or_else(|| anyhow!(
+            "Unknown template {template:?}. For a template file, pass --folder; otherwise configure templates.{template}.file and folder in knapper.yaml"
+        ))?),
+    };
+    if file.trim().is_empty() || destination.trim().is_empty() {
+        return Err(anyhow!("Template file and folder must not be empty"));
+    }
+    let root = std::fs::canonicalize(&config.vault_path)?;
+    let source = template_path(&root, Path::new(file))?;
+    if Path::new(destination).components().any(|part| {
+        matches!(part, std::path::Component::Normal(name) if name.to_string_lossy().starts_with('.'))
+    }) {
+        return Err(anyhow!("Destination folders must not be hidden"));
+    }
+    let folder = template_path(&root, Path::new(destination))?;
+    let path = folder.join(format!("{title}.md"));
+    if std::fs::symlink_metadata(&path).is_ok() {
+        return Err(anyhow!(
+            "Note already exists: {}. Nothing was written.",
+            path.display()
+        ));
+    }
+    let content = std::fs::read_to_string(&source).map_err(|err| {
+        anyhow!(
+            "Cannot read template {}: {err}. Nothing was written.",
+            source.display()
+        )
+    })?;
+    let body = crate::templater::expand(
+        &content,
+        &config.template_engine,
+        title,
+        Local::now().date_naive(),
+    );
+    std::fs::create_dir_all(&folder)?;
+    let mut output = tempfile::NamedTempFile::new_in(&folder)?;
+    output.write_all(body.as_bytes())?;
+    output
+        .persist_noclobber(&path)
+        .map_err(|err| anyhow!("Cannot create {}: {}", path.display(), err.error))?;
+    let relative = relative_path(&root, &path);
+    if path_only {
+        println!("{relative}");
+    } else if format == "json" {
+        print_json(
+            &json!({"path": relative, "title": title, "template": template, "created": true}),
+        );
+    } else {
+        println!("Created: {relative}");
+    }
+    Ok(())
+}
+
 pub fn daily(config: &Config, date: Option<&str>, path_only: bool, format: &str) -> Result<()> {
     let date = parse_relative_date(date.unwrap_or("today"))
         .ok_or_else(|| anyhow!("Invalid date: {}", date.unwrap_or("")))?;

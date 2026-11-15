@@ -1,4 +1,4 @@
-//! Template expansion for daily notes.
+//! Template expansion for notes.
 //!
 //! Both engines use moment-style date tokens; templater adds `<% %>` blocks.
 
@@ -15,13 +15,12 @@ static TP_DATE_NOW: LazyLock<Regex> = LazyLock::new(|| {
 static TP_DATE_SHIFT: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r#"<%\s*tp\.date\.(yesterday|tomorrow)\(\s*(?:"([^"]*)"\s*)?\)\s*%>"#).unwrap()
 });
-static TP_FILE_TITLE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"<%\s*tp\.file\.title\s*%>").unwrap());
 static CORE_DATE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"\{\{date(?::([^}]+))?\}\}").unwrap());
 static CORE_TIME: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"\{\{time(?::([^}]+))?\}\}").unwrap());
-static CORE_TITLE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\{\{title\}\}").unwrap());
+static TITLES: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"\{\{title\}\}|<%\s*tp\.file\.title\s*%>").unwrap());
 
 const DEFAULT_DATE_FORMAT: &str = "YYYY-MM-DD";
 
@@ -66,7 +65,6 @@ pub fn expand(content: &str, engine: &str, title: &str, date: NaiveDate) -> Stri
                 format_date(format, date + Duration::days(days))
             })
             .into_owned();
-        out = TP_FILE_TITLE.replace_all(&out, title).into_owned();
     }
 
     out = CORE_DATE
@@ -79,7 +77,15 @@ pub fn expand(content: &str, engine: &str, title: &str, date: NaiveDate) -> Stri
             format_time(c.get(1).map(|m| m.as_str()).unwrap_or(""))
         })
         .into_owned();
-    CORE_TITLE.replace_all(&out, title).into_owned()
+    TITLES
+        .replace_all(&out, |c: &regex::Captures| {
+            if engine == "core" && c[0].starts_with("<%") {
+                c[0].to_string()
+            } else {
+                title.to_string()
+            }
+        })
+        .into_owned()
 }
 
 #[cfg(test)]

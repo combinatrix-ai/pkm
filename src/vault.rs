@@ -145,10 +145,18 @@ pub struct StatusOverride {
     pub date_format_set: bool,
 }
 
+#[derive(Debug, Clone, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct NoteTemplate {
+    pub file: String,
+    pub folder: String,
+}
+
 #[derive(Debug, Clone)]
 pub struct Config {
     pub vault_path: PathBuf,
     pub template_engine: String,
+    pub templates: std::collections::BTreeMap<String, NoteTemplate>,
     pub flavor: String,
     pub exclude: Vec<String>,
     pub ignore_links: Vec<String>,
@@ -172,6 +180,7 @@ impl Default for Config {
         Self {
             vault_path: PathBuf::from("."),
             template_engine: "templater".into(),
+            templates: Default::default(),
             flavor: "markdown".into(),
             exclude: Vec::new(),
             ignore_links: Vec::new(),
@@ -254,6 +263,9 @@ const TASKS: &[(&str, Shape)] = &[
     ("statuses", Shape::Named(STATUS)),
 ];
 
+const NOTE_TEMPLATE: &[(&str, Shape)] =
+    &[("file", Shape::Text(None)), ("folder", Shape::Text(None))];
+
 const DAILY_NOTES: &[(&str, Shape)] = &[
     ("folder", Shape::Text(None)),
     ("template", Shape::Text(None)),
@@ -279,6 +291,7 @@ const SETTINGS: &[(&str, Shape)] = &[
     ("ignore_links", Shape::TextList),
     ("lint", Shape::Fields(LINT)),
     ("daily_notes", Shape::Fields(DAILY_NOTES)),
+    ("templates", Shape::Named(NOTE_TEMPLATE)),
     ("tasks", Shape::Fields(TASKS)),
 ];
 
@@ -1167,6 +1180,38 @@ pub fn config_from(raw: &str) -> Result<Config> {
         }
     }
 
+    let templates: std::collections::BTreeMap<String, NoteTemplate> = get("templates")
+        .map(|value| serde_yaml::from_value(value.clone()))
+        .transpose()?
+        .unwrap_or_default();
+    for (name, template) in &templates {
+        if name.trim().is_empty()
+            || template.file.trim().is_empty()
+            || template.folder.trim().is_empty()
+        {
+            return Err(anyhow!(
+                "Template names, files, and folders must not be empty"
+            ));
+        }
+        for path in [&template.file, &template.folder] {
+            if Path::new(path).components().any(|part| {
+                !matches!(
+                    part,
+                    std::path::Component::Normal(_) | std::path::Component::CurDir
+                )
+            }) {
+                return Err(anyhow!(
+                    "Template paths must be relative to the vault without '..': {path}"
+                ));
+            }
+        }
+        if Path::new(&template.folder).components().any(|part| {
+            matches!(part, std::path::Component::Normal(name) if name.to_string_lossy().starts_with('.'))
+        }) {
+            return Err(anyhow!("Template destination folders must not be hidden"));
+        }
+    }
+
     Ok(Config {
         tasks_default_file: tasks_str("default_file", "daily"),
         tasks_inbox: tasks_str("inbox", "Inbox/Tasks.md"),
@@ -1174,6 +1219,7 @@ pub fn config_from(raw: &str) -> Result<Config> {
         tasks_created_date_format: tasks_str("created_date_format", "➕ YYYY-MM-DD"),
         tasks_statuses,
         template_engine: get_str("template_engine", "templater"),
+        templates,
         flavor: get_str("flavor", "markdown"),
         exclude: as_string_list(get("exclude")),
         ignore_links: as_string_list(get("ignore_links")),
@@ -1512,7 +1558,7 @@ mod tests {
     /// does nothing is indistinguishable from a setting that stopped working.
     #[test]
     fn an_unknown_setting_is_named_and_refused() {
-        refused("templates:\n  folder: Templates", &["`templates`"]);
+        refused("templatez:\n  folder: Templates", &["`templatez`"]);
         refused("vault_path: .\nexcludes:\n  - logs", &["`excludes`"]);
         // The error also says what could have been meant instead.
         refused("excludes:\n  - logs", &["exclude", "ignore_links"]);

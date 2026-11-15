@@ -1025,6 +1025,69 @@
   expect:
     stdout_contains: ["Found 1 files with links to update", "Index.md (7 links)"]
 
+# Folder.md names Papers/Draft.md by its bare name with the extension. That
+# must find the note the way [[Draft]] does, and nothing [[Draft]] would not.
+
+- name: md-extension / a bare wikilink with .md finds a note in a folder
+  vault: md-extension
+  args: [broken-links]
+  expect:
+    stdout_contains:
+      - "[[Draft.md#Nope]] (missing-heading"
+      - "[[Draft.md^nope]] (missing-block"
+      - "[[Draft.mdx]] (missing-note"
+      - "[[Draft.png]] (missing-note"
+      - "[[Draft.md.bak]] (missing-note"
+      - "[[Recipe.mdx]] (missing-note"
+      - "[[Recipe.md.bak]] (missing-note"
+    stdout_excludes:
+      - "[[Draft.md]]"
+      - "[[Draft.md#Heading]]"
+      - "[[Draft.md^block]]"
+      - "[[Draft.md|"
+      - "[[Draft.MD]]"
+      - "[[Draft.md#Nope]] (missing-note"
+      - "[[Report.md.md]]"
+      - "[[Same.md]]"
+
+- name: md-extension / a bare wikilink with .md is a backlink
+  vault: md-extension
+  args: [backlinks, Papers/Draft.md]
+  expect:
+    stdout_contains: ["Folder.md (line 5)", "Index.md (line 11)"]
+
+- name: md-extension / a file named with .md.md is found by its whole name
+  vault: md-extension
+  args: [backlinks, Notes/Report.md.md]
+  expect:
+    lines: ["Folder.md (line 17)"]
+
+- name: md-extension / a shared name resolves the same with or without .md
+  vault: md-extension
+  args: [orphans]
+  # [[Same]] and [[Same.md]] both land on Other/Same.md, so the other Same is
+  # the orphan either way.
+  expect:
+    stdout_contains: ["Papers/Same.md"]
+    stdout_excludes: ["Other/Same.md", "Report.md.md"]
+
+- name: md-extension / a rename of a folder note rewrites its bare .md links
+  vault: md-extension
+  args: [rename, Draft, Final]
+  expect:
+    file:
+      "Folder.md":
+        contains:
+          - "bare: [[Final.md]]"
+          - "[[Final.md#Heading]]"
+          - "[[Final.md^block]]"
+          - "[[Final.md|the draft]]"
+          - "![[Final.md]]"
+          - "[[Draft.mdx]]"
+          - "[[Draft.png]]"
+          - "[[Draft.md.bak]]"
+        excludes: ["[[Draft.md]]", "[[Draft.md#Heading]]", "[[Draft.MD]]"]
+
 # ------------------------------------- A name with a space in it, in links --
 # The forms Obsidian writes when a note's name holds a space. Each referrer
 # here holds nothing but the one link, which is the point: knapper used to

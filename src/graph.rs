@@ -149,7 +149,16 @@ impl LinkResolver {
             .get(&format!("{lower}.md"))
             .or_else(|| self.by_path.get(&format!("{lower}.org")))
             .or_else(|| self.by_stem.get(&lower))
-            .or_else(|| self.by_alias.get(&lower));
+            .or_else(|| self.by_alias.get(&lower))
+            // `[[Recipe.md]]` names the note `Recipe` wherever it lives. The
+            // exact stem goes first so a file really called `Recipe.md.md`
+            // keeps the link, and only `.md` is stripped because
+            // `[[Recipe.mdx]]` or `[[Recipe.png]]` name other files.
+            .or_else(|| {
+                lower
+                    .strip_suffix(".md")
+                    .and_then(|stem| self.by_stem.get(stem))
+            });
         if let Some(hit) = hit {
             return Some(hit.clone());
         }
@@ -682,6 +691,34 @@ mod tests {
         let outside = resolver(&["outside.md"], &["outside.md"]);
         assert_eq!(outside.resolve("index.md", "../outside.md"), None);
         assert_eq!(outside.resolve("index.md", "/outside.md"), None);
+    }
+
+    #[test]
+    fn a_name_written_with_md_finds_the_note_wherever_it_lives() {
+        let files = [
+            "Papers/Recipe.md",
+            "Notes/Report.md.md",
+            "Papers/diagram.png",
+        ];
+        let resolver = resolver(&files[..2], &files);
+        for target in ["Recipe.md", "Recipe.MD"] {
+            assert_eq!(
+                resolver.resolve("Index.md", target),
+                Some("Papers/Recipe.md".into())
+            );
+        }
+        assert_eq!(
+            resolver.resolve("Index.md", "Report.md.md"),
+            Some("Notes/Report.md.md".into())
+        );
+        for target in [
+            "Recipe.mdx",
+            "Recipe.png",
+            "Recipe.md.bak",
+            "Report.md.md.md",
+        ] {
+            assert_eq!(resolver.resolve("Index.md", target), None, "{target}");
+        }
     }
 
     #[test]

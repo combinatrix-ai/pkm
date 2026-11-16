@@ -427,6 +427,43 @@ fn valid_cross_note_anchors_are_edges_and_anchor_syntax_is_normalized() {
 }
 
 #[test]
+fn bare_md_wikilinks_to_a_folder_note_stay_resolved_across_a_rename() {
+    let vault = Vault::new(
+        "",
+        &[
+            (
+                "Index.md",
+                "[[Recipe.md]]\n[[Recipe.md#Heading]]\n[[Recipe.MD^block]]\n![[Recipe.md|t]]\n",
+            ),
+            ("Papers/Recipe.md", "## Heading\n\nA claim. ^block\n"),
+        ],
+    );
+    let lint = &["lint", "--check", "broken-links", "--format", "json"];
+
+    assert_eq!(
+        vault.json(&["broken-links", "--format", "json"]),
+        serde_json::json!([])
+    );
+    assert_eq!(vault.json(lint)["summary"]["total_issues"], 0);
+
+    let renamed = vault.run(&["rename", "Recipe", "Argument"]);
+    assert!(
+        renamed.status.success(),
+        "{}",
+        String::from_utf8_lossy(&renamed.stderr)
+    );
+    assert_eq!(
+        vault.json(&["broken-links", "--format", "json"]),
+        serde_json::json!([])
+    );
+    assert_eq!(vault.json(lint)["summary"]["total_issues"], 0);
+    assert_eq!(
+        vault.json(&["backlinks", "Papers/Argument.md", "--format", "json"])[0]["source"],
+        "Index.md"
+    );
+}
+
+#[test]
 fn required_headings_use_prose_anchors_and_report_missing_titles() {
     let vault = Vault::new(
         "lint:\n  paths:\n    - path: '^People/'\n      headings:\n        required: [Bio, 出典, 関係, bio]\n",

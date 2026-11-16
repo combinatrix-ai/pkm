@@ -16,6 +16,8 @@
 
 # Website dependencies and generated documentation
 /node_modules/
+/website/guide/
 /website/reference/
+/website/public/llms-full.txt
 /website/.vitepress/cache/
 /website/.vitepress/dist/

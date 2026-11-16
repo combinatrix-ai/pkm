@@ -6,7 +6,7 @@ use std::path::Path;
 use anyhow::{anyhow, Result};
 use serde_json::json;
 
-use crate::graph::build_link_graph;
+use crate::graph::{build_link_graph, build_resolver};
 use crate::note::parse_note;
 use crate::parser::{extract_links, mask_noncontent};
 use crate::repair;
@@ -90,6 +90,7 @@ pub fn backlinks(
         .rsplit_once('.')
         .map(|(stem, _)| stem.to_string())
         .unwrap_or_else(|| relative.clone());
+    let resolver = build_resolver(config);
 
     let mut results = Vec::new();
     for source in all_notes(config) {
@@ -101,6 +102,7 @@ pub fn backlinks(
         };
         let masked = mask_noncontent(&content);
         let lines: Vec<&str> = content.lines().collect();
+        let source_relative = relative_path(&config.vault_path, &source);
 
         for (index, line) in masked.lines().enumerate() {
             for candidate in extract_links(line) {
@@ -116,9 +118,13 @@ pub fn backlinks(
                     || candidate == without_ext
                     || candidate == relative
                     || basename == target_name
+                    // The name forms above also find links to a note that
+                    // does not exist yet. The resolver adds what they miss,
+                    // such as [[Note.md]] for a note in a folder.
+                    || resolver.resolve(&source_relative, &candidate).as_deref() == Some(&relative)
                 {
                     let mut entry = json!({
-                        "source": relative_path(&config.vault_path, &source),
+                        "source": &source_relative,
                         "line": index + 1,
                     });
                     if let Some(context) = context_window(&lines, index + 1, before, after) {

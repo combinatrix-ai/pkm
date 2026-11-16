@@ -1,7 +1,5 @@
 # Start with a folder of notes
 
-<div v-pre>
-
 knapper works directly on Markdown files. It needs no desktop app, server, or index.
 
 ## Install
@@ -11,7 +9,7 @@ curl -fsSL https://raw.githubusercontent.com/combinatrix-ai/knapper/v0.1.0/insta
 ```
 
 The installer verifies archive checksums and installs to `~/.local/bin`.
-See [installation details](../reference/cli#install) for supported architectures,
+See [Install](install.md) for supported architectures,
 provenance verification, and installation options.
 
 ## Initialize
@@ -21,7 +19,13 @@ cd ~/your-notes
 knapper init
 ```
 
-This writes `knapper.yaml` and a daily-note template. Existing templates are preserved.
+This writes `knapper.yaml` and the `Templates/daily.md` it points at, so
+`knapper daily` works straight afterwards. A template you already have is never
+overwritten, `--force` included: that flag replaces knapper's config, not your
+writing.
+
+`knapper init` is one-time. After that, knapper walks up from wherever you are
+to find the nearest `knapper.yaml`, so commands work from any subdirectory.
 
 ## Create a note
 
@@ -49,8 +53,7 @@ knapper lint "Projects/Field notes.md"
 
 `new` refuses to overwrite existing files. You can also register a template name
 and default folder in `knapper.yaml`.
-See [templates](../reference/cli#create-a-note-from-a-template) and
-[template variables](../reference/cli#template-variables).
+See [Templates and daily notes](templates.md).
 
 ## Follow the connections
 
@@ -73,4 +76,19 @@ knapper self-update
 The updater verifies release provenance. Add `--no-skill` if you manage the
 embedded agent skill separately.
 
-</div>
+## Hand it to your agent
+
+```sh
+knapper skill --install
+```
+
+The installer already registers the embedded skill with Claude Code and Codex
+when it finds them. See [Working with agents](agents.md).
+
+## Where next
+
+- [Querying notes](querying.md)
+- [Renames that don't break anything](refactoring.md)
+- [Tasks](tasks.md)
+- [Lint rules](lint.md)
+- [CLI reference](../reference/README.md)

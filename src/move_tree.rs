@@ -29,6 +29,7 @@ use walkdir::WalkDir;
 
 use crate::links::{line_of, render, scan_links, strip_unwritten_extension, Kind, RawLink};
 use crate::note::parse_note;
+use crate::parser::fold_name;
 use crate::vault::{
     all_notes, is_excluded, is_org, relative_path, Config, CONFIG_FILENAME, DEFAULT_EXTENSIONS,
 };
@@ -254,18 +255,18 @@ impl Index {
         let mut by_stem: BTreeMap<String, Vec<String>> = BTreeMap::new();
 
         for file in files {
-            lower.entry(file.to_lowercase()).or_insert(file.clone());
+            lower.entry(fold_name(file)).or_insert(file.clone());
             let path = Path::new(file);
             if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
                 by_name
-                    .entry(name.to_lowercase())
+                    .entry(fold_name(name))
                     .or_default()
                     .push(file.clone());
             }
             if is_note_path(file) {
                 if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
                     by_stem
-                        .entry(stem.to_lowercase())
+                        .entry(fold_name(stem))
                         .or_default()
                         .push(file.clone());
                 }
@@ -279,7 +280,7 @@ impl Index {
             by_stem,
             by_alias: aliases
                 .iter()
-                .map(|(a, p)| (a.to_lowercase(), p.clone()))
+                .map(|(a, p)| (fold_name(a), p.clone()))
                 .collect(),
         }
     }
@@ -316,7 +317,7 @@ impl Index {
                 return Some(candidate);
             }
         }
-        let lower = path.to_lowercase();
+        let lower = fold_name(path);
         if let Some(hit) = self.lower.get(&lower) {
             return Some(hit.clone());
         }
@@ -364,7 +365,7 @@ impl Index {
             }
         }
 
-        let lower = target.to_lowercase();
+        let lower = fold_name(&target);
         for table in [&self.by_name, &self.by_stem] {
             if let Some(candidates) = table.get(&lower) {
                 if let Some(hit) = self.nearest(referrer, candidates) {

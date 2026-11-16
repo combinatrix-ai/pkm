@@ -322,6 +322,16 @@ impl AnchorInventory {
 /// Normalize the visible text of a Markdown heading for Obsidian-style
 /// anchor matching. Closing `#` decoration is removed only when separated by
 /// whitespace, so a heading such as `C#` remains unchanged.
+/// The lookup form of a note name or path: Unicode NFC, then lowercase.
+///
+/// macOS can hand back decomposed (NFD) file names while links typed in
+/// Obsidian are composed (NFC); both name the same file, so every name-keyed
+/// table compares in this form rather than by raw bytes.
+pub fn fold_name(name: &str) -> String {
+    use unicode_normalization::UnicodeNormalization;
+    name.nfc().collect::<String>().to_lowercase()
+}
+
 pub fn normalize_heading(text: &str) -> String {
     let trimmed = text.trim();
     let mut suffix_start = trimmed.len();

@@ -9,8 +9,8 @@ use crate::links::{scan_links, Kind, RawLink};
 use crate::note::parse_note;
 use crate::org;
 use crate::parser::{
-    anchor_kind, extract_anchor_inventory, normalize_markdown_path, normalize_wikilink_target,
-    strip_anchor, AnchorInventory, AnchorKind,
+    anchor_kind, extract_anchor_inventory, fold_name, normalize_markdown_path,
+    normalize_wikilink_target, strip_anchor, AnchorInventory, AnchorKind,
 };
 use crate::vault::{all_files, all_notes, is_org, relative_path, Config, DEFAULT_EXTENSIONS};
 
@@ -48,12 +48,12 @@ impl LinkResolver {
         let mut by_path = HashMap::new();
         let mut by_stem = HashMap::new();
         for file in &target_files {
-            by_path.entry(file.to_lowercase()).or_insert(file.clone());
+            by_path.entry(fold_name(file)).or_insert(file.clone());
         }
         for file in &files {
             let stem = Path::new(file)
                 .file_stem()
-                .map(|s| s.to_string_lossy().to_lowercase())
+                .map(|s| fold_name(&s.to_string_lossy()))
                 .unwrap_or_default();
             by_stem.entry(stem).or_insert(file.clone());
         }
@@ -63,7 +63,7 @@ impl LinkResolver {
             by_stem,
             by_alias: aliases
                 .into_iter()
-                .map(|(a, p)| (a.to_lowercase(), p))
+                .map(|(a, p)| (fold_name(&a), p))
                 .collect(),
             by_id: ids.into_iter().collect(),
             by_heading: headings.into_iter().collect(),
@@ -94,7 +94,7 @@ impl LinkResolver {
             }
             let relative = relative_path(&config.vault_path, entry.path());
             self.directories
-                .insert(relative.to_lowercase(), format!("{relative}/"));
+                .insert(fold_name(&relative), format!("{relative}/"));
         }
         self
     }
@@ -106,11 +106,11 @@ impl LinkResolver {
             return None;
         }
         if let Some(relative) = relative_target(source, target) {
-            if let Some(directory) = self.directories.get(&relative.to_lowercase()) {
+            if let Some(directory) = self.directories.get(&fold_name(&relative)) {
                 return Some(directory.clone());
             }
         }
-        self.directories.get(&target.to_lowercase()).cloned()
+        self.directories.get(&fold_name(target)).cloned()
     }
 
     pub fn resolve(&self, source: &str, target: &str) -> Option<String> {
@@ -122,7 +122,7 @@ impl LinkResolver {
             return self.by_id.get(id.trim()).cloned();
         }
         if let Some(heading) = target.strip_prefix('*') {
-            return self.by_heading.get(&heading.trim().to_lowercase()).cloned();
+            return self.by_heading.get(&fold_name(heading.trim())).cloned();
         }
 
         if let Some(hit) = self.resolve_path(target) {
@@ -143,7 +143,7 @@ impl LinkResolver {
             return Some(directory);
         }
 
-        let lower = target.to_lowercase();
+        let lower = fold_name(target);
         let hit = self
             .by_path
             .get(&format!("{lower}.md"))
@@ -174,7 +174,7 @@ impl LinkResolver {
         // the same way a bare wikilink does.
         let basename = Path::new(target)
             .file_name()
-            .map(|s| s.to_string_lossy().to_lowercase())?;
+            .map(|s| fold_name(&s.to_string_lossy()))?;
         if basename != lower {
             return self
                 .by_stem
@@ -209,11 +209,11 @@ impl LinkResolver {
     fn resolve_path(&self, target: &str) -> Option<String> {
         for suffix in ["md", "org", "markdown", "mdx"] {
             let candidate = format!("{target}.{suffix}");
-            if let Some(hit) = self.by_path.get(&candidate.to_lowercase()) {
+            if let Some(hit) = self.by_path.get(&fold_name(&candidate)) {
                 return Some(hit.clone());
             }
         }
-        self.by_path.get(&target.to_lowercase()).cloned()
+        self.by_path.get(&fold_name(target)).cloned()
     }
 
     /// Return the anchor-specific reason when `anchor` is absent from a
@@ -320,7 +320,7 @@ fn normalize_link_target(target: &str) -> String {
             target = stem.to_string();
         }
     }
-    target.trim().to_lowercase()
+    fold_name(target.trim())
 }
 
 #[derive(Debug, Default)]
@@ -451,7 +451,7 @@ fn scan_vault(config: &Config) -> (Vec<Parsed>, BTreeSet<String>, LinkResolver) 
                         .headings
                         .into_iter()
                         .filter(|h| !h.text.is_empty())
-                        .map(|h| h.text.to_lowercase())
+                        .map(|h| fold_name(&h.text))
                         .collect(),
                 });
             }
@@ -658,6 +658,39 @@ mod tests {
             BTreeMap::new(),
             BTreeMap::new(),
         )
+    }
+
+    /// macOS file names can arrive decomposed (NFD) while a link typed in
+    /// Obsidian is composed (NFC). Both spell the same name, so resolution
+    /// and ignores treat them as one, whichever side is decomposed.
+    #[test]
+    fn composed_and_decomposed_names_resolve_to_each_other() {
+        let nfd = "Projects/ガイド/データ.md";
+        let decomposed: String = nfd
+            .chars()
+            .flat_map(|c| match c {
+                'ガ' => vec!['カ', '\u{3099}'],
+                'デ' => vec!['テ', '\u{3099}'],
+                other => vec![other],
+            })
+            .collect();
+        assert_ne!(decomposed, nfd);
+
+        let on_disk_nfd = resolver(&[decomposed.as_str()], &[decomposed.as_str()]);
+        assert_eq!(
+            on_disk_nfd.resolve("a.md", "データ"),
+            Some(decomposed.clone())
+        );
+        assert_eq!(
+            on_disk_nfd.resolve("a.md", "Projects/ガイド/データ"),
+            Some(decomposed.clone())
+        );
+
+        let on_disk_nfc = resolver(&[nfd], &[nfd]);
+        let link_nfd = decomposed.trim_end_matches(".md");
+        assert_eq!(on_disk_nfc.resolve("a.md", link_nfd), Some(nfd.to_string()));
+
+        assert!(ignoring(&["データ"]).contains("テ\u{3099}ータ"));
     }
 
     #[test]

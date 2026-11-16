@@ -78,8 +78,9 @@ checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 
 [[package]]
 name = "attestation-verify"
-version = "0.0.1"
-source = "git+https://github.com/combinatrix-ai/attestation-verify?rev=73d3b53ecbf2d3c71846ae4cab3fa6482be012eb#73d3b53ecbf2d3c71846ae4cab3fa6482be012eb"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b9a4133bbdfe637963f2e8149ef1bec408c913acdbe51960cd90eb0be37d7c81"
 dependencies = [
  "base64",
  "der",

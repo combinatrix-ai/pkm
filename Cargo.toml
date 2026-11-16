@@ -22,7 +22,7 @@ rayon = "1"
 percent-encoding = "2"
 chrono = "0.4"
 anyhow = "1"
-attestation-verify = { git = "https://github.com/combinatrix-ai/attestation-verify", rev = "73d3b53ecbf2d3c71846ae4cab3fa6482be012eb" }
+attestation-verify = "0.1.0"
 uuid = { version = "1", features = ["v4"] }
 tempfile = "3"
 unicode-normalization = "0.1.26"

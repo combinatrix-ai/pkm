@@ -58,7 +58,7 @@ listed in [Resolving](../guide/external-references.md#resolving).
 | [`knapper resolve REF`](commands/resolve.md) | Read one reference's value through its provider's command |
 | [`knapper provider list / set / remove`](commands/provider.md) | Configure those commands, outside the vault |
 | [`knapper skill`](commands/skill.md) | Print the embedded agent skill, or `--install` it |
-| [`knapper self-update`](commands/self-update.md) | Replace this binary with the newest release |
+| [`knapper self-update`](commands/self-update.md) | Update a release binary; other installs show how to update |
 
 Query commands take `-f/--format`. Each command page shows its `--help`
 output, captured from the current source build. When changing CLI arguments,
@@ -85,7 +85,7 @@ Commands:
   init          Initialize a new knapper config file
   config        Inspect or print the knapper YAML configuration schema
   skill         Print the embedded agent skill, or register it with the agents here
-  self-update   Verify release provenance and replace this binary with the newest release
+  self-update   Update a release binary to the newest verified release; other installs show how to update
   context       Get comprehensive context for a file or a '#tag' (for LLMs)
   frontmatter   Read and write frontmatter
   lint          Check vault health (exit 1 when any issues are found)

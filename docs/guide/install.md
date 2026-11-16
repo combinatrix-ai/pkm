@@ -51,6 +51,12 @@ check-time cache files live under `$XDG_CACHE_HOME/knapper` (default
 the last known notice. Explicit updates and configured provider commands may
 also use the network. Deleting the cache clears update-check state.
 
+Only release binaries replace themselves. A copy installed by `cargo install`
+from crates.io is cargo's to replace: `self-update` and the notice check
+crates.io and name the `cargo install` command to run. Any other build, such as
+one built from source, reports the newest GitHub release and leaves itself in
+place. Release builds enable the `self-update` Cargo feature.
+
 For the first installation, the public installer verifies archive checksums;
 use `gh attestation verify` above for independent provenance verification.
 The installed binary's updater performs provenance verification itself.

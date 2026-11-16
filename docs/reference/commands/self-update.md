@@ -1,7 +1,7 @@
 # knapper self-update
 
 ```text
-Verify release provenance and replace this binary with the newest release
+Update a release binary to the newest verified release; other installs show how to update
 
 Usage: knapper self-update [OPTIONS]
 

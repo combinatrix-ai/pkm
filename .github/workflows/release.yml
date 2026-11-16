@@ -85,9 +85,9 @@ jobs:
         run: |
           set -euo pipefail
           if [ "${{ matrix.builder }}" = "cargo-zigbuild" ]; then
-            cargo zigbuild --release --locked --target "${{ matrix.target }}" --bins
+            cargo zigbuild --release --locked --target "${{ matrix.target }}" --bins --features self-update
           else
-            cargo build --release --locked --target "${{ matrix.target }}" --bins
+            cargo build --release --locked --target "${{ matrix.target }}" --bins --features self-update
           fi
 
           archive="knapper-${GITHUB_REF_NAME}-${{ matrix.target }}.tar.gz"

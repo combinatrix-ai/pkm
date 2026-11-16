@@ -57,7 +57,8 @@ embedded skill with supported agent hosts it finds. Release binaries support
 macOS and Linux on arm64 and x86_64. See the [installation guide](docs/guide/install.md)
 for direct downloads, provenance verification, installer options and source builds.
 
-`knapper self-update` verifies release provenance and installs updates.
+`knapper self-update` verifies release provenance and installs updates on release
+binaries; `cargo install` and source builds instead say how to update.
 Interactive commands check for updates in the background at most once every
 six hours; set `KNAPPER_NO_UPDATE_CHECK=1` to disable that check. Notes are
 not sent. Configured external-reference providers may also use the network.

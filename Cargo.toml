@@ -22,10 +22,15 @@ rayon = "1"
 percent-encoding = "2"
 chrono = "0.4"
 anyhow = "1"
-attestation-verify = "0.1.0"
-uuid = { version = "1", features = ["v4"] }
+attestation-verify = { version = "0.1.0", optional = true }
+uuid = { version = "1", features = ["v4"], optional = true }
 tempfile = "3"
 unicode-normalization = "0.1.26"
+
+[features]
+# Release binaries replace themselves with the next verified GitHub release.
+# Builds without it (cargo install, local builds) only report updates.
+self-update = ["dep:attestation-verify", "dep:uuid"]
 
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"

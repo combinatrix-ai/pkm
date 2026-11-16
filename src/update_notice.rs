@@ -5,6 +5,8 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::{Duration, SystemTime};
 
+use crate::update::Channel;
+
 const INTERVAL: Duration = Duration::from_secs(6 * 60 * 60);
 
 fn cache_dir() -> Option<PathBuf> {
@@ -33,11 +35,13 @@ pub fn notify_and_schedule() {
     let Some(dir) = cache_dir() else {
         return;
     };
-    if let Ok(latest) = fs::read_to_string(dir.join("latest-version")) {
-        if crate::update::version_is_newer(latest.trim(), env!("CARGO_PKG_VERSION")) {
+    let channel = Channel::current();
+    if let Ok(latest) = fs::read_to_string(dir.join(channel.cache_name())) {
+        let latest = latest.trim();
+        if crate::update::version_is_newer(latest, env!("CARGO_PKG_VERSION")) {
             eprintln!(
-                "knapper {} is available; run `knapper self-update`.",
-                latest.trim()
+                "knapper {latest} is available; {}.",
+                channel.how_to_update(latest)
             );
         }
     }
@@ -82,10 +86,11 @@ pub fn refresh() -> anyhow::Result<()> {
     }
     fs::write(dir.join("checked"), b"")?;
     // A failed check retains the previous successfully discovered version.
-    let latest = crate::update::resolve_latest_version()?;
+    let channel = Channel::current();
+    let latest = channel.latest_version()?;
     let mut staged = tempfile::NamedTempFile::new_in(&dir)?;
     staged.write_all(latest.as_bytes())?;
-    staged.persist(dir.join("latest-version"))?;
+    staged.persist(dir.join(channel.cache_name()))?;
     drop(lock);
     Ok(())
 }

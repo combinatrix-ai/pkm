@@ -16,7 +16,7 @@ knapper rename "recipe" "cookbook"   # rename it and update links
 knapper tasks --overdue --format json    # what needs attention?
 ```
 
-[CLI manual](docs/CLI.md) · [Compatibility](docs/COMPATIBILITY.md) ·
+[Documentation](docs/README.md) · [CLI reference](docs/reference/README.md) · [Compatibility](docs/COMPATIBILITY.md) ·
 [Releases](https://github.com/combinatrix-ai/knapper/releases)
 
 > A *knapper* is someone who strikes obsidian and flint into usable blades.
@@ -34,7 +34,7 @@ brings those operations to the terminal, for people and agents alike:
 - 🩹 **Link repair planning** — `repair-links --dry-run` proposes repairs where the filesystem supplies unambiguous evidence.
 - 🏷️ **Tags and topics** — list tags, follow nested topics with `backlinks '#tag'` and `context '#tag'`, and use `demote` to turn topic-only wikilinks into tags.
 - ✅ **Tasks** — create, filter and update checkboxes across the tree, with dates, priorities, recurring markers and configurable statuses.
-- 📝 **Note templates** — create notes from template files or configured names with `new`. [Configuration](docs/CLI.md#create-a-note-from-a-template).
+- 📝 **Note templates** — create notes from template files or configured names with `new`. [Templates](docs/guide/templates.md).
 - 📅 **Daily notes** — create or retrieve a dated note and expand Core Templates or supported Templater date expressions.
 - 📇 **Frontmatter** — read, set and delete typed YAML fields from the shell.
 - 🩺 **Vault health** — find broken links, orphans, duplicate names and stubs; enforce frontmatter and required-heading rules by path or metadata, across the vault or only changed files.
@@ -43,7 +43,7 @@ brings those operations to the terminal, for people and agents alike:
 
 Tags are Unicode-aware (`#café` and `#parent/child` both work), and one
 malformed YAML header never aborts a whole-vault scan. The
-[CLI manual](docs/CLI.md) covers all commands, options, configuration and
+[documentation](docs/README.md) covers all commands, options, configuration and
 behavioral limits.
 
 ## Install
@@ -54,7 +54,7 @@ curl -fsSL https://raw.githubusercontent.com/combinatrix-ai/knapper/v0.1.0/insta
 
 Installs to `~/.local/bin`, verifies archive checksums, and registers the
 embedded skill with supported agent hosts it finds. Release binaries support
-macOS and Linux on arm64 and x86_64. See the [installation manual](docs/CLI.md#install)
+macOS and Linux on arm64 and x86_64. See the [installation guide](docs/guide/install.md)
 for direct downloads, provenance verification, installer options and source builds.
 
 `knapper self-update` verifies release provenance and installs updates.
@@ -119,9 +119,10 @@ workspaces and plugin execution remain outside its scope. See the
 
 ## Status
 
-Alpha. This README describes the current source. `knapper new` is not in the
-published v0.1.0 release; build from source to use it. The CLI may still change
-before 1.0.
+Alpha. This README describes v0.1.0. Before 1.0, routine releases may include
+features and fixes in the patch number; minor versions mark larger milestones
+or changes that require users to adjust their commands or configuration.
+The CLI may still change before 1.0.
 
 knapper began as a Python tool and was rewritten in Rust so that installing
 it would not mean standing up an interpreter first. The two implementations
@@ -140,6 +141,10 @@ cargo test          # unit tests, plus the contract suite against the binary
 cargo clippy --all-targets -- -D warnings
 cargo fmt --check
 ```
+
+The website source is in [`website/`](website/README.md). Run `npm ci` and
+`npm run docs:build` to build the landing page and the documentation from this
+repository's Markdown sources.
 
 ## License
 

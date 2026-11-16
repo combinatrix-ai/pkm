@@ -1494,15 +1494,17 @@ impl LinkRewriter {
         // Missing that group left [[Note#Heading]] untouched by a rename,
         // which turned it into a broken link.
         const ANCHOR: &str = r"((?:#|\^)[^\]|]*)?";
+        // [[Note.md]] names the same note as [[Note]]; the extension is kept
+        // as written so a link does not change style when it is rewritten.
         let wiki = match old_folder {
             Some(folder) => Regex::new(&format!(
-                r"(?i)\[\[({}/)?{}{}(\|[^\]]+)?\]\]",
+                r"(?i)\[\[({}/)?{}(\.md)?{}(\|[^\]]+)?\]\]",
                 regex::escape(folder),
                 regex::escape(old_stem),
                 ANCHOR
             ))?,
             None => Regex::new(&format!(
-                r"(?i)\[\[([^\]|#^]*[/\\])?{}{}(\|[^\]]+)?\]\]",
+                r"(?i)\[\[([^\]|#^]*[/\\])?{}(\.md)?{}(\|[^\]]+)?\]\]",
                 regex::escape(old_stem),
                 ANCHOR
             ))?,
@@ -1526,14 +1528,14 @@ impl LinkRewriter {
         let wiki_count = self.wiki.find_iter(original).count();
         let content = self.wiki.replace_all(original, |c: &regex::Captures| {
             let prefix = c.get(1).map(|m| m.as_str()).unwrap_or("");
-            let anchor = c.get(2).map(|m| m.as_str()).unwrap_or("");
-            let alias = c.get(3).map(|m| m.as_str()).unwrap_or("");
+            let extension = c.get(2).map(|m| m.as_str()).unwrap_or("");
+            let anchor = c.get(3).map(|m| m.as_str()).unwrap_or("");
+            let alias = c.get(4).map(|m| m.as_str()).unwrap_or("");
+            let target = format!("{new_stem}{extension}{anchor}{alias}");
             match (new_folder, old_folder) {
-                (Some(new), old) if Some(new) != old => {
-                    format!("[[{new}/{new_stem}{anchor}{alias}]]")
-                }
-                _ if !prefix.is_empty() => format!("[[{prefix}{new_stem}{anchor}{alias}]]"),
-                _ => format!("[[{new_stem}{anchor}{alias}]]"),
+                (Some(new), old) if Some(new) != old => format!("[[{new}/{target}]]"),
+                _ if !prefix.is_empty() => format!("[[{prefix}{target}]]"),
+                _ => format!("[[{target}]]"),
             }
         });
 

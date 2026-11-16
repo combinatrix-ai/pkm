@@ -109,18 +109,20 @@ Options:
 ```text
 Mark a task as done, adding the next occurrence of a recurring one
 
-Usage: knapper tasks done [OPTIONS] <TEXT>
+Usage: knapper tasks done [OPTIONS] [TEXT]...
 
 Arguments:
-  <TEXT>
+  [TEXT]...
 
 Options:
-  -c, --config <CONFIG>  Path to config file
-      --file <FILE>
-      --partial          Use partial matching (contains)
-  -v, --vault <VAULT>    Path to vault (overrides config)
-      --no-recur         Do not create the next occurrence of a recurring task
-  -h, --help             Print help
+      --block-id <BLOCK_ID>  Exact Obsidian block ID (requires --file)
+  -c, --config <CONFIG>      Path to config file
+      --file <FILE>          Vault-relative file (required for multiple texts)
+  -v, --vault <VAULT>        Path to vault (overrides config)
+      --partial              Use partial matching (contains)
+      --no-recur             Do not create the next occurrence of a recurring task
+      --dry-run
+  -h, --help                 Print help
 ```
 
 ## knapper tasks wip
@@ -128,17 +130,18 @@ Options:
 ```text
 Mark a task as in progress
 
-Usage: knapper tasks wip [OPTIONS] <TEXT>
+Usage: knapper tasks wip [OPTIONS] [TEXT]
 
 Arguments:
-  <TEXT>
+  [TEXT]
 
 Options:
-  -c, --config <CONFIG>  Path to config file
+      --block-id <BLOCK_ID>  Exact Obsidian block ID (requires --file)
+  -c, --config <CONFIG>      Path to config file
       --file <FILE>
+  -v, --vault <VAULT>        Path to vault (overrides config)
       --partial
-  -v, --vault <VAULT>    Path to vault (overrides config)
-  -h, --help             Print help
+  -h, --help                 Print help
 ```
 
 ## knapper tasks cancel
@@ -146,17 +149,19 @@ Options:
 ```text
 Mark a task as cancelled
 
-Usage: knapper tasks cancel [OPTIONS] <TEXT>
+Usage: knapper tasks cancel [OPTIONS] [TEXT]...
 
 Arguments:
-  <TEXT>
+  [TEXT]...
 
 Options:
-  -c, --config <CONFIG>  Path to config file
-      --file <FILE>
+      --block-id <BLOCK_ID>  Exact Obsidian block ID (requires --file)
+  -c, --config <CONFIG>      Path to config file
+      --file <FILE>          Vault-relative file (required for multiple texts)
+  -v, --vault <VAULT>        Path to vault (overrides config)
       --partial
-  -v, --vault <VAULT>    Path to vault (overrides config)
-  -h, --help             Print help
+      --dry-run
+  -h, --help                 Print help
 ```
 
 ## knapper tasks set
@@ -164,16 +169,17 @@ Options:
 ```text
 Transition a task to a named status
 
-Usage: knapper tasks set [OPTIONS] <STATUS> <TEXT>
+Usage: knapper tasks set [OPTIONS] <STATUS> [TEXT]
 
 Arguments:
   <STATUS>
-  <TEXT>
+  [TEXT]
 
 Options:
-  -c, --config <CONFIG>  Path to config file
+      --block-id <BLOCK_ID>  Exact Obsidian block ID (requires --file)
+  -c, --config <CONFIG>      Path to config file
       --file <FILE>
+  -v, --vault <VAULT>        Path to vault (overrides config)
       --partial
-  -v, --vault <VAULT>    Path to vault (overrides config)
-  -h, --help             Print help
+  -h, --help                 Print help
 ```

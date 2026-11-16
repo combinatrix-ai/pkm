@@ -531,7 +531,7 @@
 - name: tasks done puts a recurring task's next occurrence above it
   vault: recurring
   # The created date becomes today; only the due date is fixed.
-  args: [tasks, done, "Pay phone bill"]
+  args: [tasks, done, "Pay phone bill ➕ 2026-09-29 🔁 every 1 month 📅 2026-10-20"]
   expect:
     stdout_contains: ["next: Pay phone bill", "📅 2026-11-20", "Periodic.md:3", "Periodic.md:4"]
     file:
@@ -542,7 +542,7 @@
 
 - name: tasks done --no-recur completes a recurring task without a next one
   vault: recurring
-  args: [tasks, done, "Pay phone bill", --no-recur]
+  args: [tasks, done, "Pay phone bill ➕ 2026-09-29 🔁 every 1 month 📅 2026-10-20", --no-recur]
   expect:
     stdout_excludes: ["next:"]
     file:
@@ -552,7 +552,7 @@
 
 - name: tasks done on a non-recurring task adds no line
   vault: recurring
-  args: [tasks, done, "Ship report"]
+  args: [tasks, done, "Ship report 📅 2026-10-20"]
   expect:
     stdout_excludes: ["next:"]
     file:
@@ -562,7 +562,7 @@
 
 - name: a when-done task recurs from today and keeps its indentation
   vault: recurring
-  args: [tasks, done, "Water plants"]
+  args: [tasks, done, "Water plants 🔁 every 3 days when done 📅 2026-10-20"]
   expect:
     file:
       "Periodic.md":
@@ -573,7 +573,7 @@
 
 - name: cancelling a recurring task creates no next occurrence
   vault: recurring
-  args: [tasks, cancel, "Pay phone bill"]
+  args: [tasks, cancel, "Pay phone bill ➕ 2026-09-29 🔁 every 1 month 📅 2026-10-20"]
   expect:
     file:
       "Periodic.md":

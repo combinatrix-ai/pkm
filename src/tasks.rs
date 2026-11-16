@@ -51,6 +51,37 @@ static SIMPLE_RULE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?i)^every\s+(?:(\d+)\s+)?(day|week|month|year)s?(\s+when\s+done)?$").unwrap()
 });
 static TAG_IN_TASK: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"#([\w/-]+)").unwrap());
+static BLOCK_ID: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?:^|\s)\^([A-Za-z0-9-]+)$").unwrap());
+
+fn split_block_id(body: &str) -> (&str, Option<&str>) {
+    let Some(caps) = BLOCK_ID.captures(body) else {
+        return (body, None);
+    };
+    let marker = caps.get(0).unwrap();
+    (&body[..marker.start()], Some(caps.get(1).unwrap().as_str()))
+}
+
+fn next_block_id(current: &str, used: &mut BTreeSet<String>) -> String {
+    let (root, start) = current
+        .rsplit_once("-r")
+        .and_then(|(root, suffix)| {
+            suffix
+                .parse::<u64>()
+                .ok()
+                .and_then(|n| n.checked_add(1))
+                .map(|n| (root, n))
+        })
+        .filter(|(_, n)| *n >= 3)
+        .unwrap_or((current, 2));
+    for number in start.. {
+        let candidate = format!("{root}-r{number}");
+        if used.insert(candidate.clone()) {
+            return candidate;
+        }
+    }
+    unreachable!("block ID sequence exhausted")
+}
 
 fn date_patterns<const N: usize>(sources: [&str; N]) -> [Regex; N] {
     sources.map(|source| Regex::new(source).expect("valid task date regex"))
@@ -103,6 +134,7 @@ pub struct Task {
     pub scheduled_date: Option<String>,
     pub start_date: Option<String>,
     pub priority: Option<String>,
+    pub block_id: Option<String>,
     pub recurrence: Option<(u32, String)>,
     pub tags: Vec<String>,
     /// The heading hierarchy above the task, root first. Filled always; shown
@@ -615,6 +647,11 @@ pub fn find_tasks(config: &Config, f: &Filters) -> Result<Vec<Task>> {
                 scheduled_date: parse_scheduled_date(&text),
                 start_date: parse_start_date(&text),
                 priority: parse_priority(&text),
+                block_id: CHECKBOX
+                    .is_match(lines[index])
+                    .then(|| split_block_id(&text).1)
+                    .flatten()
+                    .map(str::to_string),
                 recurrence: parse_recurrence(&text),
                 tags: TAG_IN_TASK
                     .captures_iter(&text)
@@ -694,13 +731,14 @@ pub fn print_tasks(tasks: &[Task], format: &str, display: &Display) {
                     item.insert("text".into(), json!(t.text));
                     item.insert("done".into(), json!(t.done));
                     item.insert("status".into(), json!(t.status));
-                    let optionals: [(&str, &Option<String>); 6] = [
+                    let optionals: [(&str, &Option<String>); 7] = [
                         ("due_date", &t.due_date),
                         ("created_date", &t.created_date),
                         ("done_date", &t.done_date),
                         ("scheduled_date", &t.scheduled_date),
                         ("start_date", &t.start_date),
                         ("priority", &t.priority),
+                        ("block_id", &t.block_id),
                     ];
                     for (key, value) in optionals {
                         if let Some(v) = value {
@@ -822,6 +860,7 @@ fn locate_task(
     partial: bool,
 ) -> Result<(std::path::PathBuf, usize, String)> {
     let mut hits = Vec::new();
+    let mut candidates = Vec::new();
 
     for path in all_notes(config) {
         let relative = relative_path(&config.vault_path, &path);
@@ -838,20 +877,19 @@ fn locate_task(
                 continue;
             };
             let body = c[3].trim();
-            let matched = if partial {
-                body.contains(text)
-            } else {
-                // The stored text carries markers the caller did not type.
-                body == text || body.starts_with(&format!("{text} "))
-            };
+            let matched = task_matches(body, text, partial);
             if matched {
                 hits.push((path.clone(), index, relative.clone()));
+            } else if !partial {
+                if let Some(rank) = candidate_rank(body, text) {
+                    candidates.push((rank, relative.clone(), index + 1, body.to_string()));
+                }
             }
         }
     }
 
     match hits.len() {
-        0 => Err(anyhow!("No task found matching \"{text}\"")),
+        0 => Err(no_match_error(text, partial, candidates)),
         1 => Ok(hits.remove(0)),
         n => Err(anyhow!(
             "Found {n} tasks matching \"{text}\":\n\nNarrow down with --file or use more specific text."
@@ -859,79 +897,251 @@ fn locate_task(
     }
 }
 
-/// Move a task to a named status, appending its date marker if it has one.
+fn task_matches(body: &str, text: &str, partial: bool) -> bool {
+    if partial {
+        body.contains(text)
+    } else {
+        body == text
+    }
+}
+
+fn candidate_rank(body: &str, text: &str) -> Option<u8> {
+    if text.is_empty() || body.is_empty() {
+        return None;
+    }
+    if body.starts_with(text) {
+        Some(0)
+    } else if text.starts_with(body) {
+        Some(1)
+    } else if body.contains(text) {
+        Some(2)
+    } else if text.contains(body) {
+        Some(3)
+    } else {
+        None
+    }
+}
+
+fn no_match_error(
+    text: &str,
+    partial: bool,
+    mut candidates: Vec<(u8, String, usize, String)>,
+) -> anyhow::Error {
+    if partial {
+        return anyhow!("No task found matching \"{text}\"");
+    }
+    let mut message = format!("No exact task found: {text:?}");
+    candidates.sort();
+    for (_, file, line, body) in candidates.into_iter().take(3) {
+        message.push_str(&format!("\nPossible match: {body:?} ({file}:{line})"));
+    }
+    message.push_str("\nUse the full task text, or add --partial.");
+    anyhow!(message)
+}
+
+pub enum TaskSelector<'a> {
+    Texts { texts: &'a [String], partial: bool },
+    BlockId(&'a str),
+}
+
+impl<'a> TaskSelector<'a> {
+    pub fn new(texts: &'a [String], block_id: Option<&'a str>, partial: bool) -> Result<Self> {
+        if let Some(id) = block_id {
+            if !texts.is_empty() {
+                return Err(anyhow!("--block-id cannot be used with task text"));
+            }
+            if partial {
+                return Err(anyhow!("--block-id cannot be used with --partial"));
+            }
+            if id.is_empty() || !id.chars().all(|ch| ch.is_ascii_alphanumeric() || ch == '-') {
+                return Err(anyhow!(
+                    "--block-id must be a bare ID containing letters, digits, or hyphens"
+                ));
+            }
+            return Ok(Self::BlockId(id));
+        }
+        if texts.is_empty() {
+            return Err(anyhow!("At least one task text or --block-id is required"));
+        }
+        Ok(Self::Texts { texts, partial })
+    }
+}
+
+/// Move selected tasks to a named status, appending its date marker if it has one.
 pub fn set_status(
     config: &Config,
     status: &str,
-    text: &str,
+    selector: TaskSelector<'_>,
     file_filter: Option<&str>,
-    partial: bool,
     recur: bool,
+    dry_run: bool,
 ) -> Result<()> {
+    struct Edit {
+        indent: String,
+        body: String,
+        next: Option<String>,
+    }
+
     let resolved = resolve_statuses(config);
     let target = resolved
         .get(status)
         .ok_or_else(|| anyhow!("Unknown status: {status}"))?;
 
-    let (path, index, relative) = locate_task(config, text, file_filter, partial)?;
-    let content = std::fs::read_to_string(&path)?;
-    let mut lines: Vec<String> = content.split('\n').map(str::to_string).collect();
-
-    let line = &lines[index];
-    let caps = CHECKBOX
-        .captures(line)
-        .ok_or_else(|| anyhow!("Line {} is not a task", index + 1))?;
-    let indent = caps[1].to_string();
-    let mut body = caps[3].trim().to_string();
-
-    let was_closed = resolved
-        .get(&status_name(
-            caps[2].chars().next().unwrap_or(' '),
-            &resolved,
-        ))
-        .is_some_and(|s| s.closed);
-    let today = chrono::Local::now().date_naive();
-
-    // Drop any existing status date before adding the new one, so repeated
-    // transitions do not stack markers.
-    body = strip_status_dates(&body, &resolved)?;
-
-    // Like the Tasks plugin, completing a recurring task leaves its next
-    // occurrence on the line above. Re-completing a closed task does not.
-    let next = if recur && status == "done" && !was_closed {
-        match next_occurrence(&body, today, config) {
-            Ok(next) => next,
-            Err(rule) => {
-                eprintln!(
-                    "warning: recurrence \"{rule}\" is not supported; no next occurrence created"
-                );
-                None
-            }
+    let (path, relative) = match &selector {
+        TaskSelector::Texts { texts, partial } if texts.len() == 1 => {
+            let (path, _, relative) = locate_task(config, &texts[0], file_filter, *partial)?;
+            (path, relative)
         }
-    } else {
-        None
+        TaskSelector::Texts { .. } | TaskSelector::BlockId(_) => {
+            let file = file_filter
+                .ok_or_else(|| anyhow!("--file is required for multiple tasks or --block-id"))?;
+            let path = all_notes(config)
+                .into_iter()
+                .find(|path| relative_path(&config.vault_path, path) == file)
+                .ok_or_else(|| anyhow!("No vault note found at --file {file}"))?;
+            (path, file.to_string())
+        }
     };
-
-    if let Some(format) = &target.date_format {
-        body = format!("{body} {}", format_marker(format, today));
+    let content = std::fs::read_to_string(&path)?;
+    let lines: Vec<&str> = content.split('\n').collect();
+    let mut used_block_ids: BTreeSet<String> = lines
+        .iter()
+        .filter_map(|line| split_block_id(line.trim()).1.map(str::to_string))
+        .collect();
+    let today = chrono::Local::now().date_naive();
+    let mut edits: BTreeMap<usize, Edit> = BTreeMap::new();
+    let mut warnings = Vec::new();
+    let requests: Vec<&str> = match &selector {
+        TaskSelector::Texts { texts, .. } => texts.iter().map(String::as_str).collect(),
+        TaskSelector::BlockId(id) => vec![id],
+    };
+    for request in requests {
+        let mut candidates = Vec::new();
+        let matches: Vec<_> = lines
+            .iter()
+            .enumerate()
+            .filter_map(|(index, line)| {
+                let caps = CHECKBOX.captures(line)?;
+                let body = caps[3].trim();
+                let matched = match &selector {
+                    TaskSelector::Texts { partial, .. } => {
+                        if !partial && body != request {
+                            if let Some(rank) = candidate_rank(body, request) {
+                                candidates.push((
+                                    rank,
+                                    relative.clone(),
+                                    index + 1,
+                                    body.to_string(),
+                                ));
+                            }
+                        }
+                        task_matches(body, request, *partial)
+                    }
+                    TaskSelector::BlockId(_) => split_block_id(body).1 == Some(request),
+                };
+                matched.then_some(index)
+            })
+            .collect();
+        let index = match matches.len() {
+            0 => {
+                return Err(match &selector {
+                    TaskSelector::Texts { partial, .. } => {
+                        no_match_error(request, *partial, candidates)
+                    }
+                    TaskSelector::BlockId(_) => {
+                        anyhow!("No task with block ID {request:?} in {relative}")
+                    }
+                })
+            }
+            1 => matches[0],
+            n => {
+                return Err(match &selector {
+                    TaskSelector::Texts { .. } => anyhow!("Found {n} tasks matching {request:?}"),
+                    TaskSelector::BlockId(_) => {
+                        anyhow!("Found {n} tasks with block ID {request:?} in {relative}")
+                    }
+                })
+            }
+        };
+        if edits.contains_key(&index) {
+            return Err(anyhow!("Task matched more than once: {request:?}"));
+        }
+        let caps = CHECKBOX.captures(lines[index]).unwrap();
+        let indent = caps[1].to_string();
+        let was_closed = resolved
+            .get(&status_name(
+                caps[2].chars().next().unwrap_or(' '),
+                &resolved,
+            ))
+            .is_some_and(|s| s.closed);
+        let stripped = strip_status_dates(caps[3].trim(), &resolved)?;
+        let (base, block_id) = split_block_id(&stripped);
+        let mut body = base.to_string();
+        let next = if recur && status == "done" && !was_closed {
+            match next_occurrence(&body, today, config) {
+                Ok(next) => next.map(|mut next| {
+                    if let Some(block_id) = block_id {
+                        let new_id = next_block_id(block_id, &mut used_block_ids);
+                        next.push_str(&format!(" ^{new_id}"));
+                    }
+                    next
+                }),
+                Err(rule) => {
+                    warnings.push(format!(
+                        "warning: recurrence \"{rule}\" is not supported; no next occurrence created"
+                    ));
+                    None
+                }
+            }
+        } else {
+            None
+        };
+        if let Some(format) = &target.date_format {
+            body = format!("{body} {}", format_marker(format, today));
+        }
+        if let Some(block_id) = block_id {
+            body.push_str(&format!(" ^{block_id}"));
+        }
+        edits.insert(index, Edit { indent, body, next });
     }
 
-    lines[index] = format!("{indent}- [{}] {body}", target.char);
+    let mut output = Vec::with_capacity(lines.len() + edits.len());
+    let mut reports = Vec::new();
     let open_char = resolved.get("open").map_or(' ', |s| s.char);
-    if let Some(next) = &next {
-        lines.insert(index, format!("{indent}- [{open_char}] {next}"));
+    for (index, line) in lines.iter().enumerate() {
+        if let Some(edit) = edits.get(&index) {
+            if let Some(next) = &edit.next {
+                output.push(format!("{}- [{open_char}] {next}", edit.indent));
+            }
+            output.push(format!("{}- [{}] {}", edit.indent, target.char, edit.body));
+            reports.push(format!(
+                "[{}] {status}: {} ({relative}:{})",
+                target.char,
+                edit.body,
+                output.len()
+            ));
+            if let Some(next) = &edit.next {
+                reports.push(format!(
+                    "[{open_char}] next: {next} ({relative}:{})",
+                    output.len() - 1
+                ));
+            }
+        } else {
+            output.push((*line).to_string());
+        }
     }
-    std::fs::write(&path, lines.join("\n"))?;
-
-    // Same line the Python implementation prints, so a caller parsing stdout
-    // sees one format regardless of which binary it invoked.
-    let done_line = index + 1 + usize::from(next.is_some());
-    println!(
-        "[{}] {status}: {body} ({relative}:{done_line})",
-        target.char
-    );
-    if let Some(next) = next {
-        println!("[{open_char}] next: {next} ({relative}:{})", index + 1);
+    if !dry_run {
+        std::fs::write(&path, output.join("\n"))?;
+    }
+    for warning in warnings {
+        eprintln!("{warning}");
+    }
+    for report in reports {
+        if dry_run {
+            println!("[DRY RUN] {report}");
+        } else {
+            println!("{report}");
+        }
     }
     Ok(())
 }

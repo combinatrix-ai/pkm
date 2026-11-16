@@ -95,8 +95,13 @@ enum TaskCommand {
     },
     /// Mark a task as done, adding the next occurrence of a recurring one.
     Done {
-        text: String,
-        #[arg(long = "file")]
+        text: Vec<String>,
+        #[arg(long = "block-id", help = "Exact Obsidian block ID (requires --file)")]
+        block_id: Option<String>,
+        #[arg(
+            long = "file",
+            help = "Vault-relative file (required for multiple texts)"
+        )]
         file: Option<String>,
         #[arg(long = "partial", help = "Use partial matching (contains)")]
         partial: bool,
@@ -105,10 +110,14 @@ enum TaskCommand {
             help = "Do not create the next occurrence of a recurring task"
         )]
         no_recur: bool,
+        #[arg(long = "dry-run")]
+        dry_run: bool,
     },
     /// Mark a task as in progress.
     Wip {
-        text: String,
+        text: Option<String>,
+        #[arg(long = "block-id", help = "Exact Obsidian block ID (requires --file)")]
+        block_id: Option<String>,
         #[arg(long = "file")]
         file: Option<String>,
         #[arg(long = "partial")]
@@ -116,16 +125,25 @@ enum TaskCommand {
     },
     /// Mark a task as cancelled.
     Cancel {
-        text: String,
-        #[arg(long = "file")]
+        text: Vec<String>,
+        #[arg(long = "block-id", help = "Exact Obsidian block ID (requires --file)")]
+        block_id: Option<String>,
+        #[arg(
+            long = "file",
+            help = "Vault-relative file (required for multiple texts)"
+        )]
         file: Option<String>,
         #[arg(long = "partial")]
         partial: bool,
+        #[arg(long = "dry-run")]
+        dry_run: bool,
     },
     /// Transition a task to a named status.
     Set {
         status: String,
-        text: String,
+        text: Option<String>,
+        #[arg(long = "block-id", help = "Exact Obsidian block ID (requires --file)")]
+        block_id: Option<String>,
         #[arg(long = "file")]
         file: Option<String>,
         #[arg(long = "partial")]
@@ -571,6 +589,26 @@ fn broker(result: std::result::Result<(), providers::Failure>) -> Result<()> {
     Ok(())
 }
 
+fn task_selector<'a>(
+    texts: &'a [String],
+    block_id: Option<&'a str>,
+    partial: bool,
+    file: Option<&str>,
+) -> tasks::TaskSelector<'a> {
+    let selector = tasks::TaskSelector::new(texts, block_id, partial).unwrap_or_else(|err| {
+        eprintln!("Error: {err}");
+        std::process::exit(2);
+    });
+    if file.is_none()
+        && (matches!(&selector, tasks::TaskSelector::BlockId(_))
+            || matches!(&selector, tasks::TaskSelector::Texts { texts, .. } if texts.len() > 1))
+    {
+        eprintln!("Error: --file is required for multiple tasks or --block-id");
+        std::process::exit(2);
+    }
+    selector
+}
+
 fn run() -> Result<()> {
     let cli = Cli::parse();
     if matches!(cli.command, Command::UpdateCheckInternal) {
@@ -849,26 +887,66 @@ fn run() -> Result<()> {
             ),
             TaskCommand::Done {
                 text,
+                block_id,
                 file,
                 partial,
                 no_recur,
-            } => tasks::set_status(&config, "done", &text, file.as_deref(), partial, !no_recur),
+                dry_run,
+            } => tasks::set_status(
+                &config,
+                "done",
+                task_selector(&text, block_id.as_deref(), partial, file.as_deref()),
+                file.as_deref(),
+                !no_recur,
+                dry_run,
+            ),
             TaskCommand::Wip {
                 text,
+                block_id,
                 file,
                 partial,
-            } => tasks::set_status(&config, "wip", &text, file.as_deref(), partial, false),
+            } => {
+                let texts: Vec<String> = text.into_iter().collect();
+                tasks::set_status(
+                    &config,
+                    "wip",
+                    task_selector(&texts, block_id.as_deref(), partial, file.as_deref()),
+                    file.as_deref(),
+                    false,
+                    false,
+                )
+            }
             TaskCommand::Cancel {
                 text,
+                block_id,
                 file,
                 partial,
-            } => tasks::set_status(&config, "cancel", &text, file.as_deref(), partial, false),
+                dry_run,
+            } => tasks::set_status(
+                &config,
+                "cancel",
+                task_selector(&text, block_id.as_deref(), partial, file.as_deref()),
+                file.as_deref(),
+                false,
+                dry_run,
+            ),
             TaskCommand::Set {
                 status,
                 text,
+                block_id,
                 file,
                 partial,
-            } => tasks::set_status(&config, &status, &text, file.as_deref(), partial, true),
+            } => {
+                let texts: Vec<String> = text.into_iter().collect();
+                tasks::set_status(
+                    &config,
+                    &status,
+                    task_selector(&texts, block_id.as_deref(), partial, file.as_deref()),
+                    file.as_deref(),
+                    true,
+                    false,
+                )
+            }
         },
         Command::Tasks {
             action: None,

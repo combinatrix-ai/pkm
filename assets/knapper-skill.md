@@ -371,17 +371,41 @@ knapper tasks --exclude Archive/
 Dates must be `YYYY-MM-DD`. Relative values such as `today` or `+3d` are
 rejected rather than guessed at, with exit status 2.
 
+For checkbox tasks ending in an Obsidian block ID such as `^review-7c4`,
+`tasks --format json` includes `"block_id": "review-7c4"`. The `text` field
+still includes the marker. IDs are optional. Status changes can select an
+existing ID with `--file Tasks.md --block-id review-7c4` (no `^` or task text).
+The ID must match exactly in that file; missing or duplicate IDs abort the
+change. `--block-id` cannot be combined with task text or `--partial`, and
+accepts ASCII letters, digits, and hyphens. knapper does not assign IDs to
+existing tasks.
+Status changes keep an ID at the end of the original task. Completing a
+recurring task with an ID gives its next occurrence a distinct ID in the same
+file, using a `-r2`, `-r3`, ... suffix and skipping existing IDs. `--dry-run`
+shows the same ID it would write if the file does not change.
+
 Changing a task:
 
 ```bash
 knapper tasks new "write the README" --start 2026-07-28 --due 2026-08-01
-knapper tasks done "write the README"    # exact match; --partial for substring
+knapper tasks done "write the README"    # full task body, including any markers
+knapper tasks done --file Tasks.md "first" "second" --dry-run
+knapper tasks done --file Tasks.md "first" "second"
+knapper tasks done --file Tasks.md --block-id review-7c4 --dry-run
 knapper tasks wip TEXT
 knapper tasks cancel TEXT
+knapper tasks cancel --file Tasks.md "first" "second"
 knapper tasks set STATUS TEXT            # config-defined statuses too
 ```
 
-An ambiguous match is refused, not guessed. Narrow it with `--file`.
+Task status changes match the full checkbox body exactly by default, including
+date and recurrence markers. `--partial` opts into substring matching. When an
+exact match fails, the error shows up to three plausible full texts with their
+file and line. An ambiguous match is refused, not guessed. Narrow it with `--file`.
+Multiple texts for `done` or `cancel` require an exact vault-relative `--file`.
+The command checks every match before writing the file once; a missing,
+ambiguous, or repeated match leaves the file unchanged. `--dry-run` previews
+the same changes without writing.
 
 Built-in statuses: `open` `[ ]`, `wip` `[/]`, `done` `[x]`, `cancel` `[-]`.
 `knapper.yaml` can override their markers or add new ones under

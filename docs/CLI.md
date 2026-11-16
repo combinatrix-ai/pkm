@@ -827,6 +827,20 @@ the [Obsidian Tasks](https://publish.obsidian.md/tasks/) plugin (`📅` due,
 `⏳` scheduled, `🛫` start, `✅` done, `🔁` recurring) is read and written but never
 required — a vault of bare `- [ ]` items works fine.
 
+An Obsidian block ID at the end of a checkbox task, such as `- [ ] Review
+draft ^review-7c4`, appears as `block_id` in `tasks --format json`. The field
+is omitted when there is no ID. The `text` field keeps the full task body,
+including `^review-7c4`. Status changes can select an existing ID with
+`--file Tasks.md --block-id review-7c4` (without `^` or task text). For this
+selector, `--file` must be the complete vault-relative path, including `.md`.
+The ID must match exactly in that file; missing or duplicate IDs abort the change.
+`--block-id` cannot be combined with task text or `--partial`. knapper does
+not assign IDs to existing tasks. Status
+changes keep the ID at the end of the original task. Completing a recurring
+task with an ID gives its next occurrence a distinct ID in the same file,
+using a `-r2`, `-r3`, ... suffix and skipping IDs already in that file.
+`--dry-run` shows the same ID it would write if the file does not change.
+
 ```bash
 knapper tasks --overdue                     # past due
 knapper tasks --available                   # no start date, or start date <= today
@@ -835,10 +849,24 @@ knapper tasks --start-on 2026-08-01
 knapper tasks --scheduled-from 2026-08-01 --scheduled-to 2026-08-07
 knapper tasks --exclude Archive/ --tag work
 knapper tasks new "write the README" --start 2026-07-28 --due 2026-08-01
-knapper tasks done "write the README"       # exact match; --partial for substring
+knapper tasks done "write the README"       # full task body, including any markers
+knapper tasks done --file Tasks.md "first" "second" --dry-run
+knapper tasks done --file Tasks.md "first" "second"
+knapper tasks done --file Tasks.md --block-id review-7c4 --dry-run
 knapper tasks done "pay rent" --no-recur    # complete without the next occurrence
 knapper tasks --prose-only                  # skip checkboxes in fenced examples
 ```
+
+`tasks done` and `tasks cancel` accept multiple task texts with an exact
+vault-relative `--file`. Every text must match one distinct task in that file.
+The command checks all matches before writing once; an unmatched, ambiguous,
+or repeated match leaves the file unchanged. `--dry-run` previews the changes
+without writing. All task status changes match the full checkbox body exactly
+by default, including date and recurrence markers. `--partial` opts into
+substring matching. A failed exact match reports up to three plausible full
+texts with file and line. One-text calls keep their optional `--file` scope.
+`done`, `cancel`, `wip`, and `set` all accept the same file-scoped `--block-id`
+selector. The ID contains ASCII letters, digits, and hyphens.
 
 Every checkbox counts by default, including one written inside a code fence or
 a `%%comment%%` — the one place knapper does not mask non-prose, and
@@ -1970,18 +1998,20 @@ Options:
 ```text
 Mark a task as done, adding the next occurrence of a recurring one
 
-Usage: knapper tasks done [OPTIONS] <TEXT>
+Usage: knapper tasks done [OPTIONS] [TEXT]...
 
 Arguments:
-  <TEXT>  
+  [TEXT]...
 
 Options:
-  -c, --config <CONFIG>  Path to config file
-      --file <FILE>      
-      --partial          Use partial matching (contains)
-  -v, --vault <VAULT>    Path to vault (overrides config)
-      --no-recur         Do not create the next occurrence of a recurring task
-  -h, --help             Print help
+      --block-id <BLOCK_ID>  Exact Obsidian block ID (requires --file)
+  -c, --config <CONFIG>      Path to config file
+      --file <FILE>          Vault-relative file (required for multiple texts)
+  -v, --vault <VAULT>        Path to vault (overrides config)
+      --partial              Use partial matching (contains)
+      --no-recur             Do not create the next occurrence of a recurring task
+      --dry-run
+  -h, --help                 Print help
 ```
 
 ### knapper tasks wip
@@ -1989,17 +2019,18 @@ Options:
 ```text
 Mark a task as in progress
 
-Usage: knapper tasks wip [OPTIONS] <TEXT>
+Usage: knapper tasks wip [OPTIONS] [TEXT]
 
 Arguments:
-  <TEXT>  
+  [TEXT]
 
 Options:
-  -c, --config <CONFIG>  Path to config file
-      --file <FILE>      
-      --partial          
-  -v, --vault <VAULT>    Path to vault (overrides config)
-  -h, --help             Print help
+      --block-id <BLOCK_ID>  Exact Obsidian block ID (requires --file)
+  -c, --config <CONFIG>      Path to config file
+      --file <FILE>
+  -v, --vault <VAULT>        Path to vault (overrides config)
+      --partial
+  -h, --help                 Print help
 ```
 
 ### knapper tasks cancel
@@ -2007,17 +2038,19 @@ Options:
 ```text
 Mark a task as cancelled
 
-Usage: knapper tasks cancel [OPTIONS] <TEXT>
+Usage: knapper tasks cancel [OPTIONS] [TEXT]...
 
 Arguments:
-  <TEXT>  
+  [TEXT]...
 
 Options:
-  -c, --config <CONFIG>  Path to config file
-      --file <FILE>      
-      --partial          
-  -v, --vault <VAULT>    Path to vault (overrides config)
-  -h, --help             Print help
+      --block-id <BLOCK_ID>  Exact Obsidian block ID (requires --file)
+  -c, --config <CONFIG>      Path to config file
+      --file <FILE>          Vault-relative file (required for multiple texts)
+  -v, --vault <VAULT>        Path to vault (overrides config)
+      --partial
+      --dry-run
+  -h, --help                 Print help
 ```
 
 ### knapper tasks set
@@ -2025,18 +2058,19 @@ Options:
 ```text
 Transition a task to a named status
 
-Usage: knapper tasks set [OPTIONS] <STATUS> <TEXT>
+Usage: knapper tasks set [OPTIONS] <STATUS> [TEXT]
 
 Arguments:
   <STATUS>  
-  <TEXT>    
+  [TEXT]
 
 Options:
-  -c, --config <CONFIG>  Path to config file
-      --file <FILE>      
-      --partial          
-  -v, --vault <VAULT>    Path to vault (overrides config)
-  -h, --help             Print help
+      --block-id <BLOCK_ID>  Exact Obsidian block ID (requires --file)
+  -c, --config <CONFIG>      Path to config file
+      --file <FILE>
+  -v, --vault <VAULT>        Path to vault (overrides config)
+      --partial
+  -h, --help                 Print help
 ```
 
 ### knapper tags

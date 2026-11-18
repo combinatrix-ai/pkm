@@ -4,8 +4,6 @@ Create notes from templates, expand dates and titles, and keep a daily note.
 
 ## Create a note from a template
 
-Available since v0.1.0.
-
 Use a template file directly, with both paths relative to the vault:
 
 ```bash

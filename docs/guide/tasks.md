@@ -11,19 +11,12 @@ the [Obsidian Tasks](https://publish.obsidian.md/tasks/) plugin (`📅` due,
 `⏳` scheduled, `🛫` start, `✅` done, `🔁` recurring) is read and written but never
 required — a vault of bare `- [ ]` items works fine.
 
-An Obsidian block ID at the end of a checkbox task, such as `- [ ] Review
-draft ^review-7c4`, appears as `block_id` in `tasks --format json`. The field
-is omitted when there is no ID. The `text` field keeps the full task body,
-including `^review-7c4`. Status changes can select an existing ID with
-`--file Tasks.md --block-id review-7c4` (without `^` or task text). For this
-selector, `--file` must be the complete vault-relative path, including `.md`.
-The ID must match exactly in that file; missing or duplicate IDs abort the change.
-`--block-id` cannot be combined with task text or `--partial`. pkm does
-not assign IDs to existing tasks. Status
-changes keep the ID at the end of the original task. Completing a recurring
-task with an ID gives its next occurrence a distinct ID in the same file,
-using a `-r2`, `-r3`, ... suffix and skipping IDs already in that file.
-`--dry-run` shows the same ID it would write if the file does not change.
+Tasks are selected by their full body, which `tasks --format json` returns
+as `text`. An Obsidian block ID at the end of a task, such as `^review-7c4`,
+is part of that body; status changes keep it at the end of the task.
+Completing a recurring task leaves its identity on the completed occurrence,
+as the Tasks plugin does: the next occurrence gets no block ID, no `🆔`, and
+no `⛔`, so links and dependent tasks keep pointing at the task that was done.
 
 ```bash
 pkm tasks --overdue                     # past due
@@ -36,7 +29,6 @@ pkm tasks new "write the README" --start 2026-07-28 --due 2026-08-01
 pkm tasks done "write the README"       # full task body, including any markers
 pkm tasks done --file Tasks.md "first" "second" --dry-run
 pkm tasks done --file Tasks.md "first" "second"
-pkm tasks done --file Tasks.md --block-id review-7c4 --dry-run
 pkm tasks done "pay rent" --no-recur    # complete without the next occurrence
 pkm tasks --prose-only                  # skip checkboxes in fenced examples
 ```
@@ -49,8 +41,6 @@ without writing. All task status changes match the full checkbox body exactly
 by default, including date and recurrence markers. `--partial` opts into
 substring matching. A failed exact match reports up to three plausible full
 texts with file and line. One-text calls keep their optional `--file` scope.
-`done`, `cancel`, `wip`, and `set` all accept the same file-scoped `--block-id`
-selector. The ID contains ASCII letters, digits, and hyphens.
 
 Every checkbox counts by default, including one written inside a code fence or
 a `%%comment%%` — the one place pkm does not mask non-prose, and

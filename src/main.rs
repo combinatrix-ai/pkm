@@ -96,8 +96,6 @@ enum TaskCommand {
     /// Mark a task as done, adding the next occurrence of a recurring one.
     Done {
         text: Vec<String>,
-        #[arg(long = "block-id", help = "Exact Obsidian block ID (requires --file)")]
-        block_id: Option<String>,
         #[arg(
             long = "file",
             help = "Vault-relative file (required for multiple texts)"
@@ -116,8 +114,6 @@ enum TaskCommand {
     /// Mark a task as in progress.
     Wip {
         text: Option<String>,
-        #[arg(long = "block-id", help = "Exact Obsidian block ID (requires --file)")]
-        block_id: Option<String>,
         #[arg(long = "file")]
         file: Option<String>,
         #[arg(long = "partial")]
@@ -126,8 +122,6 @@ enum TaskCommand {
     /// Mark a task as cancelled.
     Cancel {
         text: Vec<String>,
-        #[arg(long = "block-id", help = "Exact Obsidian block ID (requires --file)")]
-        block_id: Option<String>,
         #[arg(
             long = "file",
             help = "Vault-relative file (required for multiple texts)"
@@ -142,8 +136,6 @@ enum TaskCommand {
     Set {
         status: String,
         text: Option<String>,
-        #[arg(long = "block-id", help = "Exact Obsidian block ID (requires --file)")]
-        block_id: Option<String>,
         #[arg(long = "file")]
         file: Option<String>,
         #[arg(long = "partial")]
@@ -591,19 +583,15 @@ fn broker(result: std::result::Result<(), providers::Failure>) -> Result<()> {
 
 fn task_selector<'a>(
     texts: &'a [String],
-    block_id: Option<&'a str>,
     partial: bool,
     file: Option<&str>,
 ) -> tasks::TaskSelector<'a> {
-    let selector = tasks::TaskSelector::new(texts, block_id, partial).unwrap_or_else(|err| {
+    let selector = tasks::TaskSelector::new(texts, partial).unwrap_or_else(|err| {
         eprintln!("Error: {err}");
         std::process::exit(2);
     });
-    if file.is_none()
-        && (matches!(&selector, tasks::TaskSelector::BlockId(_))
-            || matches!(&selector, tasks::TaskSelector::Texts { texts, .. } if texts.len() > 1))
-    {
-        eprintln!("Error: --file is required for multiple tasks or --block-id");
+    if file.is_none() && selector.texts.len() > 1 {
+        eprintln!("Error: --file is required for multiple tasks");
         std::process::exit(2);
     }
     selector
@@ -887,7 +875,6 @@ fn run() -> Result<()> {
             ),
             TaskCommand::Done {
                 text,
-                block_id,
                 file,
                 partial,
                 no_recur,
@@ -895,14 +882,13 @@ fn run() -> Result<()> {
             } => tasks::set_status(
                 &config,
                 "done",
-                task_selector(&text, block_id.as_deref(), partial, file.as_deref()),
+                task_selector(&text, partial, file.as_deref()),
                 file.as_deref(),
                 !no_recur,
                 dry_run,
             ),
             TaskCommand::Wip {
                 text,
-                block_id,
                 file,
                 partial,
             } => {
@@ -910,7 +896,7 @@ fn run() -> Result<()> {
                 tasks::set_status(
                     &config,
                     "wip",
-                    task_selector(&texts, block_id.as_deref(), partial, file.as_deref()),
+                    task_selector(&texts, partial, file.as_deref()),
                     file.as_deref(),
                     false,
                     false,
@@ -918,14 +904,13 @@ fn run() -> Result<()> {
             }
             TaskCommand::Cancel {
                 text,
-                block_id,
                 file,
                 partial,
                 dry_run,
             } => tasks::set_status(
                 &config,
                 "cancel",
-                task_selector(&text, block_id.as_deref(), partial, file.as_deref()),
+                task_selector(&text, partial, file.as_deref()),
                 file.as_deref(),
                 false,
                 dry_run,
@@ -933,7 +918,6 @@ fn run() -> Result<()> {
             TaskCommand::Set {
                 status,
                 text,
-                block_id,
                 file,
                 partial,
             } => {
@@ -941,7 +925,7 @@ fn run() -> Result<()> {
                 tasks::set_status(
                     &config,
                     &status,
-                    task_selector(&texts, block_id.as_deref(), partial, file.as_deref()),
+                    task_selector(&texts, partial, file.as_deref()),
                     file.as_deref(),
                     true,
                     false,

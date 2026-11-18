@@ -53,6 +53,11 @@ static SIMPLE_RULE: LazyLock<Regex> = LazyLock::new(|| {
 static TAG_IN_TASK: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"#([\w/-]+)").unwrap());
 static BLOCK_ID: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(?:^|\s)\^([A-Za-z0-9-]+)$").unwrap());
+/// Tasks plugin dependency fields: `🆔 abc123` names a task, `⛔ abc123,def456`
+/// waits on others.
+static DEPENDENCY_FIELDS: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"\s*(?:🆔\s*[A-Za-z0-9_-]+|⛔\s*[A-Za-z0-9_-]+(?:\s*,\s*[A-Za-z0-9_-]+)*)").unwrap()
+});
 
 fn split_block_id(body: &str) -> (&str, Option<&str>) {
     let Some(caps) = BLOCK_ID.captures(body) else {
@@ -60,27 +65,6 @@ fn split_block_id(body: &str) -> (&str, Option<&str>) {
     };
     let marker = caps.get(0).unwrap();
     (&body[..marker.start()], Some(caps.get(1).unwrap().as_str()))
-}
-
-fn next_block_id(current: &str, used: &mut BTreeSet<String>) -> String {
-    let (root, start) = current
-        .rsplit_once("-r")
-        .and_then(|(root, suffix)| {
-            suffix
-                .parse::<u64>()
-                .ok()
-                .and_then(|n| n.checked_add(1))
-                .map(|n| (root, n))
-        })
-        .filter(|(_, n)| *n >= 3)
-        .unwrap_or((current, 2));
-    for number in start.. {
-        let candidate = format!("{root}-r{number}");
-        if used.insert(candidate.clone()) {
-            return candidate;
-        }
-    }
-    unreachable!("block ID sequence exhausted")
 }
 
 fn date_patterns<const N: usize>(sources: [&str; N]) -> [Regex; N] {
@@ -134,7 +118,6 @@ pub struct Task {
     pub scheduled_date: Option<String>,
     pub start_date: Option<String>,
     pub priority: Option<String>,
-    pub block_id: Option<String>,
     pub recurrence: Option<(u32, String)>,
     pub tags: Vec<String>,
     /// The heading hierarchy above the task, root first. Filled always; shown
@@ -647,11 +630,6 @@ pub fn find_tasks(config: &Config, f: &Filters) -> Result<Vec<Task>> {
                 scheduled_date: parse_scheduled_date(&text),
                 start_date: parse_start_date(&text),
                 priority: parse_priority(&text),
-                block_id: CHECKBOX
-                    .is_match(lines[index])
-                    .then(|| split_block_id(&text).1)
-                    .flatten()
-                    .map(str::to_string),
                 recurrence: parse_recurrence(&text),
                 tags: TAG_IN_TASK
                     .captures_iter(&text)
@@ -731,14 +709,13 @@ pub fn print_tasks(tasks: &[Task], format: &str, display: &Display) {
                     item.insert("text".into(), json!(t.text));
                     item.insert("done".into(), json!(t.done));
                     item.insert("status".into(), json!(t.status));
-                    let optionals: [(&str, &Option<String>); 7] = [
+                    let optionals: [(&str, &Option<String>); 6] = [
                         ("due_date", &t.due_date),
                         ("created_date", &t.created_date),
                         ("done_date", &t.done_date),
                         ("scheduled_date", &t.scheduled_date),
                         ("start_date", &t.start_date),
                         ("priority", &t.priority),
-                        ("block_id", &t.block_id),
                     ];
                     for (key, value) in optionals {
                         if let Some(v) = value {
@@ -939,31 +916,20 @@ fn no_match_error(
     anyhow!(message)
 }
 
-pub enum TaskSelector<'a> {
-    Texts { texts: &'a [String], partial: bool },
-    BlockId(&'a str),
+/// Tasks are selected by their full checkbox body (or a substring with
+/// `partial`). Agents read that body from `tasks --format json`, so an exact
+/// match is as precise as an ID without asking the vault to carry one.
+pub struct TaskSelector<'a> {
+    pub texts: &'a [String],
+    pub partial: bool,
 }
 
 impl<'a> TaskSelector<'a> {
-    pub fn new(texts: &'a [String], block_id: Option<&'a str>, partial: bool) -> Result<Self> {
-        if let Some(id) = block_id {
-            if !texts.is_empty() {
-                return Err(anyhow!("--block-id cannot be used with task text"));
-            }
-            if partial {
-                return Err(anyhow!("--block-id cannot be used with --partial"));
-            }
-            if id.is_empty() || !id.chars().all(|ch| ch.is_ascii_alphanumeric() || ch == '-') {
-                return Err(anyhow!(
-                    "--block-id must be a bare ID containing letters, digits, or hyphens"
-                ));
-            }
-            return Ok(Self::BlockId(id));
-        }
+    pub fn new(texts: &'a [String], partial: bool) -> Result<Self> {
         if texts.is_empty() {
-            return Err(anyhow!("At least one task text or --block-id is required"));
+            return Err(anyhow!("At least one task text is required"));
         }
-        Ok(Self::Texts { texts, partial })
+        Ok(Self { texts, partial })
     }
 }
 
@@ -987,14 +953,15 @@ pub fn set_status(
         .get(status)
         .ok_or_else(|| anyhow!("Unknown status: {status}"))?;
 
-    let (path, relative) = match &selector {
-        TaskSelector::Texts { texts, partial } if texts.len() == 1 => {
-            let (path, _, relative) = locate_task(config, &texts[0], file_filter, *partial)?;
+    let TaskSelector { texts, partial } = selector;
+    let (path, relative) = match texts {
+        [text] => {
+            let (path, _, relative) = locate_task(config, text, file_filter, partial)?;
             (path, relative)
         }
-        TaskSelector::Texts { .. } | TaskSelector::BlockId(_) => {
-            let file = file_filter
-                .ok_or_else(|| anyhow!("--file is required for multiple tasks or --block-id"))?;
+        _ => {
+            let file =
+                file_filter.ok_or_else(|| anyhow!("--file is required for multiple tasks"))?;
             let path = all_notes(config)
                 .into_iter()
                 .find(|path| relative_path(&config.vault_path, path) == file)
@@ -1004,18 +971,10 @@ pub fn set_status(
     };
     let content = std::fs::read_to_string(&path)?;
     let lines: Vec<&str> = content.split('\n').collect();
-    let mut used_block_ids: BTreeSet<String> = lines
-        .iter()
-        .filter_map(|line| split_block_id(line.trim()).1.map(str::to_string))
-        .collect();
     let today = chrono::Local::now().date_naive();
     let mut edits: BTreeMap<usize, Edit> = BTreeMap::new();
     let mut warnings = Vec::new();
-    let requests: Vec<&str> = match &selector {
-        TaskSelector::Texts { texts, .. } => texts.iter().map(String::as_str).collect(),
-        TaskSelector::BlockId(id) => vec![id],
-    };
-    for request in requests {
+    for request in texts.iter().map(String::as_str) {
         let mut candidates = Vec::new();
         let matches: Vec<_> = lines
             .iter()
@@ -1023,45 +982,18 @@ pub fn set_status(
             .filter_map(|(index, line)| {
                 let caps = CHECKBOX.captures(line)?;
                 let body = caps[3].trim();
-                let matched = match &selector {
-                    TaskSelector::Texts { partial, .. } => {
-                        if !partial && body != request {
-                            if let Some(rank) = candidate_rank(body, request) {
-                                candidates.push((
-                                    rank,
-                                    relative.clone(),
-                                    index + 1,
-                                    body.to_string(),
-                                ));
-                            }
-                        }
-                        task_matches(body, request, *partial)
+                if !partial && body != request {
+                    if let Some(rank) = candidate_rank(body, request) {
+                        candidates.push((rank, relative.clone(), index + 1, body.to_string()));
                     }
-                    TaskSelector::BlockId(_) => split_block_id(body).1 == Some(request),
-                };
-                matched.then_some(index)
+                }
+                task_matches(body, request, partial).then_some(index)
             })
             .collect();
         let index = match matches.len() {
-            0 => {
-                return Err(match &selector {
-                    TaskSelector::Texts { partial, .. } => {
-                        no_match_error(request, *partial, candidates)
-                    }
-                    TaskSelector::BlockId(_) => {
-                        anyhow!("No task with block ID {request:?} in {relative}")
-                    }
-                })
-            }
+            0 => return Err(no_match_error(request, partial, candidates)),
             1 => matches[0],
-            n => {
-                return Err(match &selector {
-                    TaskSelector::Texts { .. } => anyhow!("Found {n} tasks matching {request:?}"),
-                    TaskSelector::BlockId(_) => {
-                        anyhow!("Found {n} tasks with block ID {request:?} in {relative}")
-                    }
-                })
-            }
+            n => return Err(anyhow!("Found {n} tasks matching {request:?}")),
         };
         if edits.contains_key(&index) {
             return Err(anyhow!("Task matched more than once: {request:?}"));
@@ -1075,17 +1007,13 @@ pub fn set_status(
             ))
             .is_some_and(|s| s.closed);
         let stripped = strip_status_dates(caps[3].trim(), &resolved)?;
+        // The block ID stays last on the completed task, after any date marker
+        // added below, so `[[Note#^id]]` keeps pointing at this occurrence.
         let (base, block_id) = split_block_id(&stripped);
         let mut body = base.to_string();
         let next = if recur && status == "done" && !was_closed {
             match next_occurrence(&body, today, config) {
-                Ok(next) => next.map(|mut next| {
-                    if let Some(block_id) = block_id {
-                        let new_id = next_block_id(block_id, &mut used_block_ids);
-                        next.push_str(&format!(" ^{new_id}"));
-                    }
-                    next
-                }),
+                Ok(next) => next,
                 Err(rule) => {
                     warnings.push(format!(
                         "warning: recurrence \"{rule}\" is not supported; no next occurrence created"
@@ -1222,7 +1150,12 @@ fn next_occurrence(
         .or_else(|| ymd(parse_scheduled_date(body)))
         .or_else(|| ymd(parse_start_date(body)));
 
-    let mut next = body.to_string();
+    // Identity stays with the completed task, as in the Tasks plugin (8.4.0,
+    // `Task.createNextOccurrence`): the next occurrence gets no block ID (the
+    // caller passes `body` without it), no `🆔`, and no `⛔`. Links and
+    // dependents keep pointing at the occurrence that was done, so a task
+    // waiting on `⛔ id` is unblocked rather than blocked again by the copy.
+    let mut next = DEPENDENCY_FIELDS.replace_all(body, "").into_owned();
     if let Some(reference) = reference {
         let base = if when_done { today } else { reference };
         let next_reference = add_interval(base, interval, &unit).ok_or_else(|| rule.clone())?;

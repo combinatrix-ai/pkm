@@ -371,18 +371,10 @@ pkm tasks --exclude Archive/
 Dates must be `YYYY-MM-DD`. Relative values such as `today` or `+3d` are
 rejected rather than guessed at, with exit status 2.
 
-For checkbox tasks ending in an Obsidian block ID such as `^review-7c4`,
-`tasks --format json` includes `"block_id": "review-7c4"`. The `text` field
-still includes the marker. IDs are optional. Status changes can select an
-existing ID with `--file Tasks.md --block-id review-7c4` (no `^` or task text).
-The ID must match exactly in that file; missing or duplicate IDs abort the
-change. `--block-id` cannot be combined with task text or `--partial`, and
-accepts ASCII letters, digits, and hyphens. pkm does not assign IDs to
-existing tasks.
-Status changes keep an ID at the end of the original task. Completing a
-recurring task with an ID gives its next occurrence a distinct ID in the same
-file, using a `-r2`, `-r3`, ... suffix and skipping existing IDs. `--dry-run`
-shows the same ID it would write if the file does not change.
+Tasks are selected by their full body (the `text` field of `tasks --format
+json`), including any `^block-id`, which status changes keep at the end.
+Completing a recurring task leaves its block ID, `🆔` and `⛔` on the
+completed occurrence; the next occurrence gets none, as in the Tasks plugin.
 
 Changing a task:
 
@@ -391,7 +383,6 @@ pkm tasks new "write the README" --start 2026-07-28 --due 2026-08-01
 pkm tasks done "write the README"    # full task body, including any markers
 pkm tasks done --file Tasks.md "first" "second" --dry-run
 pkm tasks done --file Tasks.md "first" "second"
-pkm tasks done --file Tasks.md --block-id review-7c4 --dry-run
 pkm tasks wip TEXT
 pkm tasks cancel TEXT
 pkm tasks cancel --file Tasks.md "first" "second"

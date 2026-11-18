@@ -115,14 +115,13 @@ Arguments:
   [TEXT]...
 
 Options:
-      --block-id <BLOCK_ID>  Exact Obsidian block ID (requires --file)
-  -c, --config <CONFIG>      Path to config file
-      --file <FILE>          Vault-relative file (required for multiple texts)
-  -v, --vault <VAULT>        Path to vault (overrides config)
-      --partial              Use partial matching (contains)
-      --no-recur             Do not create the next occurrence of a recurring task
+  -c, --config <CONFIG>  Path to config file
+      --file <FILE>      Vault-relative file (required for multiple texts)
+      --partial          Use partial matching (contains)
+  -v, --vault <VAULT>    Path to vault (overrides config)
+      --no-recur         Do not create the next occurrence of a recurring task
       --dry-run
-  -h, --help                 Print help
+  -h, --help             Print help
 ```
 
 ## pkm tasks wip
@@ -136,12 +135,11 @@ Arguments:
   [TEXT]
 
 Options:
-      --block-id <BLOCK_ID>  Exact Obsidian block ID (requires --file)
-  -c, --config <CONFIG>      Path to config file
+  -c, --config <CONFIG>  Path to config file
       --file <FILE>
-  -v, --vault <VAULT>        Path to vault (overrides config)
       --partial
-  -h, --help                 Print help
+  -v, --vault <VAULT>    Path to vault (overrides config)
+  -h, --help             Print help
 ```
 
 ## pkm tasks cancel
@@ -155,13 +153,12 @@ Arguments:
   [TEXT]...
 
 Options:
-      --block-id <BLOCK_ID>  Exact Obsidian block ID (requires --file)
-  -c, --config <CONFIG>      Path to config file
-      --file <FILE>          Vault-relative file (required for multiple texts)
-  -v, --vault <VAULT>        Path to vault (overrides config)
+  -c, --config <CONFIG>  Path to config file
+      --file <FILE>      Vault-relative file (required for multiple texts)
       --partial
+  -v, --vault <VAULT>    Path to vault (overrides config)
       --dry-run
-  -h, --help                 Print help
+  -h, --help             Print help
 ```
 
 ## pkm tasks set
@@ -176,10 +173,9 @@ Arguments:
   [TEXT]
 
 Options:
-      --block-id <BLOCK_ID>  Exact Obsidian block ID (requires --file)
-  -c, --config <CONFIG>      Path to config file
+  -c, --config <CONFIG>  Path to config file
       --file <FILE>
-  -v, --vault <VAULT>        Path to vault (overrides config)
       --partial
-  -h, --help                 Print help
+  -v, --vault <VAULT>    Path to vault (overrides config)
+  -h, --help             Print help
 ```

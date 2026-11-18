@@ -9,9 +9,11 @@ use anyhow::{anyhow, Result};
 use chrono::{Duration, Local, NaiveDate};
 use regex::Regex;
 use serde_json::{json, Value};
+use unicode_normalization::UnicodeNormalization;
 
 use crate::graph::build_link_graph;
 use crate::note::{parse_note, split_frontmatter};
+use crate::parser::{fold_name, name_pattern, same_name};
 use crate::vault::{
     all_notes, relative_path, resolve_path, Config, FrontmatterFieldType, FrontmatterPolicy,
     LintRuleConfig, LINT_RULE_NAMES,
@@ -1464,7 +1466,7 @@ fn markdown_link_targets_note(href: &str, stem: &str) -> bool {
     !target.is_empty()
         && Path::new(&target)
             .file_name()
-            .map(|n| n.to_string_lossy().to_lowercase() == stem.to_lowercase())
+            .map(|n| fold_name(&n.to_string_lossy()) == fold_name(stem))
             .unwrap_or(false)
 }
 
@@ -1499,22 +1501,25 @@ impl LinkRewriter {
         let wiki = match old_folder {
             Some(folder) => Regex::new(&format!(
                 r"(?i)\[\[({}/)?{}(\.md)?{}(\|[^\]]+)?\]\]",
-                regex::escape(folder),
-                regex::escape(old_stem),
+                name_pattern(folder),
+                name_pattern(old_stem),
                 ANCHOR
             ))?,
             None => Regex::new(&format!(
                 r"(?i)\[\[([^\]|#^]*[/\\])?{}(\.md)?{}(\|[^\]]+)?\]\]",
-                regex::escape(old_stem),
+                name_pattern(old_stem),
                 ANCHOR
             ))?,
         };
+        // A name read from a decomposed file name is written back into links
+        // composed, the form Obsidian types.
+        let composed = |s: &str| -> String { s.nfc().collect() };
         Ok(Self {
             wiki,
             old_stem: old_stem.to_string(),
-            new_stem: new_stem.to_string(),
+            new_stem: composed(new_stem),
             old_folder: old_folder.map(str::to_string),
-            new_folder: new_folder.map(str::to_string),
+            new_folder: new_folder.map(composed),
         })
     }
 
@@ -1606,7 +1611,7 @@ pub fn rename(config: &Config, old: &str, new: &str, dry_run: bool, format: &str
         .into_iter()
         .find(|p| {
             p.file_stem()
-                .map(|s| s.to_string_lossy() == old_stem)
+                .map(|s| same_name(&s.to_string_lossy(), old_stem))
                 .unwrap_or(false)
         })
         .ok_or_else(|| anyhow!("Note not found: {old}"))?;
@@ -1820,9 +1825,9 @@ pub fn move_note(
     let old_path = all_notes(config)
         .into_iter()
         .find(|p| {
-            relative_path(&config.vault_path, p) == source
+            same_name(&relative_path(&config.vault_path, p), source)
                 || p.file_stem()
-                    .map(|s| s.to_string_lossy() == stem)
+                    .map(|s| same_name(&s.to_string_lossy(), &stem))
                     .unwrap_or(false)
         })
         .ok_or_else(|| anyhow!("Note not found: {source}"))?;

@@ -319,9 +319,6 @@ impl AnchorInventory {
     }
 }
 
-/// Normalize the visible text of a Markdown heading for Obsidian-style
-/// anchor matching. Closing `#` decoration is removed only when separated by
-/// whitespace, so a heading such as `C#` remains unchanged.
 /// The lookup form of a note name or path: Unicode NFC, then lowercase.
 ///
 /// macOS can hand back decomposed (NFD) file names while links typed in
@@ -332,6 +329,37 @@ pub fn fold_name(name: &str) -> String {
     name.nfc().collect::<String>().to_lowercase()
 }
 
+/// Whether two names are the same once both are composed (NFC), keeping case.
+pub fn same_name(a: &str, b: &str) -> bool {
+    use unicode_normalization::UnicodeNormalization;
+    a.nfc().eq(b.nfc())
+}
+
+/// A regex fragment matching `name` in links written either composed or
+/// decomposed. A link's text cannot be normalized in place without rewriting
+/// the rest of the note, so each character that decomposes matches both forms.
+pub fn name_pattern(name: &str) -> String {
+    use unicode_normalization::UnicodeNormalization;
+    name.nfc()
+        .map(|c| {
+            let composed = c.to_string();
+            let decomposed: String = composed.nfd().collect();
+            if decomposed == composed {
+                regex::escape(&composed)
+            } else {
+                format!(
+                    "(?:{}|{})",
+                    regex::escape(&composed),
+                    regex::escape(&decomposed)
+                )
+            }
+        })
+        .collect()
+}
+
+/// Normalize the visible text of a Markdown heading for Obsidian-style
+/// anchor matching. Closing `#` decoration is removed only when separated by
+/// whitespace, so a heading such as `C#` remains unchanged.
 pub fn normalize_heading(text: &str) -> String {
     let trimmed = text.trim();
     let mut suffix_start = trimmed.len();

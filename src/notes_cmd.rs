@@ -1123,6 +1123,25 @@ pub fn lint(
         issues.extend(missing);
     }
 
+    if selected.contains(&"single-entry") && !config.single_entry.is_empty() {
+        let found = crate::single_entry::check(config, selection.as_ref(), |path| {
+            rule_scope("single-entry", path, explicit)
+        })?;
+        summary.insert("single_entry".into(), json!(found.len()));
+        total += found.len();
+        if format == "text" {
+            println!("Single-entry layout: {}", found.len());
+            for issue in &found {
+                println!(
+                    "  {}: {}",
+                    issue["file"].as_str().unwrap(),
+                    issue["detail"].as_str().unwrap()
+                );
+            }
+        }
+        issues.extend(found);
+    }
+
     summary.insert("total_issues".into(), json!(total));
 
     if format == "json" {

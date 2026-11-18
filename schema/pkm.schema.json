@@ -61,7 +61,26 @@
             "duplicates": { "$ref": "#/$defs/lintRule" },
             "empty": { "$ref": "#/$defs/lintRule" },
             "frontmatter": { "$ref": "#/$defs/lintRule" },
-            "headings": { "$ref": "#/$defs/lintRule" }
+            "headings": { "$ref": "#/$defs/lintRule" },
+            "single-entry": { "$ref": "#/$defs/lintRule" }
+          }
+        },
+        "single_entry": {
+          "type": "array",
+          "description": "Single-entry layouts: each direct note or child folder is one unit.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1 },
+              "main": { "type": "string", "default": "README.md", "minLength": 1 },
+              "exclude": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+              "entry": {
+                "type": "object",
+                "additionalProperties": { "type": ["string", "number", "boolean"] }
+              }
+            }
           }
         },
         "paths": {
@@ -161,7 +180,8 @@
         "duplicates": { "$ref": "#/$defs/lintPathBasic" },
         "empty": { "$ref": "#/$defs/lintPathBasic" },
         "frontmatter": { "$ref": "#/$defs/lintPathFrontmatter" },
-        "headings": { "$ref": "#/$defs/lintPathHeadings" }
+        "headings": { "$ref": "#/$defs/lintPathHeadings" },
+        "single-entry": { "$ref": "#/$defs/lintPathBasic" }
       }
     },
     "lintPathBasic": {

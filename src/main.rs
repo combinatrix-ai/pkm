@@ -23,6 +23,7 @@ mod providers;
 mod query;
 mod refs;
 mod repair;
+mod single_entry;
 mod skill;
 mod tasks;
 mod templater;
@@ -359,7 +360,7 @@ enum Command {
         #[arg(
             long = "check",
             value_name = "RULE",
-            value_parser = ["broken-links", "orphans", "duplicates", "empty", "frontmatter", "headings"],
+            value_parser = ["broken-links", "orphans", "duplicates", "empty", "frontmatter", "headings", "single-entry"],
             help = "Run one configured lint rule (repeatable)"
         )]
         check: Vec<String>,

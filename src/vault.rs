@@ -20,6 +20,7 @@ pub const LINT_RULE_NAMES: &[&str] = &[
     "empty",
     "frontmatter",
     "headings",
+    "single-entry",
 ];
 
 pub const LINT_FIELD_TYPES: &[&str] = &["string", "number", "boolean", "date", "list", "object"];
@@ -162,6 +163,7 @@ pub struct Config {
     pub ignore_links: Vec<String>,
     pub lint_rules: std::collections::BTreeMap<String, LintRuleConfig>,
     pub lint_paths: Vec<LintPathRule>,
+    pub single_entry: Vec<crate::single_entry::Layout>,
     pub daily_folder: String,
     /// The template a daily note is created from, exactly as the vault wrote
     /// it. `None` means the vault named none: only then is a bare dated note
@@ -186,6 +188,7 @@ impl Default for Config {
             ignore_links: Vec::new(),
             lint_rules: default_lint_rules(),
             lint_paths: Vec::new(),
+            single_entry: Vec::new(),
             daily_folder: "Daily".into(),
             daily_template: None,
             daily_format: "YYYY-MM-DD".into(),
@@ -238,6 +241,7 @@ enum Shape {
     /// The ordered path-rule DSL has check-specific fields, so it has a
     /// dedicated validator instead of pretending to be a generic mapping.
     LintPaths,
+    SingleEntry,
 }
 
 /// The engines `templater::expand` actually implements.
@@ -281,6 +285,7 @@ const LINT_RULE: &[(&str, Shape)] = &[
 const LINT: &[(&str, Shape)] = &[
     ("rules", Shape::NamedFixed(LINT_RULE_NAMES, LINT_RULE)),
     ("paths", Shape::LintPaths),
+    ("single_entry", Shape::SingleEntry),
 ];
 
 const SETTINGS: &[(&str, Shape)] = &[
@@ -461,6 +466,7 @@ fn check_value(path: &str, value: &serde_yaml::Value, shape: &Shape) -> Result<(
             Ok(())
         }
         Shape::LintPaths => validate_lint_paths(path, value),
+        Shape::SingleEntry => crate::single_entry::parse(value).map(|_| ()),
     }
 }
 
@@ -1225,6 +1231,11 @@ pub fn config_from(raw: &str) -> Result<Config> {
         ignore_links: as_string_list(get("ignore_links")),
         lint_rules,
         lint_paths,
+        single_entry: get("lint")
+            .and_then(|v| v.get("single_entry"))
+            .map(crate::single_entry::parse)
+            .transpose()?
+            .unwrap_or_default(),
         daily_folder: daily_get("folder", "Daily"),
         daily_template: daily_raw("template"),
         daily_format: daily_get("format", "YYYY-MM-DD"),

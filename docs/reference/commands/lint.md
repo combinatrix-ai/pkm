@@ -10,7 +10,7 @@ Arguments:
 
 Options:
   -c, --config <CONFIG>  Path to config file
-      --check <RULE>     Run one configured lint rule (repeatable) [possible values: broken-links, orphans, duplicates, empty, frontmatter, headings]
+      --check <RULE>     Run one configured lint rule (repeatable) [possible values: broken-links, orphans, duplicates, empty, frontmatter, headings, single-entry]
       --diff [<REF>]     Only changed notes: staged, unstaged and untracked; optionally compare to REF
   -v, --vault <VAULT>    Path to vault (overrides config)
   -f, --format <FORMAT>  [default: text]

@@ -33,8 +33,8 @@ Heading links accept visible titles and common Markdown slugs (`#quick-start`
 for `Quick Start`), including numbered duplicate slugs. Required-heading policies
 still compare heading titles, not slugs.
 
-`lint.rules` controls the six checks reported by `pkm lint`:
-`broken-links`, `orphans`, `duplicates`, `empty`, `frontmatter` and `headings`. Every rule
+`lint.rules` controls the checks reported by `pkm lint`:
+`broken-links`, `orphans`, `duplicates`, `empty`, `frontmatter`, `headings` and `single-entry`. Every rule
 is enabled with no configuration, preserving the default all-checks report.
 Set `enabled: false` to omit a rule from a plain `pkm lint`; an explicit
 `pkm lint --check RULE` always runs that rule. `--check` may be repeated.
@@ -182,3 +182,62 @@ rules, and target patterns. Its output retains detailed occurrence locations.
 Use `pkm broken-links --all` to bypass those lint policies for investigation;
 top-level `exclude` and `ignore_links` still apply. `repair-links` retains its
 unfiltered diagnostic scope.
+
+## Single-entry layout
+
+A single-entry layout gives each unit exactly one entry note. A standalone note
+is its own entry; a child folder uses a configured main filename. This is useful
+for projects, courses or other collections with supporting notes.
+
+```yaml
+lint:
+  single_entry:
+    - path: Projects
+      main: README.md
+      exclude: [assets]
+      entry:
+        type: project
+  paths:
+    - path: '^Projects/'
+      where: ['type=project']
+      frontmatter:
+        required: [type, status, updated]
+      headings:
+        required: [Summary, Next steps, References]
+```
+
+`path` is a vault-relative directory, not a regex. Each direct note and child
+folder is one unit. `main` defaults to `README.md`; set it to a single note
+filename such as `index.md` or `overview.org`. The root's own main file is the
+collection index and is not a unit. Hidden entries are ignored. Non-note files
+at the collection root are not units.
+
+`exclude` contains path prefixes relative to `path`, including nested paths.
+Top-level vault exclusions also apply. Every non-excluded child folder requires
+its main file, even if empty. Layout roots and entries must not be symlinks;
+the checker never follows directory symlinks.
+
+Optional `entry` fields are exact, non-null scalar frontmatter values. They are
+required on each entry and forbidden as a complete matching set on supporting
+notes anywhere inside a unit. With no `entry` fields, the check validates file
+placement only. Use ordinary frontmatter and heading rules for additional entry
+requirements; metadata missing from an entry is caught by the layout check
+before a type-based policy could omit it.
+
+The check also reports a standalone note and a same-named child folder, comparing
+names case-insensitively after Unicode NFC normalization. It reports issues;
+it does not move files or change metadata.
+
+Run `pkm lint --check single-entry --format json`. Issues have `type:
+"single-entry"`, a vault-relative `file`, `code`, `detail` and `severity`.
+`summary.single_entry` counts them. The codes are `missing-main`,
+`entry-metadata`, `extra-entry`, `duplicate-unit`, `invalid-root` and `symlink`.
+Use `lint.rules.single-entry` to disable or scope reporting, or ordinary
+`lint.paths` overrides. The check is inert unless `lint.single_entry` is configured.
+
+When selecting files, including with `--diff`, layout inspection expands to the
+selected files' units so that a changed supporting note can reveal a missing
+entry. JSON `scope.files` still lists the originally selected files; layout
+issues may point at peers or an expected main file that does not exist. As with
+other checks, deleted notes are not selected by `--diff`: run a full lint after
+deleting an entry or changing layout configuration.

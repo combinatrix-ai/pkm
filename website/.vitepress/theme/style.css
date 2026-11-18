@@ -81,6 +81,20 @@ a:focus-visible,button:focus-visible,pre:focus-visible{outline:3px solid var(--v
 .works li:has(img){color:var(--vp-c-text-1);font-weight:600}
 .more-list pre.config{background:var(--vp-c-bg-soft);color:var(--vp-c-text-1);flex:none;margin-bottom:10px}
 
+.parts{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:38px}
+.parts article{border:1px solid var(--line);border-radius:10px;background:#fff;padding:22px;min-width:0;display:flex;flex-direction:column}
+.parts small{font:600 11px var(--vp-font-family-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--vp-c-text-2)}
+.parts h3{font-size:19px;margin:6px 0 8px}
+.landing .parts p{font-size:14.5px;line-height:1.65;color:var(--vp-c-text-2);margin:0 0 16px}
+.parts pre,.hook-config pre{margin:0;border-radius:7px;padding:14px 16px;font:12px/1.75 var(--vp-font-family-mono);overflow:auto;max-height:260px}
+.parts pre{background:var(--term);color:var(--term-dim);margin-top:auto}
+.parts pre b{color:var(--term-fg);font-weight:400}
+.parts pre u{color:#f0a35e;text-decoration:none}
+.parts pre i{color:#7fd17f;font-style:normal}
+.hook-config{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px}
+.hook-config pre{background:var(--vp-c-bg-soft);color:var(--vp-c-text-1)}
+.landing .harness .aside{font-size:14px;margin-top:22px}
+
 .keep{text-align:center}
 .landing .keep>p{margin:0 auto}
 .keep ul{display:flex;flex-wrap:wrap;justify-content:center;gap:20px 32px;list-style:none;padding:0;margin:34px 0 22px}
@@ -112,7 +126,7 @@ a:focus-visible,button:focus-visible,pre:focus-visible{outline:3px solid var(--v
   .landing .band{padding:52px 0}
   .hero{padding:40px 0 40px;gap:32px}.hero-description{font-size:17px}
   .turns{padding:18px 16px;min-height:440px}.turn.you p{font-size:16px}.turn.tool pre{font-size:12px}
-  .recipe,.versus,.more-list,.install-grid{grid-template-columns:1fr;gap:22px}
+  .recipe,.versus,.more-list,.install-grid,.parts,.hook-config{grid-template-columns:1fr;gap:22px}
   .facts{grid-template-columns:1fr 1fr}
   .doc-links{grid-template-columns:1fr;gap:24px}
   .replaces,.replaces tbody,.replaces tr,.replaces td{display:block;width:100%!important}

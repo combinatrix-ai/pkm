@@ -38,6 +38,10 @@
       "command": "pkm rename Redesign Relaunch",
       "result": "Renaming: Projects/Redesign.md -> Projects/Relaunch.md\nFound 3 files with links to update\n  Updated 1 links in Diary/2026-01-12.md\n  Updated 1 links in Meetings/Kickoff.md\n  Updated 1 links in Index.md\n\nDone! Renamed and updated 3 links in 3 files."
     },
+    "rename_dry": {
+      "command": "pkm rename Redesign Relaunch --dry-run",
+      "result": "Renaming: Projects/Redesign.md -> Projects/Relaunch.md\nFound 3 files with links to update\n\n[DRY RUN] Would update:\n  Diary/2026-01-12.md (1 links)\n  Meetings/Kickoff.md (1 links)\n  Index.md (1 links)"
+    },
     "repair": {
       "command": "pkm repair-links --dry-run",
       "result": "[DRY RUN] repair-links: 3 broken link occurrence(s) in 1 file(s)\n  safe 2, ambiguous 0, unresolved 1\n\nsafe (2)\n  Index.md:3:3  [[old/Meetings/Kickoff.md]] -> [[Meetings/Kickoff.md]]\n      Meetings/Kickoff.md (unique-path-suffix: the only file whose path ends with \"Meetings/Kickoff.md\", and \"Meetings/Kickoff.md\" resolves back to it)\n  Index.md:4:3  [[Projects/My%20Plan]] -> [[Projects/My Plan]]\n      Projects/My Plan.md (percent-decoding: decoding the target gives \"Projects/My Plan\", and \"Projects/My Plan\" resolves back to it)\n\nunresolved (1)\n  Index.md:5:3  [[Roam]]\n      missing-note: no file matches this target\n\nNothing was written. repair-links plans repairs; it never edits the vault."

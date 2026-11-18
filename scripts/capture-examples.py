@@ -33,6 +33,7 @@ RULES = '''lint:
 # name -> (extra files, argv, expected exit code)
 CASES = {
     'rename': ({}, ['rename', 'Redesign', 'Relaunch'], 0),
+    'rename_dry': ({}, ['rename', 'Redesign', 'Relaunch', '--dry-run'], 0),
     'tasks': ({}, ['tasks', '--overdue'], 0),
     'backlinks': ({}, ['backlinks', 'Projects/Redesign.md'], 0),
     'broken': ({'Projects/Pricing.md': '# Pricing\n\nCompare with [[Competitor notes]].\n'}, ['broken-links'], 0),
@@ -91,7 +92,7 @@ examples = {
     'conversations': [
         {**{k: c[k] for k in ('name', 'you', 'agent', 'caption')}, **capture(c['case'])} for c in conversations
     ],
-    'snippets': {name: capture(name) for name in ('rename', 'repair', 'demote', 'rules', 'refs', 'movedir', 'context')},
+    'snippets': {name: capture(name) for name in ('rename', 'rename_dry', 'repair', 'demote', 'rules', 'refs', 'movedir', 'context')},
     'rules_config': RULES.strip(),
 }
 (root / 'website/demo/examples.json').write_text(json.dumps(examples, ensure_ascii=False, indent=2) + '\n')

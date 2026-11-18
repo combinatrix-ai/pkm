@@ -35,6 +35,16 @@ const replaced = [
   { app: 'Broken link checks', commands: 'broken-links · lint', say: 'Is anything broken?', guide: '/guide/link-health' },
 ];
 
+// The Stop hook is the one Claude Code runs; its transcript below is drawn
+// from the captured lint output rather than written by hand, so the two
+// cannot drift apart.
+const stopHook = `// .claude/settings.json
+"hooks": { "Stop": [{ "hooks": [{
+  "type": "command",
+  "command": "pkm lint --diff --format json >&2 || exit 2"
+}]}]}`;
+const lintFindings = snippets.rules.result.split('\n').filter((line) => line.startsWith('  Projects/'));
+
 const spellings = ['[[Note]]', '[[Note.md]]', '[[Note#Heading]]', '[[Note|alias]]', '![[Note]]', '[text](Note.md)', '[text](My%20Note.md)'];
 
 const more = [
@@ -44,9 +54,6 @@ const more = [
   { title: "Links that promise, tags that don't",
     text: 'After a few years a vault is full of [[brackets]] used as a highlighter, like [[to-read]], with no note behind them. [[X]] is a promise that a note exists; #X is a topic that needs none. demote moves one to the other and reports what a tag cannot hold.',
     snippet: snippets.demote, guide: '/guide/links-and-tags', link: 'Hard links and soft tags' },
-  { title: 'House rules for your vault',
-    text: 'Say what a project note must contain, by path or by metadata. Agents keep to your structure because the linter tells them when they did not.',
-    config: rulesConfig, snippet: snippets.rules, guide: '/guide/lint', link: 'Lint rules' },
   { title: 'Names in notes, values elsewhere',
     text: 'An address or a licence key belongs in your notes by name, not by value. Write it as a pkm:// link and the value stays in your password manager until someone asks for that one item.',
     snippet: snippets.refs, guide: '/guide/external-references', link: 'External references',
@@ -99,6 +106,43 @@ const more = [
         <div class="flow old"><small>Before</small><div class="chain"><span>You</span><i>→</i><span class="gone">Notes app</span><i>→</i><span>Markdown</span></div></div>
         <div class="flow now"><small>Now</small><div class="chain"><span>You</span><i>→</i><span>Agent</span><i>→</i><span class="k">pkm</span><i>→</i><span>Markdown</span></div></div>
       </div>
+    </section>
+
+    <section class="band harness" aria-labelledby="harness-title">
+      <p class="eyebrow">The harness</p>
+      <h2 id="harness-title">Harness engineering<br>for your notes.</h2>
+      <p>A model is only as good as the harness around it: what it can see, what it may change, and what tells it when it got something wrong. pkm is that harness for a folder of notes.</p>
+      <div class="parts">
+        <article>
+          <small>Context</small>
+          <h3>What the agent sees</h3>
+          <p>One call returns a note with its links, backlinks and headings. Queries reach frontmatter, tags and link counts. The skill ships inside the binary.</p>
+          <pre tabindex="0"><b>$ {{ snippets.context.command }}</b>
+{{ snippets.context.result }}</pre>
+        </article>
+        <article>
+          <small>Actions</small>
+          <h3>What it may change</h3>
+          <p>Renames and moves rewrite every link, and <code>--dry-run</code> shows the plan first. Tasks are picked by their exact text; anything ambiguous stops instead of guessing.</p>
+          <pre tabindex="0"><b>$ {{ snippets.rename_dry.command }}</b>
+{{ snippets.rename_dry.result }}</pre>
+        </article>
+        <article>
+          <small>Backpressure</small>
+          <h3>What pushes back</h3>
+          <p>Your house rules, as lint. Run it as a Stop hook and whatever the agent broke goes straight back to it. The turn ends when the notes it changed pass.</p>
+          <pre tabindex="0" class="loop"><b>● Stop hook · pkm lint --diff</b>
+<u v-for="line in lintFindings" :key="line">{{ line }}
+</u><b>● Added the Summary and Next steps headings.</b>
+<b>● Stop hook · pkm lint --diff</b>
+<i>  0 issues, turn ends</i></pre>
+        </article>
+      </div>
+      <div class="hook-config">
+        <pre tabindex="0" class="config">{{ stopHook }}</pre>
+        <pre tabindex="0" class="config">{{ rulesConfig }}</pre>
+      </div>
+      <p class="aside">Codex runs Stop hooks too. <a class="text-link" :href="withBase('/guide/lint')">Lint rules →</a></p>
     </section>
 
     <section class="band" aria-labelledby="grep-title">

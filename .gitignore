@@ -7,8 +7,8 @@
 *.swp
 *.swo
 
-# knapper's own state, if it is ever run inside this repo
-.knapper/
+# pkm's own state, if it is ever run inside this repo
+.pkm/
 
 # OS
 .DS_Store

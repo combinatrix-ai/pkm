@@ -1,4 +1,4 @@
-//! The broker end to end: what a provider command sees, and what knapper
+//! The broker end to end: what a provider command sees, and what pkm
 //! does with what it writes back.
 //!
 //! These are the cases `tests/contract/cases.yaml` cannot express, because
@@ -10,7 +10,7 @@
 //! running the suite.
 //!
 //! The provider commands below are mostly `sh -c ...`, which is how a fixture
-//! produces exact bytes. knapper itself never invokes a shell: it execs
+//! produces exact bytes. pkm itself never invokes a shell: it execs
 //! argv[0] directly, and one of the cases pins that.
 
 #![cfg(unix)]
@@ -23,7 +23,7 @@ use tempfile::TempDir;
 
 /// Write a local provider config declaring one provider named `personal`.
 fn write_providers(config_home: &Path, command: &[&str]) {
-    let dir = config_home.join("knapper");
+    let dir = config_home.join("pkm");
     std::fs::create_dir_all(&dir).unwrap();
     // YAML is a superset of JSON, so a JSON array is a flow sequence -- and
     // serialising it is the one way to be sure the argv in the file is the
@@ -42,19 +42,19 @@ fn broker_running(command: &[&str]) -> TempDir {
     home
 }
 
-fn knapper(config_home: &Path, args: &[&str]) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_knapper"))
+fn pkm(config_home: &Path, args: &[&str]) -> Output {
+    Command::new(env!("CARGO_BIN_EXE_pkm"))
         .args(args)
         .current_dir(config_home)
         .env("XDG_CONFIG_HOME", config_home)
         .output()
-        .expect("knapper runs")
+        .expect("pkm runs")
 }
 
 fn resolve(config_home: &Path, args: &[&str]) -> Output {
-    let mut all = vec!["resolve", "knapper://personal/address.home"];
+    let mut all = vec!["resolve", "pkm://personal/address.home"];
     all.extend_from_slice(args);
-    knapper(config_home, &all)
+    pkm(config_home, &all)
 }
 
 fn code(output: &Output) -> i32 {
@@ -101,7 +101,7 @@ fn one_crlf_comes_off_and_no_more() {
     assert_eq!(output.stdout, b"a\r\nb");
 }
 
-/// A value is text. Bytes that are not are a provider knapper cannot speak
+/// A value is text. Bytes that are not are a provider pkm cannot speak
 /// for, so it says so instead of printing something lossy.
 #[test]
 fn output_that_is_not_utf8_is_a_failure() {
@@ -112,7 +112,7 @@ fn output_that_is_not_utf8_is_a_failure() {
     assert!(output.stdout.is_empty());
 }
 
-/// A resolved value is one value, not a stream. Past the cap knapper stops
+/// A resolved value is one value, not a stream. Past the cap pkm stops
 /// reading rather than buffering whatever is still coming.
 #[test]
 fn output_past_the_cap_is_refused_rather_than_buffered() {
@@ -156,7 +156,7 @@ fn a_timeout_ends_the_child_and_reports_it() {
 #[test]
 fn a_timeout_bounds_output_held_open_by_a_descendant() {
     // Close the descendant's stderr so the outer test harness is measuring
-    // knapper's provider-stdout deadline, not waiting on an unrelated copy of
+    // pkm's provider-stdout deadline, not waiting on an unrelated copy of
     // the harness's own captured stderr descriptor.
     let home = broker_running(&["sh", "-c", "printf hello; sleep 5 2>/dev/null & :"]);
 
@@ -171,7 +171,7 @@ fn a_timeout_bounds_output_held_open_by_a_descendant() {
     );
 }
 
-/// A value that is not a line does not become one when knapper emits it.
+/// A value that is not a line does not become one when pkm emits it.
 #[test]
 fn a_value_with_no_trailing_newline_gains_nothing() {
     let home = broker_running(&["printf", "%s", "no-trailing-newline"]);
@@ -192,7 +192,7 @@ fn a_value_that_ends_in_a_newline_keeps_it() {
     assert_eq!(output.stdout, b"a\n");
 }
 
-/// argv is argv. A shell would read the ";" and the "$(...)" below; knapper
+/// argv is argv. A shell would read the ";" and the "$(...)" below; pkm
 /// hands them to the program as one literal argument, because there is no
 /// shell in the path at all.
 #[test]
@@ -208,14 +208,14 @@ fn a_provider_command_is_never_a_shell_line() {
 /// started in to find its own config, agent socket and credentials.
 #[test]
 fn the_provider_inherits_the_environment() {
-    let home = broker_running(&["sh", "-c", "printf '%s\\n' \"$KNAPPER_TEST_MARKER\""]);
-    let output = Command::new(env!("CARGO_BIN_EXE_knapper"))
-        .args(["resolve", "knapper://personal/address.home"])
+    let home = broker_running(&["sh", "-c", "printf '%s\\n' \"$PKM_TEST_MARKER\""]);
+    let output = Command::new(env!("CARGO_BIN_EXE_pkm"))
+        .args(["resolve", "pkm://personal/address.home"])
         .current_dir(home.path())
         .env("XDG_CONFIG_HOME", home.path())
-        .env("KNAPPER_TEST_MARKER", "inherited")
+        .env("PKM_TEST_MARKER", "inherited")
         .output()
-        .expect("knapper runs");
+        .expect("pkm runs");
 
     assert_eq!(code(&output), 0, "{}", stderr(&output));
     assert_eq!(output.stdout, b"inherited");
@@ -225,11 +225,11 @@ fn the_provider_inherits_the_environment() {
 /// reference, and it is not looked at again.
 #[test]
 fn a_returned_reference_is_printed_rather_than_followed() {
-    let home = broker_running(&["printf", "%s\n", "knapper://personal/somewhere.else"]);
+    let home = broker_running(&["printf", "%s\n", "pkm://personal/somewhere.else"]);
     let output = resolve(home.path(), &[]);
 
     assert_eq!(code(&output), 0, "{}", stderr(&output));
-    assert_eq!(output.stdout, b"knapper://personal/somewhere.else");
+    assert_eq!(output.stdout, b"pkm://personal/somewhere.else");
 }
 
 /// No cache and nothing persisted: the second resolve runs the provider
@@ -263,7 +263,7 @@ fn resolving_twice_asks_the_provider_twice_and_stores_nothing() {
     );
 
     // The only thing under the config home is still the config itself.
-    let mut left: Vec<String> = std::fs::read_dir(home.path().join("knapper"))
+    let mut left: Vec<String> = std::fs::read_dir(home.path().join("pkm"))
         .unwrap()
         .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
         .collect();
@@ -272,7 +272,7 @@ fn resolving_twice_asks_the_provider_twice_and_stores_nothing() {
 
     // The template is still a template: the locator that was resolved -- and
     // so the value built from it -- was never written back.
-    let config = std::fs::read_to_string(home.path().join("knapper/providers.yaml")).unwrap();
+    let config = std::fs::read_to_string(home.path().join("pkm/providers.yaml")).unwrap();
     assert!(config.contains("{locator}"));
     assert!(
         !config.contains("address.home"),
@@ -292,13 +292,13 @@ fn the_config_falls_back_to_home_dot_config() {
         &["printf", "%s\n", "{locator}"],
     );
 
-    let output = Command::new(env!("CARGO_BIN_EXE_knapper"))
-        .args(["resolve", "knapper://personal/address.home"])
+    let output = Command::new(env!("CARGO_BIN_EXE_pkm"))
+        .args(["resolve", "pkm://personal/address.home"])
         .current_dir(home.path())
         .env_remove("XDG_CONFIG_HOME")
         .env("HOME", home.path())
         .output()
-        .expect("knapper runs");
+        .expect("pkm runs");
 
     assert_eq!(code(&output), 0, "{}", stderr(&output));
     assert_eq!(output.stdout, b"address.home");
@@ -312,7 +312,7 @@ fn xdg_config_home_wins_over_home() {
     let home = tempfile::tempdir().unwrap();
     write_providers(&home.path().join(".config"), &["false", "{locator}"]);
 
-    let output = Command::new(env!("CARGO_BIN_EXE_knapper"))
+    let output = Command::new(env!("CARGO_BIN_EXE_pkm"))
         .args([
             "provider",
             "set",
@@ -326,31 +326,31 @@ fn xdg_config_home_wins_over_home() {
         .env("XDG_CONFIG_HOME", xdg.path())
         .env("HOME", home.path())
         .output()
-        .expect("knapper runs");
+        .expect("pkm runs");
     assert_eq!(code(&output), 0, "{}", stderr(&output));
 
-    assert!(xdg.path().join("knapper/providers.yaml").exists());
+    assert!(xdg.path().join("pkm/providers.yaml").exists());
     assert!(
-        std::fs::read_to_string(home.path().join(".config/knapper/providers.yaml"))
+        std::fs::read_to_string(home.path().join(".config/pkm/providers.yaml"))
             .unwrap()
             .contains("false")
     );
 }
 
-/// The provider config is what knapper executes, so it is not a file to
+/// The provider config is what pkm executes, so it is not a file to
 /// leave readable by everyone on the machine.
 #[test]
 fn a_written_config_is_owner_only() {
     use std::os::unix::fs::PermissionsExt;
 
     let home = tempfile::tempdir().unwrap();
-    let output = knapper(
+    let output = pkm(
         home.path(),
         &["provider", "set", "personal", "--", "printf", "{locator}"],
     );
     assert_eq!(code(&output), 0, "{}", stderr(&output));
 
-    let mode = std::fs::metadata(home.path().join("knapper/providers.yaml"))
+    let mode = std::fs::metadata(home.path().join("pkm/providers.yaml"))
         .unwrap()
         .permissions()
         .mode();
@@ -358,7 +358,7 @@ fn a_written_config_is_owner_only() {
 }
 
 /// A vault is synced, shared, cloned and handed over. A `providers:` block in
-/// `knapper.yaml` is therefore not configuration knapper may act on, and
+/// `pkm.yaml` is therefore not configuration pkm may act on, and
 /// the marker below is how this test says so: if any path ever executed it,
 /// the file would exist.
 ///
@@ -371,7 +371,7 @@ fn a_written_config_is_owner_only() {
 fn a_vault_cannot_declare_a_provider() {
     let vault = tempfile::tempdir().unwrap();
     std::fs::write(
-        vault.path().join("knapper.yaml"),
+        vault.path().join("pkm.yaml"),
         "vault_path: .\nproviders:\n  fromvault:\n    \
          command: [touch, executed-a-vault-command]\n",
     )
@@ -380,16 +380,13 @@ fn a_vault_cannot_declare_a_provider() {
 
     // The resolver reads the local provider config and nothing else, so the
     // vault's provider is simply not there.
-    let resolved = knapper(vault.path(), &["resolve", "knapper://fromvault/x"]);
+    let resolved = pkm(vault.path(), &["resolve", "pkm://fromvault/x"]);
     assert_failed(&resolved, 3, "No provider named");
 
     // A command that does read the vault config says what is wrong with it.
-    let listed = knapper(vault.path(), &["links", "Note.md"]);
+    let listed = pkm(vault.path(), &["links", "Note.md"]);
     assert_eq!(code(&listed), 1, "{}", stderr(&listed));
-    for needle in [
-        "`providers` is not vault configuration",
-        "knapper provider set",
-    ] {
+    for needle in ["`providers` is not vault configuration", "pkm provider set"] {
         assert!(
             stderr(&listed).contains(needle),
             "stderr lacks {needle:?}: {}",

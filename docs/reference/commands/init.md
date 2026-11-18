@@ -1,9 +1,9 @@
-# knapper init
+# pkm init
 
 ```text
-Initialize a new knapper config file
+Initialize a new pkm config file
 
-Usage: knapper init [OPTIONS]
+Usage: pkm init [OPTIONS]
 
 Options:
   -c, --config <CONFIG>  Path to config file

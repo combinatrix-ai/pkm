@@ -1,10 +1,10 @@
-//! External references: `knapper://<provider>/<locator>` links in notes.
+//! External references: `pkm://<provider>/<locator>` links in notes.
 //!
 //! A note holds an ordinary markdown link whose destination names a provider
 //! and an opaque locator:
 //!
 //! ```markdown
-//! [請求書送付先の住所](knapper://personal/address.billing)
+//! [請求書送付先の住所](pkm://personal/address.billing)
 //! ```
 //!
 //! The provider is a name the user chose, not a tool: what runs for it lives
@@ -23,7 +23,7 @@ use serde::Serialize;
 use crate::parser::mask_noncontent;
 use crate::vault::{all_notes, relative_path, resolve_path, Config};
 
-pub const SCHEME: &str = "knapper://";
+pub const SCHEME: &str = "pkm://";
 
 /// A locator is bounded so a reference stays a reference: something short
 /// enough to read in a note, rather than a payload smuggled through a link.
@@ -31,13 +31,13 @@ pub const MAX_LOCATOR: usize = 128;
 
 // The whole URI, anchored. The provider is lowercase because it is a name the
 // user types, and a case-folding provider name is a name with two spellings.
-// The locator's alphabet is deliberately small and ASCII: knapper hands it to
+// The locator's alphabet is deliberately small and ASCII: pkm hands it to
 // somebody else's command, so anything it cannot spell cannot be smuggled.
 // The anchors are \A and \z rather than ^ and $ so that nothing -- a trailing
 // newline included -- can sit outside the match.
 static REFERENCE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(&format!(
-        r"\Aknapper://([a-z0-9][a-z0-9_-]*)/([A-Za-z0-9][A-Za-z0-9._/-]{{0,{}}})\z",
+        r"\Apkm://([a-z0-9][a-z0-9_-]*)/([A-Za-z0-9][A-Za-z0-9._/-]{{0,{}}})\z",
         MAX_LOCATOR - 1
     ))
     .unwrap()
@@ -46,16 +46,14 @@ static REFERENCE: LazyLock<Regex> = LazyLock::new(|| {
 static PROVIDER_NAME: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"\A[a-z0-9][a-z0-9_-]*\z").unwrap());
 
-// A markdown inline link whose destination is a knapper URI, in both the
+// A markdown inline link whose destination is a pkm URI, in both the
 // plain and the angle-wrapped form. A bare URI in prose and a markdown
 // autolink are not references: a reference is something the note links to,
 // and requiring the link form keeps a URI that is merely being discussed from
 // becoming one.
 static MARKDOWN_REFERENCE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(
-        r#"\[([^\]]*)\]\(\s*(?:<(knapper://[^<>\s]*)>|(knapper://[^()<>\s]*))\s*(?:"[^"]*")?\s*\)"#,
-    )
-    .unwrap()
+    Regex::new(r#"\[([^\]]*)\]\(\s*(?:<(pkm://[^<>\s]*)>|(pkm://[^()<>\s]*))\s*(?:"[^"]*")?\s*\)"#)
+        .unwrap()
 });
 
 /// One reference, as written. There is no value here and never will be.
@@ -75,10 +73,10 @@ pub struct Reference {
 ///
 /// The locator is opaque: it is not decoded, unescaped or normalised, because
 /// the provider defines what it means. Everything this checks is about what
-/// knapper is willing to pass on at all.
+/// pkm is willing to pass on at all.
 pub fn parse(uri: &str) -> Result<(String, String)> {
     let captures = REFERENCE.captures(uri).ok_or_else(|| {
-        anyhow!("Not a knapper reference: {uri:?} (expected {SCHEME}<provider>/<locator>)")
+        anyhow!("Not a pkm reference: {uri:?} (expected {SCHEME}<provider>/<locator>)")
     })?;
     let provider = captures[1].to_string();
     let locator = captures[2].to_string();
@@ -216,17 +214,13 @@ mod tests {
     fn a_well_formed_reference_splits_into_provider_and_locator() {
         for (uri, provider, locator) in [
             (
-                "knapper://personal/address.billing",
+                "pkm://personal/address.billing",
                 "personal",
                 "address.billing",
             ),
-            (
-                "knapper://work/tokens/ci/deploy",
-                "work",
-                "tokens/ci/deploy",
-            ),
-            ("knapper://p1/A", "p1", "A"),
-            ("knapper://a-b_c/x-y_z.0", "a-b_c", "x-y_z.0"),
+            ("pkm://work/tokens/ci/deploy", "work", "tokens/ci/deploy"),
+            ("pkm://p1/A", "p1", "A"),
+            ("pkm://a-b_c/x-y_z.0", "a-b_c", "x-y_z.0"),
         ] {
             assert_eq!(
                 parse(uri).unwrap(),
@@ -236,51 +230,51 @@ mod tests {
         }
     }
 
-    /// The locator reaches somebody else's command, so everything knapper is
+    /// The locator reaches somebody else's command, so everything pkm is
     /// unsure about is a rejection rather than a guess.
     #[test]
     fn anything_outside_the_grammar_is_rejected() {
         for uri in [
             // Wrong scheme, or no scheme at all.
             "https://example.com/x",
-            "knapper:/personal/x",
-            "knapper:personal/x",
+            "pkm:/personal/x",
+            "pkm:personal/x",
             "personal/x",
             "",
             // Missing halves.
-            "knapper://personal",
-            "knapper://personal/",
-            "knapper:///x",
-            "knapper://",
+            "pkm://personal",
+            "pkm://personal/",
+            "pkm:///x",
+            "pkm://",
             // Provider shape.
-            "knapper://Personal/x",
-            "knapper://-personal/x",
-            "knapper://_personal/x",
-            "knapper://per.sonal/x",
-            "knapper://per sonal/x",
+            "pkm://Personal/x",
+            "pkm://-personal/x",
+            "pkm://_personal/x",
+            "pkm://per.sonal/x",
+            "pkm://per sonal/x",
             // Locator shape.
-            "knapper://personal/-leading",
-            "knapper://personal/.leading",
-            "knapper://personal/_leading",
-            "knapper://personal/has space",
-            "knapper://personal/日本語",
-            "knapper://personal/a:b",
-            "knapper://personal/a\\b",
+            "pkm://personal/-leading",
+            "pkm://personal/.leading",
+            "pkm://personal/_leading",
+            "pkm://personal/has space",
+            "pkm://personal/日本語",
+            "pkm://personal/a:b",
+            "pkm://personal/a\\b",
             // Percent encoding, query and fragment are not part of it.
-            "knapper://personal/a%2Fb",
-            "knapper://personal/a%20b",
-            "knapper://personal/a?q=1",
-            "knapper://personal/a#frag",
+            "pkm://personal/a%2Fb",
+            "pkm://personal/a%20b",
+            "pkm://personal/a?q=1",
+            "pkm://personal/a#frag",
             // Path segments that name nothing.
-            "knapper://personal/a//b",
-            "knapper://personal/a/",
-            "knapper://personal/a/./b",
-            "knapper://personal/a/../b",
-            "knapper://personal/a/..",
+            "pkm://personal/a//b",
+            "pkm://personal/a/",
+            "pkm://personal/a/./b",
+            "pkm://personal/a/../b",
+            "pkm://personal/a/..",
             // Trailing junk after an otherwise valid reference.
-            "knapper://personal/x ",
-            " knapper://personal/x",
-            "knapper://personal/x\n",
+            "pkm://personal/x ",
+            " pkm://personal/x",
+            "pkm://personal/x\n",
         ] {
             assert!(parse(uri).is_err(), "should be rejected: {uri:?}");
         }
@@ -297,8 +291,8 @@ mod tests {
     /// means whatever the provider says it means.
     #[test]
     fn dots_inside_a_segment_are_not_traversal() {
-        assert!(parse("knapper://personal/a..b").is_ok());
-        assert!(parse("knapper://personal/v1.2.3").is_ok());
+        assert!(parse("pkm://personal/a..b").is_ok());
+        assert!(parse("pkm://personal/v1.2.3").is_ok());
     }
 
     #[test]
@@ -317,8 +311,8 @@ mod tests {
     fn both_link_forms_are_found_with_their_position() {
         let refs = parse_refs(
             "Note.md",
-            "住所: [請求書送付先の住所](knapper://personal/address.billing)\n\
-             Token: [CI](<knapper://work/tokens/ci.deploy>)\n",
+            "住所: [請求書送付先の住所](pkm://personal/address.billing)\n\
+             Token: [CI](<pkm://work/tokens/ci.deploy>)\n",
         );
         assert_eq!(refs.len(), 2);
 
@@ -329,7 +323,7 @@ mod tests {
         assert_eq!(refs[0].label, "請求書送付先の住所");
 
         assert_eq!(refs[1].line, 2);
-        assert_eq!(refs[1].uri, "knapper://work/tokens/ci.deploy");
+        assert_eq!(refs[1].uri, "pkm://work/tokens/ci.deploy");
         assert_eq!(refs[1].label, "CI");
     }
 
@@ -339,12 +333,12 @@ mod tests {
     fn code_and_comments_hold_no_references() {
         let refs = parse_refs(
             "Note.md",
-            "`[x](knapper://personal/inline)`\n\
-             %% [x](knapper://personal/comment) %%\n\
+            "`[x](pkm://personal/inline)`\n\
+             %% [x](pkm://personal/comment) %%\n\
              ```\n\
-             [x](knapper://personal/fenced)\n\
+             [x](pkm://personal/fenced)\n\
              ```\n\
-             [x](knapper://personal/real)\n",
+             [x](pkm://personal/real)\n",
         );
         assert_eq!(refs.len(), 1);
         assert_eq!(refs[0].locator, "real");
@@ -356,10 +350,10 @@ mod tests {
     #[test]
     fn bare_uris_and_autolinks_are_not_references() {
         for content in [
-            "see knapper://personal/bare for details",
-            "<knapper://personal/autolink>",
-            "[label]: knapper://personal/refdef",
-            "![embed](knapper://personal/image)",
+            "see pkm://personal/bare for details",
+            "<pkm://personal/autolink>",
+            "[label]: pkm://personal/refdef",
+            "![embed](pkm://personal/image)",
         ] {
             assert!(
                 parse_refs("Note.md", content).is_empty(),
@@ -370,9 +364,9 @@ mod tests {
 
     #[test]
     fn a_malformed_destination_is_not_a_reference() {
-        let content = "[a](knapper://Personal/upper) [b](knapper://personal/a//b) \
-                       [c](knapper://personal/../etc) [d](knapper://personal/a%2Fb) \
-                       [e](knapper://personal/ok)";
+        let content = "[a](pkm://Personal/upper) [b](pkm://personal/a//b) \
+                       [c](pkm://personal/../etc) [d](pkm://personal/a%2Fb) \
+                       [e](pkm://personal/ok)";
         let refs = parse_refs("Note.md", content);
         assert_eq!(refs.len(), 1);
         assert_eq!(refs[0].locator, "ok");
@@ -380,20 +374,17 @@ mod tests {
 
     #[test]
     fn a_link_title_does_not_end_up_in_the_uri() {
-        let refs = parse_refs("Note.md", "[a](knapper://personal/x \"a title\")");
+        let refs = parse_refs("Note.md", "[a](pkm://personal/x \"a title\")");
         assert_eq!(refs.len(), 1);
-        assert_eq!(refs[0].uri, "knapper://personal/x");
+        assert_eq!(refs[0].uri, "pkm://personal/x");
     }
 
     #[test]
     fn several_references_share_a_line() {
-        let refs = parse_refs(
-            "Note.md",
-            "[a](knapper://personal/a) and [b](knapper://work/b)",
-        );
+        let refs = parse_refs("Note.md", "[a](pkm://personal/a) and [b](pkm://work/b)");
         assert_eq!(refs.len(), 2);
         assert_eq!(refs[0].column, 5);
-        assert_eq!(refs[1].column, 35);
+        assert_eq!(refs[1].column, 31);
         assert_eq!(refs[1].provider, "work");
     }
 }

@@ -1,4 +1,4 @@
-//! What `knapper init` leaves behind, and whether `knapper daily` works
+//! What `pkm init` leaves behind, and whether `pkm daily` works
 //! immediately afterwards.
 //!
 //! These two commands are coupled by the generated config: it names
@@ -13,15 +13,15 @@ use std::process::{Command, Output};
 
 use tempfile::TempDir;
 
-fn knapper(dir: &Path, args: &[&str]) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_knapper"))
+fn pkm(dir: &Path, args: &[&str]) -> Output {
+    Command::new(env!("CARGO_BIN_EXE_pkm"))
         .args(args)
         .current_dir(dir)
         // The config search walks up and then falls back to $HOME, so both
         // are pinned inside the temporary vault.
         .env("HOME", dir)
         .output()
-        .expect("knapper runs")
+        .expect("pkm runs")
 }
 
 fn stdout(output: &Output) -> String {
@@ -44,16 +44,16 @@ const TEMPLATE: &str = "Templates/daily.md";
 fn init_then_daily_works_in_a_directory_that_had_nothing_in_it() {
     let dir = empty_vault();
 
-    let init = knapper(dir.path(), &["init"]);
+    let init = pkm(dir.path(), &["init"]);
     assert!(init.status.success(), "{}", stderr(&init));
     assert!(
         dir.path().join(TEMPLATE).exists(),
         "init configured {TEMPLATE} without creating it"
     );
     // Both files are reported, because both appeared.
-    assert!(stdout(&init).contains("knapper.yaml"), "{}", stdout(&init));
+    assert!(stdout(&init).contains("pkm.yaml"), "{}", stdout(&init));
     assert!(stdout(&init).contains(TEMPLATE), "{}", stdout(&init));
-    let config_text = std::fs::read_to_string(dir.path().join("knapper.yaml")).unwrap();
+    let config_text = std::fs::read_to_string(dir.path().join("pkm.yaml")).unwrap();
     assert!(
         !config_text.starts_with("---"),
         "init still wrote Markdown frontmatter"
@@ -64,7 +64,7 @@ fn init_then_daily_works_in_a_directory_that_had_nothing_in_it() {
     );
     serde_yaml::from_str::<serde_yaml::Value>(&config_text).expect("init writes valid YAML");
 
-    let daily = knapper(dir.path(), &["daily", "--format", "json"]);
+    let daily = pkm(dir.path(), &["daily", "--format", "json"]);
     assert!(daily.status.success(), "{}", stderr(&daily));
 
     let parsed: serde_json::Value = serde_json::from_str(&stdout(&daily)).unwrap();
@@ -85,14 +85,14 @@ fn init_then_daily_works_in_a_directory_that_had_nothing_in_it() {
 #[test]
 fn the_generated_template_is_not_one_of_the_users_notes() {
     let dir = empty_vault();
-    assert!(knapper(dir.path(), &["init"]).status.success());
+    assert!(pkm(dir.path(), &["init"]).status.success());
 
-    let orphans = knapper(dir.path(), &["orphans", "--format", "json"]);
+    let orphans = pkm(dir.path(), &["orphans", "--format", "json"]);
     assert!(orphans.status.success(), "{}", stderr(&orphans));
     assert_eq!(stdout(&orphans).trim(), "[]");
 }
 
-/// A template is the user's writing. `--force` replaces knapper's config; it
+/// A template is the user's writing. `--force` replaces pkm's config; it
 /// has never had anything to say about a vault's own files.
 #[test]
 fn an_existing_template_is_never_overwritten() {
@@ -102,7 +102,7 @@ fn an_existing_template_is_never_overwritten() {
     std::fs::write(dir.path().join(TEMPLATE), mine).unwrap();
 
     for args in [vec!["init"], vec!["init", "--force"]] {
-        let out = knapper(dir.path(), &args);
+        let out = pkm(dir.path(), &args);
         assert!(out.status.success(), "{args:?}: {}", stderr(&out));
         assert_eq!(
             std::fs::read_to_string(dir.path().join(TEMPLATE)).unwrap(),
@@ -118,7 +118,7 @@ fn an_existing_template_is_never_overwritten() {
     }
 
     // And the template that was there is the one `daily` expands.
-    let daily = knapper(dir.path(), &["daily", "--format", "json"]);
+    let daily = pkm(dir.path(), &["daily", "--format", "json"]);
     assert!(daily.status.success(), "{}", stderr(&daily));
     let parsed: serde_json::Value = serde_json::from_str(&stdout(&daily)).unwrap();
     let body = std::fs::read_to_string(dir.path().join(parsed["path"].as_str().unwrap())).unwrap();
@@ -131,9 +131,9 @@ fn an_existing_template_is_never_overwritten() {
 #[test]
 fn a_refused_init_creates_no_template_either() {
     let dir = empty_vault();
-    std::fs::write(dir.path().join("knapper.yaml"), "# existing config\n").unwrap();
+    std::fs::write(dir.path().join("pkm.yaml"), "# existing config\n").unwrap();
 
-    let out = knapper(dir.path(), &["init"]);
+    let out = pkm(dir.path(), &["init"]);
     assert!(!out.status.success());
     assert!(stderr(&out).contains("already exists"), "{}", stderr(&out));
 
@@ -142,7 +142,7 @@ fn a_refused_init_creates_no_template_either() {
         "a refused init created a template folder"
     );
     assert_eq!(
-        std::fs::read_to_string(dir.path().join("knapper.yaml")).unwrap(),
+        std::fs::read_to_string(dir.path().join("pkm.yaml")).unwrap(),
         "# existing config\n",
         "a refused init rewrote the config"
     );
@@ -151,13 +151,13 @@ fn a_refused_init_creates_no_template_either() {
 #[test]
 fn config_check_validates_without_scanning_the_vault() {
     let dir = empty_vault();
-    assert!(knapper(dir.path(), &["init"]).status.success());
+    assert!(pkm(dir.path(), &["init"]).status.success());
 
-    let out = knapper(dir.path(), &["config", "check", "--format", "json"]);
+    let out = pkm(dir.path(), &["config", "check", "--format", "json"]);
     assert!(out.status.success(), "{}", stderr(&out));
     let result: serde_json::Value = serde_json::from_str(&stdout(&out)).unwrap();
     assert_eq!(result["valid"], true);
-    let config_path = std::fs::canonicalize(dir.path().join("knapper.yaml")).unwrap();
+    let config_path = std::fs::canonicalize(dir.path().join("pkm.yaml")).unwrap();
     assert_eq!(
         result["path"].as_str().unwrap(),
         config_path.to_string_lossy()
@@ -167,10 +167,10 @@ fn config_check_validates_without_scanning_the_vault() {
 #[test]
 fn config_schema_is_available_without_a_vault_config() {
     let dir = empty_vault();
-    let out = knapper(dir.path(), &["config", "schema"]);
+    let out = pkm(dir.path(), &["config", "schema"]);
     assert!(out.status.success(), "{}", stderr(&out));
     let schema: serde_json::Value = serde_json::from_str(&stdout(&out)).unwrap();
-    assert_eq!(schema["title"], "Knapper configuration");
+    assert_eq!(schema["title"], "pkm configuration");
     assert!(schema["properties"]["lint"].is_object());
 }
 
@@ -178,18 +178,14 @@ fn config_schema_is_available_without_a_vault_config() {
 fn the_legacy_markdown_config_is_not_discovered() {
     let dir = empty_vault();
     std::fs::write(
-        dir.path().join("knapper.config.md"),
+        dir.path().join("pkm.config.md"),
         "---\nvault_path: .\n---\n",
     )
     .unwrap();
 
-    let out = knapper(dir.path(), &["links", "Note.md"]);
+    let out = pkm(dir.path(), &["links", "Note.md"]);
     assert!(!out.status.success());
-    assert!(
-        stderr(&out).contains("Run 'knapper init'"),
-        "{}",
-        stderr(&out)
-    );
+    assert!(stderr(&out).contains("Run 'pkm init'"), "{}", stderr(&out));
 }
 
 /// If the template cannot be written, no config is left pointing at it: a
@@ -206,7 +202,7 @@ fn a_template_that_cannot_be_written_leaves_no_config_behind() {
     perms.set_mode(0o500);
     std::fs::set_permissions(dir.path(), perms).unwrap();
 
-    let out = knapper(dir.path(), &["init"]);
+    let out = pkm(dir.path(), &["init"]);
     let readable = std::fs::metadata(dir.path()).unwrap().permissions().mode();
 
     // Put the directory back before asserting, so a failure here cannot
@@ -222,7 +218,7 @@ fn a_template_that_cannot_be_written_leaves_no_config_behind() {
         stdout(&out)
     );
     assert!(
-        !dir.path().join("knapper.yaml").exists(),
+        !dir.path().join("pkm.yaml").exists(),
         "a config was left pointing at a template that could not be written"
     );
     assert!(!dir.path().join("Templates").exists());

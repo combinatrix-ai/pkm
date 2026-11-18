@@ -9,11 +9,11 @@ Available since v0.1.0.
 Use a template file directly, with both paths relative to the vault:
 
 ```bash
-knapper new "Example project" --template Templates/Project.md --folder Projects
+pkm new "Example project" --template Templates/Project.md --folder Projects
 ```
 
 `--folder` is required for a template file. To reuse a name and default folder,
-register them in `knapper.yaml`:
+register them in `pkm.yaml`:
 
 ```yaml
 templates:
@@ -45,9 +45,9 @@ The template controls the note structure; `Project` is a configured name with
 no built-in rules. Customize its frontmatter and headings for your vault.
 
 ```bash
-knapper new "Example project" --template Project
-knapper lint "Projects/Example project.md"
-knapper new "Another project" --template Project --path-only
+pkm new "Example project" --template Project
+pkm lint "Projects/Example project.md"
+pkm new "Another project" --template Project --path-only
 ```
 
 A registered name takes precedence over a file with the same name. `--folder`
@@ -108,9 +108,9 @@ Unsupported expressions remain in the generated note unchanged.
 note if missing. JSON output reports `path`, `date`, and `created`.
 
 ```bash
-knapper daily              # today (created from template if missing)
-knapper daily yesterday
-knapper daily 2026-01-15
+pkm daily              # today (created from template if missing)
+pkm daily yesterday
+pkm daily 2026-01-15
 ```
 
 Templates expand on creation — both Obsidian Core Templates (`{{date}}`,
@@ -124,7 +124,7 @@ Templates expand on creation — both Obsidian Core Templates (`{{date}}`,
 << [[Daily/2026-07-27]] | [[Daily/2026-07-29]] >>
 ```
 
-If `daily_notes.template` names a file knapper cannot read, `knapper daily`
+If `daily_notes.template` names a file pkm cannot read, `pkm daily`
 fails and writes nothing — no note, not even the folder that would have held
 it. A vault that names no template at all gets a plain `# YYYY-MM-DD`, because
 that is all it asked for.

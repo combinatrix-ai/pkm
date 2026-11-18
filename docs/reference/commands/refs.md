@@ -1,9 +1,9 @@
-# knapper refs
+# pkm refs
 
 ```text
-List external references (knapper://provider/locator) in the vault
+List external references (pkm://provider/locator) in the vault
 
-Usage: knapper refs [OPTIONS] [FILE]
+Usage: pkm refs [OPTIONS] [FILE]
 
 Arguments:
   [FILE]

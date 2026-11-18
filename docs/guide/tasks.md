@@ -4,7 +4,7 @@ Use explicit `YYYY-MM-DD` values for task date filters and creation flags.
 `tasks new` uses `--file` when supplied, otherwise `tasks.default_file`.
 Use `--file` to scope status changes and `--partial` only when substring
 matching is intended. The full task filter and subcommand options appear
-in the [`knapper tasks` reference](../reference/commands/tasks.md).
+in the [`pkm tasks` reference](../reference/commands/tasks.md).
 
 Tasks are plain markdown checkboxes. The emoji date convention popularised by
 the [Obsidian Tasks](https://publish.obsidian.md/tasks/) plugin (`📅` due,
@@ -18,7 +18,7 @@ including `^review-7c4`. Status changes can select an existing ID with
 `--file Tasks.md --block-id review-7c4` (without `^` or task text). For this
 selector, `--file` must be the complete vault-relative path, including `.md`.
 The ID must match exactly in that file; missing or duplicate IDs abort the change.
-`--block-id` cannot be combined with task text or `--partial`. knapper does
+`--block-id` cannot be combined with task text or `--partial`. pkm does
 not assign IDs to existing tasks. Status
 changes keep the ID at the end of the original task. Completing a recurring
 task with an ID gives its next occurrence a distinct ID in the same file,
@@ -26,19 +26,19 @@ using a `-r2`, `-r3`, ... suffix and skipping IDs already in that file.
 `--dry-run` shows the same ID it would write if the file does not change.
 
 ```bash
-knapper tasks --overdue                     # past due
-knapper tasks --available                   # no start date, or start date <= today
-knapper tasks --due-from 2026-08-01 --due-to 2026-08-31
-knapper tasks --start-on 2026-08-01
-knapper tasks --scheduled-from 2026-08-01 --scheduled-to 2026-08-07
-knapper tasks --exclude Archive/ --tag work
-knapper tasks new "write the README" --start 2026-07-28 --due 2026-08-01
-knapper tasks done "write the README"       # full task body, including any markers
-knapper tasks done --file Tasks.md "first" "second" --dry-run
-knapper tasks done --file Tasks.md "first" "second"
-knapper tasks done --file Tasks.md --block-id review-7c4 --dry-run
-knapper tasks done "pay rent" --no-recur    # complete without the next occurrence
-knapper tasks --prose-only                  # skip checkboxes in fenced examples
+pkm tasks --overdue                     # past due
+pkm tasks --available                   # no start date, or start date <= today
+pkm tasks --due-from 2026-08-01 --due-to 2026-08-31
+pkm tasks --start-on 2026-08-01
+pkm tasks --scheduled-from 2026-08-01 --scheduled-to 2026-08-07
+pkm tasks --exclude Archive/ --tag work
+pkm tasks new "write the README" --start 2026-07-28 --due 2026-08-01
+pkm tasks done "write the README"       # full task body, including any markers
+pkm tasks done --file Tasks.md "first" "second" --dry-run
+pkm tasks done --file Tasks.md "first" "second"
+pkm tasks done --file Tasks.md --block-id review-7c4 --dry-run
+pkm tasks done "pay rent" --no-recur    # complete without the next occurrence
+pkm tasks --prose-only                  # skip checkboxes in fenced examples
 ```
 
 `tasks done` and `tasks cancel` accept multiple task texts with an exact
@@ -53,7 +53,7 @@ texts with file and line. One-text calls keep their optional `--file` scope.
 selector. The ID contains ASCII letters, digits, and hyphens.
 
 Every checkbox counts by default, including one written inside a code fence or
-a `%%comment%%` — the one place knapper does not mask non-prose, and
+a `%%comment%%` — the one place pkm does not mask non-prose, and
 deliberately: masking can only ever *hide* a task, and a visible example costs
 less than a missing entry on a list you act on. `--prose-only` is the opt-out
 for a vault that documents its own conventions.
@@ -67,11 +67,11 @@ Richer rules such as `every week on Monday` are left alone with a warning;
 `--no-recur` skips the next occurrence.
 
 `--available` is also opt-in: it hides only tasks whose `🛫` start date is in
-the future. Tasks without a start date remain visible, and plain `knapper
+the future. Tasks without a start date remain visible, and plain `pkm
 tasks` keeps its established whole-list behaviour. A scheduled date says when
 you intend to work; it does not make a task unavailable.
 
 Statuses are configurable: `open` `[ ]`, `wip` `[/]`, `done` `[x]`, and
-`cancel` `[-]` are built in, and `knapper.yaml` can override their
-markers or add custom statuses, which `knapper tasks set STATUS TEXT` and
+`cancel` `[-]` are built in, and `pkm.yaml` can override their
+markers or add custom statuses, which `pkm tasks set STATUS TEXT` and
 `--status` filters then understand.

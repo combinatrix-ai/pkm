@@ -1,9 +1,9 @@
-# knapper rename
+# pkm rename
 
 ```text
 Rename a note and update all links to it
 
-Usage: knapper rename [OPTIONS] <OLD> <NEW>
+Usage: pkm rename [OPTIONS] <OLD> <NEW>
 
 Arguments:
   <OLD>

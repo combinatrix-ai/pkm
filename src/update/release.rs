@@ -14,16 +14,16 @@ use serde_json::{json, Value};
 use super::version_is_newer;
 use uuid::Uuid;
 
-const RELEASE_DOWNLOAD_URL: &str = "https://github.com/combinatrix-ai/knapper/releases/download";
+const RELEASE_DOWNLOAD_URL: &str = "https://github.com/combinatrix-ai/pkm/releases/download";
 // Update code remains inside the already-trusted running binary. Fetching a
 // mutable installer after attestation would let that code ignore the verified
 // archive digest and bypass the trust decision made above.
 const INSTALLER_SCRIPT: &str = include_str!("../../install.sh");
 
-const KNAPPER_REPOSITORY: &str = "combinatrix-ai/knapper";
-const KNAPPER_SOURCE_OWNER_ID: u64 = 139_831_903;
-const KNAPPER_SOURCE_REPOSITORY_ID: u64 = 1_314_722_218;
-const KNAPPER_RELEASE_WORKFLOW_PATH: &str = ".github/workflows/release.yml";
+const PKM_REPOSITORY: &str = "combinatrix-ai/pkm";
+const PKM_SOURCE_OWNER_ID: u64 = 139_831_903;
+const PKM_SOURCE_REPOSITORY_ID: u64 = 1_314_722_218;
+const PKM_RELEASE_WORKFLOW_PATH: &str = ".github/workflows/release.yml";
 const PUBLIC_GOOD_CHECKPOINT_ORIGIN: &str = "rekor.sigstore.dev - 1193050959916656506";
 /// Verify and install `latest` over this release binary.
 pub(super) fn run(
@@ -35,11 +35,11 @@ pub(super) fn run(
 ) -> Result<()> {
     let current = env!("CARGO_PKG_VERSION");
     if !force && !version_is_newer(latest, current) {
-        println!("knapper {current} is up to date.");
+        println!("pkm {current} is up to date.");
         return Ok(());
     }
     if check_only {
-        println!("knapper {current} -> {latest} is available. Run `knapper self-update`.");
+        println!("pkm {current} -> {latest} is available. Run `pkm self-update`.");
         return Ok(());
     }
     if !yes {
@@ -47,7 +47,7 @@ pub(super) fn run(
         if !std::io::stdin().is_terminal() {
             bail!("use --yes to confirm a non-interactive update");
         }
-        eprint!("Install knapper {latest}? [y/N] ");
+        eprint!("Install pkm {latest}? [y/N] ");
         std::io::stderr().flush()?;
         let mut answer = String::new();
         std::io::stdin().read_line(&mut answer)?;
@@ -57,7 +57,7 @@ pub(super) fn run(
     }
     let result = install_version(latest, no_skill)?;
     println!(
-        "Updated to knapper {latest} (release provenance verified).\n{}",
+        "Updated to pkm {latest} (release provenance verified).\n{}",
         result["binary"].as_str().unwrap_or_default()
     );
     Ok(())
@@ -77,12 +77,12 @@ fn install_version(latest: &str, no_skill: bool) -> Result<Value> {
     });
     let expected_sha256 = verified.sha256;
 
-    let executable = std::env::current_exe().context("failed to locate knapper executable")?;
+    let executable = std::env::current_exe().context("failed to locate pkm executable")?;
     let bin_dir = executable
         .parent()
-        .context("knapper executable has no parent directory")?;
+        .context("pkm executable has no parent directory")?;
     let installer =
-        std::env::temp_dir().join(format!("knapper-installer-{}.sh", Uuid::new_v4().simple()));
+        std::env::temp_dir().join(format!("pkm-installer-{}.sh", Uuid::new_v4().simple()));
     write_embedded_installer(&installer)?;
     let mut command = Command::new("sh");
     command
@@ -91,13 +91,13 @@ fn install_version(latest: &str, no_skill: bool) -> Result<Value> {
     if no_skill {
         command.arg("--no-skill");
     }
-    command.env_remove("KNAPPER_INSTALLER_NO_MAIN");
+    command.env_remove("PKM_INSTALLER_NO_MAIN");
     let result = command.output();
     let _ = std::fs::remove_file(&installer);
-    let result = result.context("failed to run knapper installer")?;
+    let result = result.context("failed to run pkm installer")?;
     if !result.status.success() {
         bail!(
-            "knapper installer failed: {}",
+            "pkm installer failed: {}",
             String::from_utf8_lossy(&result.stderr).trim()
         );
     }
@@ -134,12 +134,12 @@ fn write_embedded_installer(path: &Path) -> Result<()> {
             .write(true)
             .create_new(true)
             .open(path)
-            .context("failed to create temporary knapper installer")?;
+            .context("failed to create temporary pkm installer")?;
         created = true;
         file.write_all(INSTALLER_SCRIPT.as_bytes())
-            .context("failed to write embedded knapper installer")?;
+            .context("failed to write embedded pkm installer")?;
         file.sync_all()
-            .context("failed to sync embedded knapper installer")?;
+            .context("failed to sync embedded pkm installer")?;
         Ok(())
     })();
     if created && outcome.is_err() {
@@ -159,16 +159,16 @@ struct VerifiedRelease {
 }
 
 /// Downloads `tag`'s checksum manifest and its Sigstore bundle, verifies the
-/// bundle against the embedded public-good trust root and knapper's GitHub
+/// bundle against the embedded public-good trust root and pkm's GitHub
 /// identity policy, and extracts this platform's expected release-archive
 /// sha256 from the now-authenticated manifest.
 fn verify_release_attestation(tag: &str, target: &str) -> Result<VerifiedRelease> {
     let temp_dir =
-        std::env::temp_dir().join(format!("knapper-attestation-{}", Uuid::new_v4().simple()));
+        std::env::temp_dir().join(format!("pkm-attestation-{}", Uuid::new_v4().simple()));
     std::fs::create_dir_all(&temp_dir).context("failed to create attestation temp directory")?;
 
     let outcome = (|| -> Result<VerifiedRelease> {
-        let manifest_name = format!("knapper-{tag}-checksums.txt");
+        let manifest_name = format!("pkm-{tag}-checksums.txt");
         let bundle_name = format!("{manifest_name}.sigstore.json");
         let manifest_path = temp_dir.join(&manifest_name);
         let bundle_path = temp_dir.join(&bundle_name);
@@ -196,7 +196,7 @@ fn verify_release_attestation(tag: &str, target: &str) -> Result<VerifiedRelease
             .verify_bytes(&manifest_bytes, &bundle)
             .context("checksum manifest attestation did not verify")?;
 
-        let asset_name = format!("knapper-{tag}-{target}.tar.gz");
+        let asset_name = format!("pkm-{tag}-{target}.tar.gz");
         let manifest_text =
             String::from_utf8(manifest_bytes).context("checksum manifest was not valid UTF-8")?;
         let sha256 = manifest_digest_for(&manifest_text, &asset_name)
@@ -237,16 +237,16 @@ fn public_good_checkpoint_origin_policy(
 }
 
 /// The GitHub identity policy release attestations must satisfy: the
-/// artifact must come from tag `tag` on `combinatrix-ai/knapper` (pinned by
+/// artifact must come from tag `tag` on `combinatrix-ai/pkm` (pinned by
 /// numeric owner/repository id), signed by that same repository's release
 /// workflow at that tag.
 fn release_attestation_policy(tag: &str) -> Result<GithubPolicy> {
-    let repository = RepositoryIdentity::parse(KNAPPER_REPOSITORY)
-        .context("invalid knapper repository identity")?;
+    let repository =
+        RepositoryIdentity::parse(PKM_REPOSITORY).context("invalid pkm repository identity")?;
     let source_repository = repository
         .clone()
-        .with_owner_id(KNAPPER_SOURCE_OWNER_ID)
-        .with_repository_id(KNAPPER_SOURCE_REPOSITORY_ID);
+        .with_owner_id(PKM_SOURCE_OWNER_ID)
+        .with_repository_id(PKM_SOURCE_REPOSITORY_ID);
     let tag_ref = format!("refs/tags/{tag}");
     GithubPolicy::builder()
         .source(SourcePolicy {
@@ -256,7 +256,7 @@ fn release_attestation_policy(tag: &str) -> Result<GithubPolicy> {
         })
         .signer(SignerPolicy {
             repository,
-            path: WorkflowPath::new(KNAPPER_RELEASE_WORKFLOW_PATH)
+            path: WorkflowPath::new(PKM_RELEASE_WORKFLOW_PATH)
                 .context("invalid release workflow path")?,
             revision: WorkflowRevisionPolicy::Ref(tag_ref),
         })
@@ -377,7 +377,7 @@ mod tests {
     {
         let directory = tempdir()?;
         let installer = directory.path().join("install.sh");
-        let archive = directory.path().join("knapper.tar.gz");
+        let archive = directory.path().join("pkm.tar.gz");
         write_embedded_installer(&installer)?;
         std::fs::write(&archive, b"not the attested archive")?;
 
@@ -387,7 +387,7 @@ mod tests {
             .arg(&installer)
             .arg(&archive)
             .arg("0".repeat(64))
-            .env("KNAPPER_INSTALLER_NO_MAIN", "1")
+            .env("PKM_INSTALLER_NO_MAIN", "1")
             .output()?;
 
         assert!(!output.status.success());
@@ -402,14 +402,14 @@ mod tests {
             "v0.3.4",
             "x86_64-unknown-linux-musl",
             &digest,
-            Path::new("/opt/knapper bin"),
+            Path::new("/opt/pkm bin"),
         );
 
         assert_eq!(
             args,
             vec![
                 OsString::from("--bin-dir"),
-                OsString::from("/opt/knapper bin"),
+                OsString::from("/opt/pkm bin"),
                 OsString::from("--skill"),
                 OsString::from("auto"),
                 OsString::from("--version"),
@@ -430,7 +430,7 @@ mod tests {
     ];
 
     /// Builds a `sha256sum`-format manifest, as the release workflow's
-    /// `knapper-<tag>-checksums.txt` would read, with one line per published
+    /// `pkm-<tag>-checksums.txt` would read, with one line per published
     /// target and a distinct (but validly-shaped) digest per line.
     fn sample_manifest(tag: &str) -> String {
         use std::fmt::Write as _;
@@ -440,7 +440,7 @@ mod tests {
             .fold(String::new(), |mut manifest, (target, digit)| {
                 let _ = writeln!(
                     manifest,
-                    "{}  knapper-{tag}-{target}.tar.gz",
+                    "{}  pkm-{tag}-{target}.tar.gz",
                     digit.to_string().repeat(64)
                 );
                 manifest
@@ -452,7 +452,7 @@ mod tests {
         let tag = "v0.4.0";
         let manifest = sample_manifest(tag);
         for (target, digit) in SAMPLE_MANIFEST_TARGETS {
-            let asset_name = format!("knapper-{tag}-{target}.tar.gz");
+            let asset_name = format!("pkm-{tag}-{target}.tar.gz");
             let expected = digit.to_string().repeat(64);
             assert_eq!(manifest_digest_for(&manifest, &asset_name), Some(expected));
         }
@@ -462,14 +462,14 @@ mod tests {
     fn manifest_digest_for_returns_none_for_a_missing_asset() {
         let manifest = sample_manifest("v0.4.0");
         assert_eq!(
-            manifest_digest_for(&manifest, "knapper-v0.4.0-riscv64-unknown-linux-gnu.tar.gz"),
+            manifest_digest_for(&manifest, "pkm-v0.4.0-riscv64-unknown-linux-gnu.tar.gz"),
             None
         );
     }
 
     #[test]
     fn manifest_digest_for_rejects_malformed_lines() {
-        let asset_name = "knapper-v0.4.0-aarch64-apple-darwin.tar.gz";
+        let asset_name = "pkm-v0.4.0-aarch64-apple-darwin.tar.gz";
 
         let missing_filename = format!("{}\n", "0".repeat(64));
         assert_eq!(manifest_digest_for(&missing_filename, asset_name), None);
@@ -490,7 +490,7 @@ mod tests {
         let policy = release_attestation_policy("v1.2.3")?;
 
         assert_eq!(policy.source.repository.owner(), "combinatrix-ai");
-        assert_eq!(policy.source.repository.name(), "knapper");
+        assert_eq!(policy.source.repository.name(), "pkm");
         assert_eq!(policy.source.repository.owner_id(), Some(139_831_903));
         assert_eq!(
             policy.source.repository.repository_id(),
@@ -503,7 +503,7 @@ mod tests {
         assert!(policy.source.commit.is_none());
 
         assert_eq!(policy.signer.repository.owner(), "combinatrix-ai");
-        assert_eq!(policy.signer.repository.name(), "knapper");
+        assert_eq!(policy.signer.repository.name(), "pkm");
         assert_eq!(policy.signer.repository.owner_id(), None);
         assert_eq!(policy.signer.repository.repository_id(), None);
         assert_eq!(policy.signer.path.as_str(), ".github/workflows/release.yml");

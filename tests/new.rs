@@ -3,11 +3,11 @@ use std::process::{Command, Output};
 use tempfile::TempDir;
 
 fn run(root: &Path, args: &[&str]) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_knapper"))
+    Command::new(env!("CARGO_BIN_EXE_pkm"))
         .args(args)
         .current_dir(root)
         .env("HOME", root)
-        .env("KNAPPER_NO_UPDATE_CHECK", "1")
+        .env("PKM_NO_UPDATE_CHECK", "1")
         .output()
         .unwrap()
 }
@@ -15,7 +15,7 @@ fn run(root: &Path, args: &[&str]) -> Output {
 fn vault(folder: &str, engine: &str) -> TempDir {
     let dir = tempfile::tempdir().unwrap();
     std::fs::write(
-        dir.path().join("knapper.yaml"),
+        dir.path().join("pkm.yaml"),
         format!(
             r#"
 vault_path: .
@@ -189,7 +189,7 @@ fn config_check_rejects_incomplete_or_misspelled_templates() {
     ] {
         let dir = tempfile::tempdir().unwrap();
         std::fs::write(
-            dir.path().join("knapper.yaml"),
+            dir.path().join("pkm.yaml"),
             format!("templates:\n  Project:\n    {template}\n"),
         )
         .unwrap();
@@ -201,7 +201,7 @@ fn config_check_rejects_incomplete_or_misspelled_templates() {
 fn direct_template_needs_no_registration_and_requires_destination() {
     let dir = vault("Projects", "core");
     std::fs::write(
-        dir.path().join("knapper.yaml"),
+        dir.path().join("pkm.yaml"),
         "vault_path: .\ntemplate_engine: core\n",
     )
     .unwrap();

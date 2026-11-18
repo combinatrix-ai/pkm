@@ -1,14 +1,14 @@
 # Lint rules
 
-`knapper lint` checks the vault for broken links, orphans, duplicate names, empty notes, frontmatter and required headings. Rules are configured in `knapper.yaml` and can be scoped by path or by metadata.
+`pkm lint` checks the vault for broken links, orphans, duplicate names, empty notes, frontmatter and required headings. Rules are configured in `pkm.yaml` and can be scoped by path or by metadata.
 
 ## Selecting files for lint
 
 ```bash
-knapper lint Notes/One.md "Notes/Two words.md"
-knapper lint --diff                 # staged + unstaged + untracked notes
-knapper lint --diff main            # working-tree changes against this ref + untracked notes
-knapper lint Notes/One.md --check headings --format json
+pkm lint Notes/One.md "Notes/Two words.md"
+pkm lint --diff                 # staged + unstaged + untracked notes
+pkm lint --diff main            # working-tree changes against this ref + untracked notes
+pkm lint Notes/One.md --check headings --format json
 ```
 
 File arguments are vault-relative or absolute and may omit the note extension.
@@ -33,11 +33,11 @@ Heading links accept visible titles and common Markdown slugs (`#quick-start`
 for `Quick Start`), including numbered duplicate slugs. Required-heading policies
 still compare heading titles, not slugs.
 
-`lint.rules` controls the six checks reported by `knapper lint`:
+`lint.rules` controls the six checks reported by `pkm lint`:
 `broken-links`, `orphans`, `duplicates`, `empty`, `frontmatter` and `headings`. Every rule
 is enabled with no configuration, preserving the default all-checks report.
-Set `enabled: false` to omit a rule from a plain `knapper lint`; an explicit
-`knapper lint --check RULE` always runs that rule. `--check` may be repeated.
+Set `enabled: false` to omit a rule from a plain `pkm lint`; an explicit
+`pkm lint --check RULE` always runs that rule. `--check` may be repeated.
 
 `include` and `exclude` are optional vault-relative path-prefix lists. A file
 must be under at least one `include` prefix (an absent or empty list means all
@@ -92,7 +92,7 @@ path normalization, such as `Guide#Install` or `#^build-step`; the anchor's
 written spelling is retained.
 
 Every setting is checked when it is read. An unknown key, a key of the wrong
-type, or a `template_engine` or `flavor` knapper does not implement is an
+type, or a `template_engine` or `flavor` pkm does not implement is an
 error naming the key, rather than a default quietly taking over — a config
 typo otherwise changes what every command does and says nothing. This strictness
 is the config's alone: an ordinary note with a broken YAML header is still read
@@ -102,9 +102,9 @@ No folder name is special. `Templates/` is in the generated `exclude` because
 the daily-note template lives there and an unexpanded template is not one of
 your notes; put templates elsewhere and the `exclude` entry moves with them.
 `daily_notes.template` is read by path, so excluding its folder does not stop
-`knapper daily`. If that template is configured and cannot be read, `knapper
+`pkm daily`. If that template is configured and cannot be read, `pkm
 daily` fails and writes nothing at all, rather than inventing a note body —
-which is why `knapper init` creates the template it configures rather than
+which is why `pkm init` creates the template it configures rather than
 leaving a fresh vault one command short of working.
 
 ## Links that are meant to stay unresolved
@@ -121,8 +121,8 @@ ignore_links:
   - Archive/Old Index
 ```
 
-They then go unreported by `knapper lint`, `knapper broken-links`,
-`knapper repair-links` and `query --where 'broken>0'` alike — all four resolve
+They then go unreported by `pkm lint`, `pkm broken-links`,
+`pkm repair-links` and `query --where 'broken>0'` alike — all four resolve
 targets the same way and read the same ignore list, so a link is ignored by
 all of them or by none.
 
@@ -131,8 +131,8 @@ would hide a real mistake:
 
 - An entry matches a **whole link target**, never a substring. `Daily Tasks`
   says nothing about `[[Daily Tasks Archive]]` or `[[Sub/Daily Tasks]]`.
-- Comparison is **case-insensitive**, matching how knapper resolves links.
-- The target compared is the one knapper resolves, so `[[Daily Tasks]]`,
+- Comparison is **case-insensitive**, matching how pkm resolves links.
+- The target compared is the one pkm resolves, so `[[Daily Tasks]]`,
   `[[Daily Tasks#2026]]`, `[[Daily Tasks|things to do]]` and
   `[Daily Tasks](Daily%20Tasks.md)` are all the same entry.
 - An entry may be written the way the link is written in a note:
@@ -155,7 +155,7 @@ lint:
         required: [Bio, Relationship, Interactions, Sources]
 ```
 
-Run `knapper lint --check headings --format json`. Each missing title produces
+Run `pkm lint --check headings --format json`. Each missing title produces
 an issue with `type: headings`, `file`, `heading`, `detail`, and `severity`;
 `summary.missing_headings` counts missing titles. Text output lists the file and
 missing title. Like other lint checks, the command exits 1 when any findings
@@ -176,9 +176,9 @@ following the other lint checks. Top-level `exclude` always applies.
 
 ## Broken-link inspection scope
 
-`knapper broken-links` respects the broken-links policies used by ordinary
-`knapper lint`, including enablement, include/exclude, ordered path and metadata
+`pkm broken-links` respects the broken-links policies used by ordinary
+`pkm lint`, including enablement, include/exclude, ordered path and metadata
 rules, and target patterns. Its output retains detailed occurrence locations.
-Use `knapper broken-links --all` to bypass those lint policies for investigation;
+Use `pkm broken-links --all` to bypass those lint policies for investigation;
 top-level `exclude` and `ignore_links` still apply. `repair-links` retains its
 unfiltered diagnostic scope.

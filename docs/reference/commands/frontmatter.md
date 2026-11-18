@@ -1,9 +1,9 @@
-# knapper frontmatter
+# pkm frontmatter
 
 ```text
 Read and write frontmatter
 
-Usage: knapper frontmatter [OPTIONS] <COMMAND>
+Usage: pkm frontmatter [OPTIONS] <COMMAND>
 
 Commands:
   get     Get frontmatter value(s)
@@ -17,12 +17,12 @@ Options:
   -h, --help             Print help
 ```
 
-## knapper frontmatter get
+## pkm frontmatter get
 
 ```text
 Get frontmatter value(s)
 
-Usage: knapper frontmatter get [OPTIONS] <FILE> [KEY]
+Usage: pkm frontmatter get [OPTIONS] <FILE> [KEY]
 
 Arguments:
   <FILE>
@@ -35,12 +35,12 @@ Options:
   -h, --help             Print help
 ```
 
-## knapper frontmatter set
+## pkm frontmatter set
 
 ```text
 Set frontmatter value
 
-Usage: knapper frontmatter set [OPTIONS] <FILE> <KEY> <VALUE>
+Usage: pkm frontmatter set [OPTIONS] <FILE> <KEY> <VALUE>
 
 Arguments:
   <FILE>
@@ -53,12 +53,12 @@ Options:
   -h, --help             Print help
 ```
 
-## knapper frontmatter delete
+## pkm frontmatter delete
 
 ```text
 Delete frontmatter key
 
-Usage: knapper frontmatter delete [OPTIONS] <FILE> <KEY>
+Usage: pkm frontmatter delete [OPTIONS] <FILE> <KEY>
 
 Arguments:
   <FILE>

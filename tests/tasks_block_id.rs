@@ -2,11 +2,11 @@ use std::path::Path;
 use std::process::Command;
 
 fn tasks_json(root: &Path) -> serde_json::Value {
-    let output = Command::new(env!("CARGO_BIN_EXE_knapper"))
+    let output = Command::new(env!("CARGO_BIN_EXE_pkm"))
         .args(["tasks", "--format", "json"])
         .current_dir(root)
         .env("HOME", root)
-        .env("KNAPPER_NO_UPDATE_CHECK", "1")
+        .env("PKM_NO_UPDATE_CHECK", "1")
         .output()
         .unwrap();
     assert!(
@@ -28,11 +28,11 @@ fn change_status(root: &Path, args: &[&str]) -> String {
 }
 
 fn run_status(root: &Path, args: &[&str]) -> std::process::Output {
-    Command::new(env!("CARGO_BIN_EXE_knapper"))
+    Command::new(env!("CARGO_BIN_EXE_pkm"))
         .args(args)
         .current_dir(root)
         .env("HOME", root)
-        .env("KNAPPER_NO_UPDATE_CHECK", "1")
+        .env("PKM_NO_UPDATE_CHECK", "1")
         .output()
         .unwrap()
 }
@@ -40,7 +40,7 @@ fn run_status(root: &Path, args: &[&str]) -> std::process::Output {
 #[test]
 fn markdown_checkbox_block_ids_are_optional_json_fields() {
     let dir = tempfile::tempdir().unwrap();
-    std::fs::write(dir.path().join("knapper.yaml"), "vault_path: .\n").unwrap();
+    std::fs::write(dir.path().join("pkm.yaml"), "vault_path: .\n").unwrap();
     std::fs::write(
         dir.path().join("Tasks.md"),
         "- [ ] Milk 📅 2026-11-16 ^milk-7c4\n- [ ] Bread\n- [ ] Bad ^bad_id\n- [ ] Middle ^middle trailing\n- [ ] NoSpace^nospace\n- {{[[TODO]]}} Roam ^roam-123\n",
@@ -66,7 +66,7 @@ fn status_changes_keep_the_block_id_at_the_end() {
         vec!["set", "done", "Milk ^milk-7c4"],
     ] {
         let dir = tempfile::tempdir().unwrap();
-        std::fs::write(dir.path().join("knapper.yaml"), "vault_path: .\n").unwrap();
+        std::fs::write(dir.path().join("pkm.yaml"), "vault_path: .\n").unwrap();
         std::fs::write(dir.path().join("Tasks.md"), "- [ ] Milk ^milk-7c4\n").unwrap();
         let mut args = vec!["tasks"];
         args.extend(command);
@@ -79,7 +79,7 @@ fn status_changes_keep_the_block_id_at_the_end() {
 #[test]
 fn a_recurring_task_gets_a_new_id_on_each_occurrence() {
     let dir = tempfile::tempdir().unwrap();
-    std::fs::write(dir.path().join("knapper.yaml"), "vault_path: .\n").unwrap();
+    std::fs::write(dir.path().join("pkm.yaml"), "vault_path: .\n").unwrap();
     let original = "Water 🔁 every day 📅 2026-11-16 ^water-7c4";
     std::fs::write(dir.path().join("Tasks.md"), format!("- [ ] {original}\n")).unwrap();
     change_status(dir.path(), &["tasks", "done", original]);
@@ -107,7 +107,7 @@ fn a_recurring_task_gets_a_new_id_on_each_occurrence() {
 #[test]
 fn recurring_batch_avoids_existing_ids_and_matches_its_dry_run() {
     let dir = tempfile::tempdir().unwrap();
-    std::fs::write(dir.path().join("knapper.yaml"), "vault_path: .\n").unwrap();
+    std::fs::write(dir.path().join("pkm.yaml"), "vault_path: .\n").unwrap();
     let first = "First 🔁 every day 📅 2026-11-16 ^job";
     let second = "Second 🔁 every day 📅 2026-11-16 ^job-r2";
     let original = format!("- [ ] {first}\n- [ ] {second}\n- [ ] Other ^job-r3\n");
@@ -138,7 +138,7 @@ fn recurring_batch_avoids_existing_ids_and_matches_its_dry_run() {
 #[test]
 fn recurring_task_avoids_a_standalone_block_id_in_the_same_file() {
     let dir = tempfile::tempdir().unwrap();
-    std::fs::write(dir.path().join("knapper.yaml"), "vault_path: .\n").unwrap();
+    std::fs::write(dir.path().join("pkm.yaml"), "vault_path: .\n").unwrap();
     let task = "Pay 🔁 every week 📅 2026-11-20 ^pay";
     let original = format!("- [ ] {task}\n\n| A |\n| - |\n^pay-r2\n");
     std::fs::write(dir.path().join("Tasks.md"), &original).unwrap();
@@ -162,7 +162,7 @@ fn recurring_task_avoids_a_standalone_block_id_in_the_same_file() {
 #[test]
 fn recurrence_only_assigns_a_new_id_when_the_source_has_one() {
     let dir = tempfile::tempdir().unwrap();
-    std::fs::write(dir.path().join("knapper.yaml"), "vault_path: .\n").unwrap();
+    std::fs::write(dir.path().join("pkm.yaml"), "vault_path: .\n").unwrap();
     let body = "Water 🔁 every day 📅 2026-11-16";
     std::fs::write(dir.path().join("Tasks.md"), format!("- [ ] {body}\n")).unwrap();
     change_status(dir.path(), &["tasks", "done", body]);
@@ -186,7 +186,7 @@ fn every_status_change_can_select_one_exact_block_id() {
         vec!["set", "done"],
     ] {
         let dir = tempfile::tempdir().unwrap();
-        std::fs::write(dir.path().join("knapper.yaml"), "vault_path: .\n").unwrap();
+        std::fs::write(dir.path().join("pkm.yaml"), "vault_path: .\n").unwrap();
         std::fs::write(
             dir.path().join("Tasks.md"),
             "- [ ] Short ^job-r2\n- [ ] Longer ^job-r20\n",
@@ -209,7 +209,7 @@ fn every_status_change_can_select_one_exact_block_id() {
 #[test]
 fn block_id_selector_refuses_ambiguous_or_invalid_requests_without_writing() {
     let dir = tempfile::tempdir().unwrap();
-    std::fs::write(dir.path().join("knapper.yaml"), "vault_path: .\n").unwrap();
+    std::fs::write(dir.path().join("pkm.yaml"), "vault_path: .\n").unwrap();
     let original = "- [ ] First ^job-r20\n- [ ] Second ^duplicate\n- [ ] Third ^duplicate\n";
     std::fs::write(dir.path().join("Tasks.md"), original).unwrap();
     for args in [
@@ -285,7 +285,7 @@ fn block_id_selector_refuses_ambiguous_or_invalid_requests_without_writing() {
 #[test]
 fn invalid_task_selector_arguments_exit_as_usage_errors() {
     let dir = tempfile::tempdir().unwrap();
-    std::fs::write(dir.path().join("knapper.yaml"), "vault_path: .\n").unwrap();
+    std::fs::write(dir.path().join("pkm.yaml"), "vault_path: .\n").unwrap();
     std::fs::write(dir.path().join("Tasks.md"), "- [ ] First ^first\n").unwrap();
     for args in [
         vec!["tasks", "wip"],
@@ -322,7 +322,7 @@ fn invalid_task_selector_arguments_exit_as_usage_errors() {
 #[test]
 fn block_id_dry_run_and_recurring_done_use_the_existing_plan() {
     let dir = tempfile::tempdir().unwrap();
-    std::fs::write(dir.path().join("knapper.yaml"), "vault_path: .\n").unwrap();
+    std::fs::write(dir.path().join("pkm.yaml"), "vault_path: .\n").unwrap();
     let original = "- [ ] Water 🔁 every day 📅 2026-11-16 ^water\n";
     std::fs::write(dir.path().join("Tasks.md"), original).unwrap();
     let args = ["tasks", "done", "--file", "Tasks.md", "--block-id", "water"];

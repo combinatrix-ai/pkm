@@ -1,9 +1,9 @@
-# knapper self-update
+# pkm self-update
 
 ```text
 Update a release binary to the newest verified release; other installs show how to update
 
-Usage: knapper self-update [OPTIONS]
+Usage: pkm self-update [OPTIONS]
 
 Options:
   -c, --config <CONFIG>  Path to config file

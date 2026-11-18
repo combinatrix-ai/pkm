@@ -1,8 +1,8 @@
 //! `self-update`, and the version a newer-release notice compares against.
 //!
-//! How knapper was installed decides how it is updated. A GitHub release
+//! How pkm was installed decides how it is updated. A GitHub release
 //! binary (built with the `self-update` feature) verifies and installs the
-//! next release itself. A `cargo install` copy belongs to cargo, so knapper
+//! next release itself. A `cargo install` copy belongs to cargo, so pkm
 //! only checks crates.io and names the cargo command. Any other build has no
 //! install channel to follow and only reports the newest GitHub release.
 
@@ -16,7 +16,7 @@ use serde_json::Value;
 mod release;
 
 const PACKAGE: &str = env!("CARGO_PKG_NAME");
-const RELEASES_URL: &str = "https://github.com/combinatrix-ai/knapper/releases";
+const RELEASES_URL: &str = "https://github.com/combinatrix-ai/pkm/releases";
 const CRATES_INDEX_URL: &str = "https://index.crates.io";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -52,7 +52,7 @@ impl Channel {
 
     pub(crate) fn how_to_update(self, latest: &str) -> String {
         match self {
-            Channel::Release => "run `knapper self-update`".to_owned(),
+            Channel::Release => "run `pkm self-update`".to_owned(),
             Channel::Cargo => format!("run `cargo install {PACKAGE} --locked`"),
             Channel::Unmanaged => format!("see {RELEASES_URL}/tag/v{latest}"),
         }
@@ -81,11 +81,11 @@ pub fn run(check_only: bool, yes: bool, force: bool, no_skill: bool) -> Result<(
     let current = env!("CARGO_PKG_VERSION");
     if version_is_newer(&latest, current) {
         println!(
-            "knapper {current} -> {latest} is available; {}.",
+            "pkm {current} -> {latest} is available; {}.",
             channel.how_to_update(&latest)
         );
     } else {
-        println!("knapper {current} is up to date.");
+        println!("pkm {current} is up to date.");
     }
     if !check_only {
         match channel {
@@ -240,7 +240,7 @@ mod tests {
         assert_eq!(index_path("a"), "1/a");
         assert_eq!(index_path("ab"), "2/ab");
         assert_eq!(index_path("abc"), "3/a/abc");
-        assert_eq!(index_path("Knapper-CLI"), "kn/ap/knapper-cli");
+        assert_eq!(index_path("pkm-CLI"), "pk/m-/pkm-cli");
     }
 
     #[test]
@@ -261,26 +261,26 @@ mod tests {
     fn only_a_crates_io_install_record_makes_a_cargo_copy() {
         let root = tempfile::tempdir().unwrap();
         std::fs::create_dir(root.path().join("bin")).unwrap();
-        let exe = root.path().join("bin/knapper");
+        let exe = root.path().join("bin/pkm");
         let record = |id: &str| {
             std::fs::write(
                 root.path().join(".crates2.json"),
-                format!(r#"{{"installs":{{"{id}":{{"bins":["knapper"]}}}}}}"#),
+                format!(r#"{{"installs":{{"{id}":{{"bins":["pkm"]}}}}}}"#),
             )
             .unwrap();
         };
 
-        assert!(!installed_by_cargo(&exe, "knapper-cli"));
+        assert!(!installed_by_cargo(&exe, "pkm-cli"));
 
-        record("knapper-cli 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)");
-        assert!(installed_by_cargo(&exe, "knapper-cli"));
+        record("pkm-cli 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)");
+        assert!(installed_by_cargo(&exe, "pkm-cli"));
         assert!(!installed_by_cargo(
             &root.path().join("bin/other"),
-            "knapper-cli"
+            "pkm-cli"
         ));
-        assert!(!installed_by_cargo(&exe, "knapper"));
+        assert!(!installed_by_cargo(&exe, "pkm"));
 
-        record("knapper-cli 0.1.2 (git+https://github.com/combinatrix-ai/knapper#abc)");
-        assert!(!installed_by_cargo(&exe, "knapper-cli"));
+        record("pkm-cli 0.1.2 (git+https://github.com/combinatrix-ai/pkm#abc)");
+        assert!(!installed_by_cargo(&exe, "pkm-cli"));
     }
 }

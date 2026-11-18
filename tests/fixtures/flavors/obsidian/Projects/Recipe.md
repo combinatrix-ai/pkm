@@ -26,18 +26,18 @@ Inline `[[Nor This]]` too.
 - [x] outline ✅ 2026-07-20
 - [/] methods section
 
-住所: [請求書送付先の住所](knapper://personal/address.billing)
-Deploy: [CI token](<knapper://work/tokens/ci.deploy>) and [DB](knapper://work/db/prod "primary")
+住所: [請求書送付先の住所](pkm://personal/address.billing)
+Deploy: [CI token](<pkm://work/tokens/ci.deploy>) and [DB](pkm://work/db/prod "primary")
 
-`Inline [x](knapper://personal/not-inline)`
+`Inline [x](pkm://personal/not-inline)`
 
-%% [x](knapper://personal/not-comment) %%
+%% [x](pkm://personal/not-comment) %%
 
 ```text
-[x](knapper://personal/not-fenced)
+[x](pkm://personal/not-fenced)
 ```
 
-Not linked: knapper://personal/not-bare and <knapper://personal/not-autolink>
+Not linked: pkm://personal/not-bare and <pkm://personal/not-autolink>
 
-Malformed: [a](knapper://Personal/upper) [b](knapper://personal/a//b)
-[c](knapper://personal/../etc) [d](knapper://personal/a%2Fb) [e](knapper://personal/has space)
+Malformed: [a](pkm://Personal/upper) [b](pkm://personal/a//b)
+[c](pkm://personal/../etc) [d](pkm://personal/a%2Fb) [e](pkm://personal/has space)

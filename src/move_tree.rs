@@ -203,7 +203,7 @@ fn ensure_inside_vault(config: &Config, relative: &str, what: &str) -> Result<()
         match current.symlink_metadata() {
             Ok(meta) if meta.file_type().is_symlink() => bail!(
                 "{what} passes through a symlink: {relative}\n\
-                 knapper moves directories only within the real vault tree, \
+                 pkm moves directories only within the real vault tree, \
                  because a symlink can lead anywhere."
             ),
             Ok(_) => deepest = current.clone(),
@@ -717,8 +717,8 @@ static TEMP_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 /// An exclusively created sibling temp file, and the path it was created at.
 ///
-/// The exclusivity is the point. A fixed name -- `.note.md.knapper-tmp` --
-/// races two knapper runs in one vault against each other, and worse, it
+/// The exclusivity is the point. A fixed name -- `.note.md.pkm-tmp` --
+/// races two pkm runs in one vault against each other, and worse, it
 /// opens whatever is already at that name: a file a user or another tool put
 /// there would be overwritten with note content and then unlinked by the
 /// rename. `create_new` fails instead, and the loop moves to the next name.
@@ -732,7 +732,7 @@ fn create_temp(path: &Path) -> std::io::Result<(PathBuf, std::fs::File)> {
 
     for _ in 0..1_000 {
         let ticket = TEMP_COUNTER.fetch_add(1, Ordering::Relaxed);
-        let candidate = dir.join(format!(".{name}.knapper-{pid}-{ticket}.tmp"));
+        let candidate = dir.join(format!(".{name}.pkm-{pid}-{ticket}.tmp"));
         match std::fs::OpenOptions::new()
             .write(true)
             .create_new(true)
@@ -761,7 +761,7 @@ fn create_temp(path: &Path) -> std::io::Result<(PathBuf, std::fs::File)> {
 ///
 /// So the link is resolved and the file it names is what gets replaced. The
 /// link itself is never touched, and still points where it did. A target
-/// outside the vault is followed too, for the same reason the rest of knapper
+/// outside the vault is followed too, for the same reason the rest of pkm
 /// follows one: the user put it there on purpose.
 fn write_target(path: &Path) -> std::io::Result<PathBuf> {
     match path.symlink_metadata() {
@@ -776,7 +776,7 @@ fn write_target(path: &Path) -> std::io::Result<PathBuf> {
 ///
 /// The note's own permissions come across before the rename: a note somebody
 /// made read-only, or group-writable for a shared vault, should still be that
-/// after knapper rewrites a link in it, and a fresh temp file starts from
+/// after pkm rewrites a link in it, and a fresh temp file starts from
 /// this process's umask instead.
 fn write_atomic(path: &Path, content: &str) -> std::io::Result<()> {
     use std::io::Write;
@@ -902,7 +902,7 @@ fn apply(config: &Config, plan: &Plan) -> Result<()> {
             return Err(anyhow!(
                 "Could not write {}: {err}\n\
                  The rollback was incomplete, so the vault is in a mixed state:\n  - {}\n\
-                 Put these right by hand before running knapper here again.",
+                 Put these right by hand before running pkm here again.",
                 edit.new_path,
                 failures.join("\n  - ")
             ));
@@ -1072,7 +1072,7 @@ pub fn move_directory(
     let meta = std::fs::symlink_metadata(&from)
         .map_err(|err| anyhow!("Directory not found: {source_arg} ({err})"))?;
     if meta.file_type().is_symlink() {
-        bail!("Source is a symlink: {source}\nknapper moves real directories only.");
+        bail!("Source is a symlink: {source}\npkm moves real directories only.");
     }
     if !meta.is_dir() {
         bail!("Not a directory: {source}");
@@ -1100,7 +1100,7 @@ pub fn move_directory(
     ensure_inside_vault(config, &destination, "The destination")?;
     let to = vault.join(&destination);
     if to.symlink_metadata().is_ok() {
-        bail!("Target already exists: {destination}\nknapper does not merge directories.");
+        bail!("Target already exists: {destination}\npkm does not merge directories.");
     }
     if !same_device(&from, &nearest_existing(&to)) {
         bail!(
@@ -1123,7 +1123,7 @@ pub fn move_directory(
     if blocked {
         report(&plan, Outcome::Refused, blocked, format);
         bail!(
-            "{} inbound org link(s) point into {source}, and knapper does not rewrite org links.\n\
+            "{} inbound org link(s) point into {source}, and pkm does not rewrite org links.\n\
              Fix them first, or rerun with --allow-broken-org-links to move anyway.",
             plan.unsupported.len()
         );

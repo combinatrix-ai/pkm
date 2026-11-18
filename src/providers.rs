@@ -1,20 +1,20 @@
-//! The reference broker: provider commands, and `knapper resolve`.
+//! The reference broker: provider commands, and `pkm resolve`.
 //!
 //! A vault says *which* provider holds a value. Only the local provider
 //! config says *what runs* for that provider, and it lives outside the vault
-//! on purpose: `knapper.yaml` travels with the notes, so a synced,
+//! on purpose: `pkm.yaml` travels with the notes, so a synced,
 //! shared or cloned vault could otherwise introduce a command. This file
-//! reads `$XDG_CONFIG_HOME/knapper/providers.yaml` and nothing else.
+//! reads `$XDG_CONFIG_HOME/pkm/providers.yaml` and nothing else.
 //!
 //! ```yaml
 //! providers:
 //!   personal:
-//!     command: [op, read, "op://Knapper/{locator}/value"]
+//!     command: [op, read, "op://pkm/{locator}/value"]
 //! ```
 //!
-//! `command` is argv, not a shell line. knapper execs it directly, so quoting
+//! `command` is argv, not a shell line. pkm execs it directly, so quoting
 //! and word splitting never happen and there is no shell to escape from.
-//! knapper is provider-agnostic: the command above is one user's choice, and
+//! pkm is provider-agnostic: the command above is one user's choice, and
 //! nothing here knows what it runs.
 
 use std::collections::BTreeMap;
@@ -30,12 +30,12 @@ use serde::{Deserialize, Serialize};
 /// passed through untouched.
 pub const PLACEHOLDER: &str = "{locator}";
 
-pub const CONFIG_DIR: &str = "knapper";
+pub const CONFIG_DIR: &str = "pkm";
 pub const CONFIG_FILENAME: &str = "providers.yaml";
 
 /// A resolved value is meant to be a credential, an address, a key -- one
 /// value, not a stream. Anything larger is a provider misbehaving, and
-/// knapper stops reading rather than buffering it.
+/// pkm stops reading rather than buffering it.
 const MAX_OUTPUT: usize = 1024 * 1024;
 
 /// How often a timed run checks whether the child is finished.
@@ -43,7 +43,7 @@ const POLL: Duration = Duration::from_millis(10);
 
 /// Why a broker command failed, carrying the exit status that tells the
 /// three apart. Nothing here calls `exit()`; the CLI maps these at the top
-/// level, the way the rest of knapper reports usage errors.
+/// level, the way the rest of pkm reports usage errors.
 #[derive(Debug)]
 pub enum Failure {
     /// A malformed reference, a rejected argument, or unreadable config.
@@ -146,7 +146,7 @@ pub fn load(path: &Path) -> Result<Providers> {
 
 /// Write the whole config back. Everything not being changed is carried
 /// through, so setting one provider never costs another; comments and key
-/// order do not survive, because this file is data knapper owns.
+/// order do not survive, because this file is data pkm owns.
 fn save(path: &Path, providers: &Providers) -> Result<()> {
     let parent = path.parent().unwrap_or(Path::new("."));
     std::fs::create_dir_all(parent)
@@ -157,7 +157,7 @@ fn save(path: &Path, providers: &Providers) -> Result<()> {
     std::fs::write(path, body)
         .map_err(|err| Failure::Usage(format!("Cannot write {}: {err}", path.display())))?;
 
-    // This file decides what knapper executes, so anyone who can write it can
+    // This file decides what pkm executes, so anyone who can write it can
     // run anything as the user. Owner-only is the least this can do about it.
     #[cfg(unix)]
     {
@@ -169,7 +169,7 @@ fn save(path: &Path, providers: &Providers) -> Result<()> {
 }
 
 /// argv as an unambiguous single line. A quoted shell line would invite
-/// pasting it into a shell, which is the one thing knapper never does with a
+/// pasting it into a shell, which is the one thing pkm never does with a
 /// provider command; JSON says exactly where each argument ends and runs
 /// nowhere.
 fn render(argv: &[String]) -> String {
@@ -207,7 +207,7 @@ pub fn set(name: &str, command: &[String]) -> Result<()> {
     if !command.iter().any(|arg| arg.contains(PLACEHOLDER)) {
         return Err(Failure::Usage(format!(
             "A provider command must use {PLACEHOLDER} at least once, so the reference reaches it:\n  \
-             knapper provider set {name} -- op read 'op://Vault/{PLACEHOLDER}/value'"
+             pkm provider set {name} -- op read 'op://Vault/{PLACEHOLDER}/value'"
         )));
     }
 
@@ -242,7 +242,7 @@ pub fn remove(name: &str) -> Result<()> {
 #[derive(Debug, Default, Clone, Copy)]
 pub struct ResolveOptions {
     /// Seconds. There is no default: a provider may legitimately wait for a
-    /// hardware key to be touched, and knapper cannot know for how long.
+    /// hardware key to be touched, and pkm cannot know for how long.
     pub timeout: Option<f64>,
     pub dry_run: bool,
 }
@@ -290,7 +290,7 @@ pub fn resolve(uri: &str, options: &ResolveOptions) -> Result<()> {
     let entry = configured.providers.get(&provider).ok_or_else(|| {
         Failure::UnknownProvider(format!(
             "No provider named {provider:?} in {}. Define one with:\n  \
-             knapper provider set {provider} -- <command...> '{PLACEHOLDER}'",
+             pkm provider set {provider} -- <command...> '{PLACEHOLDER}'",
             path.display()
         ))
     })?;
@@ -351,7 +351,7 @@ fn run(provider: &str, argv: &[String], timeout: Option<Duration>) -> Result<Str
     })?;
 
     // Read on another thread. A provider that writes more than fits in the
-    // pipe buffer would block on the write while knapper blocked on the
+    // pipe buffer would block on the write while pkm blocked on the
     // exit, and neither would ever finish.
     let mut stdout = child.stdout.take().expect("stdout is piped");
     let (sender, receiver) = std::sync::mpsc::channel();
@@ -499,7 +499,7 @@ fn wait_until(
         let left = deadline.saturating_duration_since(Instant::now());
         if left.is_zero() {
             // Kill, then reap: a killed child nobody waits for stays a
-            // zombie for as long as knapper runs. Dropping our end of the
+            // zombie for as long as pkm runs. Dropping our end of the
             // pipe afterwards releases the reader thread.
             kill_provider(child, has_process_group);
             let _ = child.wait();
@@ -584,16 +584,16 @@ mod tests {
         let xdg = |p: &str| Some(OsString::from(p));
         assert_eq!(
             config_path_from(xdg("/xdg"), xdg("/home/u")).unwrap(),
-            PathBuf::from("/xdg/knapper/providers.yaml")
+            PathBuf::from("/xdg/pkm/providers.yaml")
         );
         assert_eq!(
             config_path_from(None, xdg("/home/u")).unwrap(),
-            PathBuf::from("/home/u/.config/knapper/providers.yaml")
+            PathBuf::from("/home/u/.config/pkm/providers.yaml")
         );
         // Relative values are ignored, as the XDG basedir spec says.
         assert_eq!(
             config_path_from(xdg("relative"), xdg("/home/u")).unwrap(),
-            PathBuf::from("/home/u/.config/knapper/providers.yaml")
+            PathBuf::from("/home/u/.config/pkm/providers.yaml")
         );
         assert!(config_path_from(None, None).is_err());
     }
@@ -629,7 +629,7 @@ mod tests {
         reloaded.providers.insert(
             "personal".into(),
             Provider {
-                command: strings(&["op", "read", "op://Knapper/{locator}/value"]),
+                command: strings(&["op", "read", "op://pkm/{locator}/value"]),
             },
         );
         save(&path, &reloaded).unwrap();
@@ -642,7 +642,7 @@ mod tests {
         );
         assert_eq!(
             final_state.providers["personal"].command,
-            strings(&["op", "read", "op://Knapper/{locator}/value"])
+            strings(&["op", "read", "op://pkm/{locator}/value"])
         );
     }
 

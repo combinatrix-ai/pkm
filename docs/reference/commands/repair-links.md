@@ -1,10 +1,10 @@
-# knapper repair-links
+# pkm repair-links
 
 ```text
 Plan repairs for links that are already broken.
 
 This is the other half of `rename` and `move`: they keep links intact through a
-refactor knapper performs, and this reports the ones that broke while knapper was
+refactor pkm performs, and this reports the ones that broke while pkm was
 not looking -- a folder reorganised elsewhere, an exporter's stale path.
 
 A repair is proposed only where the filesystem settles it: exactly one file, reached
@@ -14,7 +14,7 @@ and left alone.
 
 V1 is read-only. --dry-run is required, and nothing is ever written.
 
-Usage: knapper repair-links [OPTIONS]
+Usage: pkm repair-links [OPTIONS]
 
 Options:
   -c, --config <CONFIG>

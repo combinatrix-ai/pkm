@@ -14,7 +14,7 @@ fn cache_dir() -> Option<PathBuf> {
         .map(PathBuf::from)
         .filter(|p| p.is_absolute())
         .or_else(|| std::env::var_os("HOME").map(|h| PathBuf::from(h).join(".cache")))
-        .map(|p| p.join("knapper"))
+        .map(|p| p.join("pkm"))
 }
 
 fn due(path: &Path, now: SystemTime) -> bool {
@@ -28,7 +28,7 @@ fn due(path: &Path, now: SystemTime) -> bool {
 pub fn notify_and_schedule() {
     if !std::io::stderr().is_terminal()
         || std::env::var_os("CI").is_some()
-        || std::env::var_os("KNAPPER_NO_UPDATE_CHECK").is_some()
+        || std::env::var_os("PKM_NO_UPDATE_CHECK").is_some()
     {
         return;
     }
@@ -40,7 +40,7 @@ pub fn notify_and_schedule() {
         let latest = latest.trim();
         if crate::update::version_is_newer(latest, env!("CARGO_PKG_VERSION")) {
             eprintln!(
-                "knapper {latest} is available; {}.",
+                "pkm {latest} is available; {}.",
                 channel.how_to_update(latest)
             );
         }

@@ -1,4 +1,4 @@
-# The knapper command-line contract, as data. See README.md.
+# The pkm command-line contract, as data. See README.md.
 #
 # These describe what a caller can rely on. They are deliberately independent
 # of how any one implementation is arranged, so a port can be checked against
@@ -134,7 +134,7 @@
     json_length: 3
     json_at:
       "0.path": "Projects/Recipe.md"
-      "0.uri": "knapper://personal/address.billing"
+      "0.uri": "pkm://personal/address.billing"
       "0.provider": "personal"
       "0.locator": "address.billing"
       "0.label": "請求書送付先の住所"
@@ -158,8 +158,8 @@
   expect:
     json_length: 2
     json_at:
-      "0.uri": "knapper://work/tokens/ci.deploy"
-      "1.uri": "knapper://work/db/prod"
+      "0.uri": "pkm://work/tokens/ci.deploy"
+      "1.uri": "pkm://work/db/prod"
 
 - name: obsidian / reference paths are unique and pipeable
   vault: obsidian
@@ -177,17 +177,17 @@
 - name: obsidian / a reference is external and stays out of the link graph
   vault: obsidian
   args: [links, Projects/Recipe.md, --format, json]
-  # knapper:// is a scheme, so the graph treats it the way it treats https:
+  # pkm:// is a scheme, so the graph treats it the way it treats https:
   # -- as somewhere else. broken-links agrees, and says nothing about them.
   expect:
-    stdout_excludes: ["knapper://"]
+    stdout_excludes: ["pkm://"]
 
 - name: obsidian / context reports the references in one note
   vault: obsidian
   args: [context, Projects/Recipe.md, --format, json]
   expect:
     json_at:
-      "references.0.uri": "knapper://personal/address.billing"
+      "references.0.uri": "pkm://personal/address.billing"
       "references.0.provider": "personal"
       "references.0.locator": "address.billing"
       "references.0.line": 29
@@ -199,11 +199,11 @@
   expect:
     stdout_contains: ["open"]
 
-- name: obsidian / knapper's own config is not a note
+- name: obsidian / pkm's own config is not a note
   vault: obsidian
   args: [query, --format, paths]
   expect:
-    stdout_excludes: ["knapper.yaml"]
+    stdout_excludes: ["pkm.yaml"]
 
 - name: obsidian / rename rewrites every inbound link
   vault: obsidian
@@ -273,10 +273,10 @@
 
 - name: dendron / dot-hierarchy names are not extensions
   vault: dendron
-  args: [links, proj.knapper.md, --format, json]
+  args: [links, proj.pkm.md, --format, json]
   expect:
     json_length: 3
-    stdout_contains: ["proj.knapper.design"]
+    stdout_contains: ["proj.pkm.design"]
 
 - name: dendron / nothing is broken
   vault: dendron
@@ -346,14 +346,14 @@
 
 - name: logseq / page properties are read as inline fields
   vault: logseq
-  args: [context, pages/knapper.md, --format, json]
+  args: [context, pages/pkm.md, --format, json]
   expect:
     json_at:
-      inline_fields.title: "Knapper"
+      inline_fields.title: "pkm"
 
 - name: logseq / block references are not link targets
   vault: logseq
-  args: [links, pages/knapper.md, --format, json]
+  args: [links, pages/pkm.md, --format, json]
   expect:
     stdout_excludes: ["663f0a11"]
 
@@ -631,7 +631,7 @@
 # ------------------------------------------------------- A stray fence --
 # The `unclosed` fixture holds a note whose example forgot its closing ```.
 # CommonMark runs such a fence to the end of the document, which is right for
-# rendering and wrong here: knapper reports what is in a vault, and a typo in
+# rendering and wrong here: pkm reports what is in a vault, and a typo in
 # one line must not retract every link, tag and heading written under it. Only
 # a closed block is masked.
 
@@ -675,19 +675,19 @@
     sorted: true
 
 # ------------------------------------------------------- Before a config --
-# The `bare` fixture has no knapper.yaml, which is what every vault looks
-# like the moment before `knapper init`. Every other fixture ships a config,
+# The `bare` fixture has no pkm.yaml, which is what every vault looks
+# like the moment before `pkm init`. Every other fixture ships a config,
 # so this state went unexercised -- and both implementations were wrong in it.
 
 - name: bare / init works where no config exists yet
   vault: bare
   args: [init]
   expect:
-    stdout_contains: ["knapper.yaml"]
+    stdout_contains: ["pkm.yaml"]
     file:
-      "knapper.yaml":
+      "pkm.yaml":
         # The generated config declares a template folder and excludes it in
-        # the same breath, because knapper hides no folder by name.
+        # the same breath, because pkm hides no folder by name.
         contains: ["vault_path", "exclude:", "Templates/"]
 
 - name: bare / init creates the daily template it configures
@@ -707,12 +707,12 @@
   args: [links, Note.md]
   expect:
     exit: 1
-    stderr_contains: ["Run 'knapper init'"]
+    stderr_contains: ["Run 'pkm init'"]
     stderr_excludes: ["Traceback"]
 
 # ------------------------------------------------------ Driven by config --
 # The `configured` fixture is not a flavor either: it exists to exercise what
-# knapper.yaml can change -- an excluded subtree, and custom task
+# pkm.yaml can change -- an excluded subtree, and custom task
 # statuses. logs/ holds a note that links, tags and carries a task, so any
 # command that forgets the exclude shows it immediately.
 
@@ -721,7 +721,7 @@
   args: [orphans, --format, json]
   # Real.md is linked only from the excluded log, so it is an orphan now.
   # Templates/ is not excluded by this fixture, and no folder name is special
-  # to knapper, so its template is an orphan like any other unlinked note.
+  # to pkm, so its template is an orphan like any other unlinked note.
   expect:
     json: ["Lonely.md", "Real.md", "Templates/daily.md"]
 
@@ -736,7 +736,7 @@
   args: [lint, --format, json]
   # lint's orphan and frontmatter checks used to skip a folder called
   # Templates/ by name. They no longer do, so its template is counted with
-  # Lonely.md and Real.md. `knapper init` writes `exclude: [Templates/]` for
+  # Lonely.md and Real.md. `pkm init` writes `exclude: [Templates/]` for
   # exactly this reason.
   expect:
     exit: 1
@@ -924,9 +924,9 @@
           - "![Target](Target.png)"
           # The URL merely ends the same way.
           - "https://x.com/Target.md"
-          # So does the reference, and knapper:// is somewhere else too: the
+          # So does the reference, and pkm:// is somewhere else too: the
           # locator belongs to a provider, not to this vault's file names.
-          - "knapper://personal/Target"
+          - "pkm://personal/Target"
 
 - name: refactor / a move leaves an external reference alone
   vault: refactor
@@ -934,13 +934,13 @@
   expect:
     file:
       "source.md":
-        contains: ["knapper://personal/Target"]
+        contains: ["pkm://personal/Target"]
 
 - name: refactor / a link inside a code fence is rewritten too
   vault: refactor
   args: [rename, Target, Renamed]
   # Known and deliberate for now, but not obviously right: everywhere else
-  # knapper treats fenced content as not-prose, and a fenced [[Target]] is
+  # pkm treats fenced content as not-prose, and a fenced [[Target]] is
   # excluded from the link graph. Rewriting it here is the one place that
   # rule does not hold. Pinned so that changing it is a visible edit.
   expect:
@@ -1090,7 +1090,7 @@
 
 # ------------------------------------- A name with a space in it, in links --
 # The forms Obsidian writes when a note's name holds a space. Each referrer
-# here holds nothing but the one link, which is the point: knapper used to
+# here holds nothing but the one link, which is the point: pkm used to
 # decide which files to rewrite by looking for the note's name as a substring,
 # and neither `Old%20Note.md` nor a file listing only `<Old Note.md>` contains
 # "Old Note". The rename went ahead, the link was left behind, and nothing
@@ -1233,7 +1233,7 @@
       "top.md":
         contains:
           - "https://x.com/Guide/README.md"
-          - "knapper://personal/Guide/README"
+          - "pkm://personal/Guide/README"
           - "prose: Guide/README.md is where it lives"
           - "`[[Guide/README]]`"
           - "%% [[Guide/README]] %%"
@@ -1486,7 +1486,7 @@
       # An excluded note is not the vault's to rewrite.
       "Archives/Old.md":
         contains: ["Its [[SF読書会]] and its #SF読書会"]
-      # knapper reads org and does not rewrite it.
+      # pkm reads org and does not rewrite it.
       "Notes/Log.org":
         contains: ["this [[SF読書会]] is"]
 
@@ -1528,9 +1528,9 @@
 # ------------------------------------------------------ The reference broker --
 #
 # A reference names a provider; the local provider config says what runs for
-# it. These cases use `printf` and `false` as providers, because knapper is
+# it. These cases use `printf` and `false` as providers, because pkm is
 # provider-agnostic: a provider is whatever command the user configured, and
-# nothing in knapper knows or cares what that command talks to.
+# nothing in pkm knows or cares what that command talks to.
 #
 # The `providers:` key on a case is the local config the run starts with,
 # written outside the vault. `expect.providers` reads it back afterwards.
@@ -1540,12 +1540,12 @@
   providers: |
     providers:
       personal:
-        command: [op, read, "op://Knapper/{locator}/value"]
+        command: [op, read, "op://pkm/{locator}/value"]
   args: [provider, list]
-  # Even with no knapper.yaml anywhere: the broker is not a vault
+  # Even with no pkm.yaml anywhere: the broker is not a vault
   # command, and works from any directory.
   expect:
-    lines: ['personal  ["op","read","op://Knapper/{locator}/value"]']
+    lines: ['personal  ["op","read","op://pkm/{locator}/value"]']
 
 - name: broker / an unconfigured machine lists nothing
   vault: bare
@@ -1559,11 +1559,11 @@
     providers:
       work:
         command: [work-tool, "{locator}"]
-  args: [provider, set, personal, --, op, read, "op://Knapper/{locator}/value"]
+  args: [provider, set, personal, --, op, read, "op://pkm/{locator}/value"]
   expect:
     stdout_contains: ["personal", "providers.yaml"]
     providers:
-      contains: ["personal:", "work:", "op://Knapper/{locator}/value", "work-tool"]
+      contains: ["personal:", "work:", "op://pkm/{locator}/value", "work-tool"]
 
 - name: broker / a command that never reads the locator is refused
   vault: bare
@@ -1588,7 +1588,7 @@
   providers: |
     providers:
       personal:
-        command: [op, read, "op://Knapper/{locator}/value"]
+        command: [op, read, "op://pkm/{locator}/value"]
       work:
         command: [work-tool, "{locator}"]
   args: [provider, remove, personal]
@@ -1610,7 +1610,7 @@
     providers:
       personal:
         command: [printf, "%s\n", "value-of-{locator}"]
-  args: [resolve, "knapper://personal/address.home"]
+  args: [resolve, "pkm://personal/address.home"]
   expect:
     lines: ["value-of-address.home"]
 
@@ -1620,7 +1620,7 @@
     providers:
       personal:
         command: [printf, "%s|%s\n", "{locator}", "a-{locator}-b"]
-  args: [resolve, "knapper://personal/tokens/ci.deploy"]
+  args: [resolve, "pkm://personal/tokens/ci.deploy"]
   expect:
     lines: ["tokens/ci.deploy|a-tokens/ci.deploy-b"]
 
@@ -1629,11 +1629,11 @@
   providers: |
     providers:
       personal:
-        command: [false, "op://Knapper/{locator}/value"]
+        command: [false, "op://pkm/{locator}/value"]
   # `false` would fail if it ran, so exit 0 is the proof that it did not.
-  args: [resolve, "knapper://personal/address.home", --dry-run]
+  args: [resolve, "pkm://personal/address.home", --dry-run]
   expect:
-    lines: ['["false","op://Knapper/address.home/value"]']
+    lines: ['["false","op://pkm/address.home/value"]']
 
 - name: broker / a reference outside the grammar never reaches a provider
   vault: bare
@@ -1641,14 +1641,14 @@
     providers:
       personal:
         command: [printf, "%s\n", "{locator}"]
-  args: [resolve, "knapper://personal/../etc/passwd"]
+  args: [resolve, "pkm://personal/../etc/passwd"]
   expect:
     exit: 2
-    stderr_contains: ["knapper reference"]
+    stderr_contains: ["pkm reference"]
 
 - name: broker / an unknown provider is its own failure
   vault: bare
-  args: [resolve, "knapper://personal/address.home"]
+  args: [resolve, "pkm://personal/address.home"]
   expect:
     exit: 3
     stderr_contains: ["No provider named", "provider set"]
@@ -1659,7 +1659,7 @@
     providers:
       personal:
         command: [false, "{locator}"]
-  args: [resolve, "knapper://personal/address.home"]
+  args: [resolve, "pkm://personal/address.home"]
   expect:
     exit: 4
     stderr_contains: ["failed"]
@@ -1672,7 +1672,7 @@
         command: [true, "{locator}"]
   # `true` succeeds and prints nothing. An empty value is not a value: a
   # caller that took it would be acting on a secret it never received.
-  args: [resolve, "knapper://personal/address.home"]
+  args: [resolve, "pkm://personal/address.home"]
   expect:
     exit: 4
     stderr_contains: ["empty value"]
@@ -1683,26 +1683,26 @@
     providers:
       personal:
         command: [printf, "%s\n", "{locator}"]
-  args: [resolve, "knapper://personal/address.home", --timeout, "0"]
+  args: [resolve, "pkm://personal/address.home", --timeout, "0"]
   expect:
     exit: 2
     stderr_contains: ["--timeout"]
 
 - name: vaultproviders / a provider declared by the vault is not a provider
   vault: vaultproviders
-  # knapper.yaml declares `providers: fromvault: command: [touch, ...]`.
+  # pkm.yaml declares `providers: fromvault: command: [touch, ...]`.
   # It travels with the notes, so nothing in it is executable configuration:
   # resolving through it must fail the same way an empty machine does.
   # `resolve` never reads a vault, so the declaration is unreachable here
   # rather than merely refused.
-  args: [resolve, "knapper://fromvault/x"]
+  args: [resolve, "pkm://fromvault/x"]
   expect:
     exit: 3
     stderr_contains: ["No provider named"]
 
 - name: vaultproviders / a vault command refuses the block by name
   vault: vaultproviders
-  # The commands that do read knapper.yaml say what is wrong with it and
+  # The commands that do read pkm.yaml say what is wrong with it and
   # where executable configuration belongs, rather than skipping the block and
   # leaving the vault looking configured.
   args: [links, Note.md]
@@ -1710,8 +1710,8 @@
     exit: 1
     stderr_contains:
       - "`providers` is not vault configuration"
-      - "knapper provider set"
-      - "knapper.yaml"
+      - "pkm provider set"
+      - "pkm.yaml"
 
 # --------------------------------------------------------- Target discovery --
 
@@ -1743,8 +1743,8 @@
 
 # ------------------------------------------------------- Planning repairs --
 #
-# `rename` and `move` keep links intact through a refactor knapper performs.
-# `repair-links` is the other half: the links that broke while knapper was not
+# `rename` and `move` keep links intact through a refactor pkm performs.
+# `repair-links` is the other half: the links that broke while pkm was not
 # looking. It proposes an edit only where the filesystem settles it, and V1
 # never writes.
 
@@ -1884,7 +1884,7 @@
   vault: repair
   args: [repair-links, --dry-run, --format, json]
   # RoamResearch.md is what [[Roam]] was renamed into. No filesystem knows
-  # that, so knapper does not either.
+  # that, so pkm does not either.
   expect:
     json_at:
       "occurrences.7.target": "Roam"
@@ -1909,7 +1909,7 @@
 - name: repair / an org link is reported with its line and never repaired
   vault: repair
   args: [repair-links, --dry-run, --format, json]
-  # knapper reads org and does not rewrite it, here as in move and demote, so
+  # pkm reads org and does not rewrite it, here as in move and demote, so
   # proposing an edit would promise something no apply could keep. There is no
   # column either: org masking does not preserve byte offsets.
   expect:
@@ -2002,10 +2002,10 @@
   # An agent host gets the instructions from the binary, not from a checkout,
   # so this must work anywhere -- including where there is no config.
   expect:
-    stdout_contains: ["name: knapper", "description:", "# knapper"]
+    stdout_contains: ["name: pkm", "description:", "# pkm"]
 
 - name: bare / the printed skill only names commands that exist
   vault: bare
   args: [skill]
   expect:
-    stdout_excludes: ["knapper rag", "knapper search ", "knapper impute"]
+    stdout_excludes: ["pkm rag", "pkm search ", "pkm impute"]

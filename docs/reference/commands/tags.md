@@ -1,9 +1,9 @@
-# knapper tags
+# pkm tags
 
 ```text
 List tags
 
-Usage: knapper tags [OPTIONS] [FILE]
+Usage: pkm tags [OPTIONS] [FILE]
 
 Arguments:
   [FILE]

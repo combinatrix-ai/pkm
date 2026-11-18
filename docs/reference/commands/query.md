@@ -1,9 +1,9 @@
-# knapper query
+# pkm query
 
 ```text
 Filter notes by frontmatter, inline fields, and link counts
 
-Usage: knapper query [OPTIONS]
+Usage: pkm query [OPTIONS]
 
 Options:
   -c, --config <CONFIG>  Path to config file

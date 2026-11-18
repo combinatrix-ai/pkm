@@ -1,6 +1,6 @@
 # Compatibility
 
-What knapper understands, ecosystem by ecosystem and convention by
+What pkm understands, ecosystem by ecosystem and convention by
 convention. ✅ works · ⚠️ partial · ❌ not supported.
 
 Every ✅ here is exercised by a fixture vault in
@@ -21,14 +21,14 @@ being fine.
   - ✅ Embeds, `![[Note]]` — counted as an outgoing link, matching Obsidian's graph
 - ✅ **Markdown links** — `[text](folder/Note.md)`, including `#anchors`, `%20` encoding, and `./` prefixes
   - ✅ External URLs and images are correctly ignored
-- ✅ **Properties / YAML frontmatter** — read and written by `knapper frontmatter`
+- ✅ **Properties / YAML frontmatter** — read and written by `pkm frontmatter`
   - ✅ **Link-valued properties are followed** — `related: "[[Other]]"` reaches the link graph, so it shows up in `backlinks` and keeps the target out of `orphans`. Scalars and lists both work. This is the portable way to write a typed relation.
   - ✅ **Aliases** — `aliases: ["Acme Corp"]` makes `[[Acme Corp]]` resolve to the declaring note
 - ✅ **Tags** — `#tag`, nested `#parent/child`, Unicode `#日本語`, and frontmatter `tags:`
   - ✅ Purely numeric tokens such as `#8/18` are correctly not tags
 - ✅ **Callouts** and **footnotes** — links inside them count, as they should
 - ✅ **Code and comments are excluded** — a `[[link]]` or `#tag` inside a fenced block, an inline span, or a `%%comment%%` is not a reference and is not counted
-- ✅ **Daily notes** — `knapper daily`, with template expansion
+- ✅ **Daily notes** — `pkm daily`, with template expansion
 - ✅ **Templates (core plugin)** — `{{date}}`, `{{time}}`, `{{title}}`, and supported date/time formats. See [Template variables](guide/templates.md#template-variables).
 
 ### Tasks (community plugin)
@@ -45,8 +45,8 @@ being fine.
 ### Dataview (community plugin)
 
 - ✅ **Inline fields** — all three forms: `[key:: value]`, `(key:: value)`, and bare `key:: value` at the start of a line
-  - Read into `inline_fields`, reported by `knapper context`, and kept apart from frontmatter because knapper reads them but does not write them
-  - ✅ **Typed links** — `[supports:: [[Some Note]]]` reaches the link graph, so it shows up in `backlinks`, and the field is filterable with `knapper query --where supports~X`
+  - Read into `inline_fields`, reported by `pkm context`, and kept apart from frontmatter because pkm reads them but does not write them
+  - ✅ **Typed links** — `[supports:: [[Some Note]]]` reaches the link graph, so it shows up in `backlinks`, and the field is filterable with `pkm query --where supports~X`
   - ⚠️ A value that is a plain path rather than a wikilink, `[source:: notes/x.md]`, is kept as text and not resolved. Dataview does not resolve those either.
   - Bare fields require a space after `::`, so `std::cout` in prose is not mistaken for one; code and comments are masked first
 - ❌ **Query blocks** — `dataview` code fences are not evaluated, and are not intended to be
@@ -68,17 +68,17 @@ being fine.
 
 ## Dendron
 
-- ✅ Dot-hierarchy filenames — `proj.knapper.design.md`
-- ✅ Wikilinks over that hierarchy — `[[proj.knapper.design]]`
-- ✅ Markdown links with the extension — `[d](proj.knapper.design.md)`
-- ✅ **Markdown links without the extension** — `[d](proj.knapper.design)` resolves; a dot that is not a known extension is treated as part of the name
+- ✅ Dot-hierarchy filenames — `proj.pkm.design.md`
+- ✅ Wikilinks over that hierarchy — `[[proj.pkm.design]]`
+- ✅ Markdown links with the extension — `[d](proj.pkm.design.md)`
+- ✅ **Markdown links without the extension** — `[d](proj.pkm.design)` resolves; a dot that is not a known extension is treated as part of the name
 - ⚠️ Frontmatter `id:` is readable but is not used to resolve links, so a rename still relies on the name
 
 ## Zettelkasten
 
 - ✅ ID-prefixed filenames — `202607281530 block model.md`
 - ✅ Bare wikilinks between them
-- ✅ Works equally with `zk`-style or Luhmann-style naming, since knapper only cares about filenames and links
+- ✅ Works equally with `zk`-style or Luhmann-style naming, since pkm only cares about filenames and links
 
 ## Plain markdown, and static site generators
 
@@ -92,10 +92,10 @@ Jekyll, Hugo, MkDocs, Quartz content directories.
 
 ## Logseq
 
-Support is deliberately partial: knapper reads the **file-level projection**
+Support is deliberately partial: pkm reads the **file-level projection**
 of a Logseq graph and ignores block identity. See "Why not blocks" below.
 
-Set `flavor: logseq` in `knapper.yaml` to turn on the ambiguous parts.
+Set `flavor: logseq` in `pkm.yaml` to turn on the ambiguous parts.
 
 - ✅ **Page references** — `[[page]]`
 - ✅ Outline files parse as ordinary markdown; nesting is preserved as text
@@ -130,8 +130,8 @@ all of this is always on.
 ### Why not blocks
 
 Logseq and Roam make the *block* the addressable unit: every bullet can carry
-an ID, be referenced from anywhere, and hold its own properties. knapper's
-commands are all shaped `knapper VERB FILE`, and `backlinks FILE` has no
+an ID, be referenced from anywhere, and hold its own properties. pkm's
+commands are all shaped `pkm VERB FILE`, and `backlinks FILE` has no
 meaning when the referent is a bullet. Supporting it is not a parser change
 but a second data model.
 
@@ -166,7 +166,7 @@ no syntax with markdown, so it is not a variant of the markdown path.
 
 ## Elsewhere
 
-knapper reads notes. Formats that are not notes -- Obsidian Canvas and Bases,
+pkm reads notes. Formats that are not notes -- Obsidian Canvas and Bases,
 Dendron schemas, Excalidraw drawings -- are left alone, and correctly ignored
 as link targets rather than reported as broken.
 

@@ -1,7 +1,7 @@
 """Regenerate website examples from a disposable synthetic vault.
 
 Every `result` on the landing page is real output from the binary built by
-`cargo build --bin knapper`. The questions and the agent's replies are written
+`cargo build --bin pkm`. The questions and the agent's replies are written
 here by hand; keep them consistent with the captured output.
 """
 import json
@@ -11,10 +11,10 @@ import subprocess
 import tempfile
 
 root = Path(__file__).resolve().parent.parent
-binary = root / 'target/debug/knapper'
+binary = root / 'target/debug/pkm'
 
 BASE = {
-    'knapper.yaml': 'vault_path: .\nlint:\n  rules:\n    orphans: {enabled: false}\n',
+    'pkm.yaml': 'vault_path: .\nlint:\n  rules:\n    orphans: {enabled: false}\n',
     'Index.md': '# Index\n\n- [[Projects/Redesign]]\n- [[Meetings/Kickoff]]\n',
     'Projects/Redesign.md': '---\ntype: project\nstatus: active\n---\n# Redesign\n\nScope agreed in [[Meetings/Kickoff]].\n',
     'Meetings/Kickoff.md': '# Kickoff\n\nFirst meeting for [the redesign](../Projects/Redesign.md).\n',
@@ -46,26 +46,26 @@ CASES = {
         ['demote', 'to-read', '--dry-run'], 0),
     'movedir': ({}, ['move', 'Projects', 'Archive/2025/'], 0),
     'context': ({}, ['context', 'Projects/Redesign.md', '--format', 'json'], 0),
-    'rules': ({'knapper.yaml': 'vault_path: .\n' + RULES}, ['lint', '--check', 'headings'], 1),
+    'rules': ({'pkm.yaml': 'vault_path: .\n' + RULES}, ['lint', '--check', 'headings'], 1),
     'refs': (
-        {'Projects/Application.md': '# Application\n\nAddress: [Home address](knapper://personal/address.home)\n'},
+        {'Projects/Application.md': '# Application\n\nAddress: [Home address](pkm://personal/address.home)\n'},
         ['refs', 'Projects/Application.md'], 0),
 }
 
 
 def capture(name):
     extra, args, expected = CASES[name]
-    with tempfile.TemporaryDirectory(prefix='knapper-website-') as directory:
+    with tempfile.TemporaryDirectory(prefix='pkm-website-') as directory:
         vault = Path(directory)
         for relative, text in {**BASE, **extra}.items():
             (vault / relative).parent.mkdir(parents=True, exist_ok=True)
             (vault / relative).write_text(text)
         result = subprocess.run(
             [str(binary), *args], cwd=vault, capture_output=True, text=True,
-            env={'PATH': '/usr/bin:/bin', 'HOME': directory, 'KNAPPER_NO_UPDATE_CHECK': '1'})
+            env={'PATH': '/usr/bin:/bin', 'HOME': directory, 'PKM_NO_UPDATE_CHECK': '1'})
         if result.returncode != expected:
             raise RuntimeError(f'{name}: exit {result.returncode}\n{result.stderr or result.stdout}')
-        return {'command': 'knapper ' + shlex.join(args), 'result': result.stdout.replace(directory, '<vault>').strip()}
+        return {'command': 'pkm ' + shlex.join(args), 'result': result.stdout.replace(directory, '<vault>').strip()}
 
 
 conversations = [

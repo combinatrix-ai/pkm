@@ -1,12 +1,12 @@
 # Repairing links that broke somewhere else
 
-`rename` and `move` keep links intact through a refactor knapper performs.
-`repair-links` is the other half: the links that broke while knapper was not
+`rename` and `move` keep links intact through a refactor pkm performs.
+`repair-links` is the other half: the links that broke while pkm was not
 looking — a folder reorganised in Finder, an exporter that wrote a path which
 has since moved, an encoding that survived one round trip too many.
 
 ```
-$ knapper repair-links --dry-run
+$ pkm repair-links --dry-run
 [DRY RUN] repair-links: 12 broken link occurrence(s) in 2 file(s)
   safe 6, ambiguous 2, unresolved 4
 
@@ -40,7 +40,7 @@ lands in one of three buckets:
 
 | | means |
 |---|---|
-| `safe` | exactly one destination, reached by an exact structural transformation, and the link knapper would write resolves back to it |
+| `safe` | exactly one destination, reached by an exact structural transformation, and the link pkm would write resolves back to it |
 | `ambiguous` | something matches, but choosing between the matches is a judgement about meaning |
 | `unresolved` | nothing on disk could settle it |
 
@@ -55,7 +55,7 @@ resemblance:
   and the decoded text **names a path** that exists. `[[Docs/My%20Note]]` for
   `Docs/My Note.md`.
 
-Decoding is not a doorway to anything looser. knapper resolves a bare name by
+Decoding is not a doorway to anything looser. pkm resolves a bare name by
 stem and by alias when it *reads* a vault, and neither is evidence for an
 edit — so a decoded target is only safe when it names its destination as a
 path. `[[My%20Note]]` decodes onto the very same `Docs/My Note.md`, but gets
@@ -72,10 +72,10 @@ Everything else is a suggestion at most:
   nothing is proposed and both are listed.
 - **A renamed concept.** `[[Roam]]` next to a note called `RoamResearch` is a
   rename somebody performed in their head. No string distance turns that into
-  evidence, and knapper does not try; it stays `unresolved`.
+  evidence, and pkm does not try; it stays `unresolved`.
 - **Missing dates and citation labels.** `[[2026-07-04]]` and `[[12]]` name no
   note at all, so there is nothing to repair and nothing is invented.
-- **org links.** knapper reads org and does not rewrite it, here as in `move`
+- **org links.** pkm reads org and does not rewrite it, here as in `move`
   and `demote`, so an org occurrence is reported with its line and never with
   a plan.
 
@@ -92,7 +92,7 @@ non-note leaves are valid destinations**, exactly as they are for the
 resolver: `Archive/Old Plan.md` and `assets/paper.pdf` are real files a link
 may point at.
 
-Every safe proposal is checked by resolving the text knapper would write — as
+Every safe proposal is checked by resolving the text pkm would write — as
 a path, again, so a rewrite whose correctness depended on no other note ever
 taking that name is not proposed. Nothing is published on the strength of a
 search a reader would not reproduce.
@@ -102,7 +102,7 @@ directories, so nothing behind one can become a repair target.
 ## The plan, as JSON
 
 ```bash
-knapper repair-links --dry-run --format json
+pkm repair-links --dry-run --format json
 ```
 
 ```json
@@ -160,7 +160,7 @@ object per occurrence, with the position, the text as written and the
 candidates. Without `--all`, `broken-links` applies the same policies as
 ordinary lint. `query --where 'broken>0'` remains independent of lint policies.
 
-One consequence worth knowing: knapper resolves a path-qualified link by
+One consequence worth knowing: pkm resolves a path-qualified link by
 basename when the path itself misses, so `[[legacy/notes/Foo]]` to a live note
 already resolves and never appears here. What does appear is the case that
 basename fallback cannot rescue — a path written with its extension, or one

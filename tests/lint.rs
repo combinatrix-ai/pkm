@@ -13,7 +13,7 @@ impl Vault {
     fn new(config: &str, files: &[(&str, &str)]) -> Self {
         let root = tempdir().unwrap();
         fs::write(
-            root.path().join("knapper.yaml"),
+            root.path().join("pkm.yaml"),
             format!("vault_path: .\n{config}"),
         )
         .unwrap();
@@ -26,7 +26,7 @@ impl Vault {
     }
 
     fn run(&self, args: &[&str]) -> Output {
-        Command::new(env!("CARGO_BIN_EXE_knapper"))
+        Command::new(env!("CARGO_BIN_EXE_pkm"))
             .args(args)
             .current_dir(self.root.path())
             .output()
@@ -336,7 +336,7 @@ fn unmatched_path_rules_leave_global_rule_behavior_unchanged() {
 #[test]
 fn unknown_cli_check_is_rejected_as_usage_error() {
     let root = tempdir().unwrap();
-    let output = Command::new(env!("CARGO_BIN_EXE_knapper"))
+    let output = Command::new(env!("CARGO_BIN_EXE_pkm"))
         .args(["lint", "--check", "not-a-rule"])
         .current_dir(root.path())
         .output()
@@ -807,7 +807,7 @@ fn git_diff_reference_and_nested_vault_use_repo_relative_git_paths() {
     fs::write(vault.root.path().join("Nested/A.md"), "z").unwrap();
     fs::write(vault.root.path().join("Outside.md"), "z").unwrap();
     fs::write(vault.root.path().join("Nested/new.md"), "x").unwrap();
-    let output = Command::new(env!("CARGO_BIN_EXE_knapper"))
+    let output = Command::new(env!("CARGO_BIN_EXE_pkm"))
         .args([
             "--vault",
             vault.root.path().join("Nested").to_str().unwrap(),

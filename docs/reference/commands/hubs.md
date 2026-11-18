@@ -1,9 +1,9 @@
-# knapper hubs
+# pkm hubs
 
 ```text
 Find hub notes (most linked-to notes)
 
-Usage: knapper hubs [OPTIONS]
+Usage: pkm hubs [OPTIONS]
 
 Options:
   -c, --config <CONFIG>  Path to config file

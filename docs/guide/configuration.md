@@ -1,14 +1,14 @@
 # Configuration
 
-`knapper init` writes `knapper.yaml`, a plain YAML file. It includes a
+`pkm init` writes `pkm.yaml`, a plain YAML file. It includes a
 `yaml-language-server` schema modeline, so editors that support the YAML
 Language Server can offer completion, hover documentation and diagnostics.
-Only `knapper.yaml` is discovered; the former Markdown-frontmatter
-`knapper.config.md` is not a fallback.
+Only `pkm.yaml` is discovered; the former Markdown-frontmatter
+`pkm.config.md` is not a fallback.
 The defaults assume a conventional layout:
 
 ```yaml
-# yaml-language-server: $schema=https://raw.githubusercontent.com/combinatrix-ai/knapper/main/schema/knapper.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/combinatrix-ai/pkm/main/schema/pkm.schema.json
 vault_path: .
 template_engine: templater   # or "core"
 exclude:
@@ -39,16 +39,16 @@ tasks:
   default_file: daily        # where `tasks new` writes: daily | inbox | a path
 ```
 
-The schema is also available locally with `knapper config schema`. `knapper
+The schema is also available locally with `pkm config schema`. `pkm
 config check` is the authoritative runtime validator: it catches unknown keys,
 wrong types, unsupported values and semantic errors such as ambiguous task
 status markers without scanning any notes. Nothing in the config is
 Obsidian-specific.
 
 The complete accepted configuration keys, types and defaults are defined
-in the [JSON Schema](../../schema/knapper.schema.json). The
+in the [JSON Schema](../../schema/pkm.schema.json). The
 [starter configuration](../../src/default_config.yaml) includes task status,
-created-date and template settings. Validate changes with `knapper config check`.
+created-date and template settings. Validate changes with `pkm config check`.
 
 Lint policies have their own page: [Lint rules](lint.md). Templates and daily
 notes are covered in [Templates and daily notes](templates.md), and task

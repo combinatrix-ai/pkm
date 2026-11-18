@@ -224,7 +224,7 @@ struct FocusExcerpt {
 }
 
 /// Split physical source lines using the same convention as `rg`, editors and
-/// the rest of knapper: a final newline terminates the preceding line; it does
+/// the rest of pkm: a final newline terminates the preceding line; it does
 /// not invent an additional addressable empty line.
 fn physical_lines(content: &str) -> Vec<&str> {
     content.lines().collect()
@@ -916,7 +916,7 @@ pub fn lint(
 
     if selected.contains(&"orphans") {
         let graph = graph.as_ref().unwrap();
-        // As in `knapper orphans`: only hidden files are special here. A
+        // As in `pkm orphans`: only hidden files are special here. A
         // folder of templates is hidden by `exclude`, not by its name.
         let orphans: Vec<&String> = graph
             .files
@@ -1331,7 +1331,7 @@ pub fn new_note(
     let (file, destination) = match config.templates.get(template) {
         Some(settings) => (settings.file.as_str(), folder.unwrap_or(&settings.folder)),
         None => (template, folder.ok_or_else(|| anyhow!(
-            "Unknown template {template:?}. For a template file, pass --folder; otherwise configure templates.{template}.file and folder in knapper.yaml"
+            "Unknown template {template:?}. For a template file, pass --folder; otherwise configure templates.{template}.file and folder in pkm.yaml"
         ))?),
     };
     if file.trim().is_empty() || destination.trim().is_empty() {
@@ -1693,8 +1693,8 @@ pub fn rename(config: &Config, old: &str, new: &str, dry_run: bool, format: &str
 
 pub const DEFAULT_CONFIG: &str = include_str!("default_config.yaml");
 /// The JSON Schema shipped with the repository and exposed by
-/// `knapper config schema` for YAML Language Server clients.
-pub const CONFIG_SCHEMA: &str = include_str!("../schema/knapper.schema.json");
+/// `pkm config schema` for YAML Language Server clients.
+pub const CONFIG_SCHEMA: &str = include_str!("../schema/pkm.schema.json");
 
 pub fn config_schema() -> Result<()> {
     print!("{CONFIG_SCHEMA}");
@@ -1730,9 +1730,9 @@ pub fn config_check(
     Ok(())
 }
 
-/// The body `knapper init` puts in the template it creates.
+/// The body `pkm init` puts in the template it creates.
 ///
-/// It is what `knapper daily` used to invent when a template was missing:
+/// It is what `pkm daily` used to invent when a template was missing:
 /// `{{title}}` expands to the note's date under either engine, so a fresh
 /// vault gets exactly the daily note it always got. It is a starting point to
 /// edit, not a suggestion about how anyone should keep a journal.
@@ -1741,8 +1741,8 @@ pub const DEFAULT_TEMPLATE: &str = "# {{title}}\n";
 /// Create the daily-note template the generated config points at.
 ///
 /// Returns the path if one was written. An existing file is never touched:
-/// `--force` is about replacing knapper's own config, and a vault's template
-/// is the user's writing, not knapper's.
+/// `--force` is about replacing pkm's own config, and a vault's template
+/// is the user's writing, not pkm's.
 fn write_default_template(dir: &Path, relative: &str) -> Result<Option<PathBuf>> {
     let target = dir.join(relative);
     if target.exists() {
@@ -1781,7 +1781,7 @@ pub fn init(force: bool) -> Result<()> {
         ));
     }
 
-    // The generated config names a daily-note template, and `knapper daily`
+    // The generated config names a daily-note template, and `pkm daily`
     // fails rather than inventing a body when that template is missing. So
     // init writes the file it is about to configure, and reads the path out
     // of the config itself rather than repeating it here.

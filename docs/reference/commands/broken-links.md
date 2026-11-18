@@ -1,9 +1,9 @@
-# knapper broken-links
+# pkm broken-links
 
 ```text
 Find links to missing notes, headings, or block IDs
 
-Usage: knapper broken-links [OPTIONS]
+Usage: pkm broken-links [OPTIONS]
 
 Options:
       --all              Ignore lint enablement, scopes and patterns; retain exclude and ignore_links

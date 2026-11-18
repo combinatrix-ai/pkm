@@ -616,7 +616,7 @@ mod tests {
             "Old Daily Tasks",
             "Daily",
             "Tasks",
-            // Path-qualified links are their own target: knapper resolves
+            // Path-qualified links are their own target: pkm resolves
             // them by basename, but an ignore is not a resolution.
             "Archive/Daily Tasks",
             "Daily Tasks/Index",
@@ -645,7 +645,7 @@ mod tests {
     /// extension, the same rule the markdown-link parser follows.
     #[test]
     fn only_a_note_extension_is_dropped_from_a_target() {
-        assert!(ignoring(&["proj.knapper.design"]).contains("proj.knapper.design"));
+        assert!(ignoring(&["proj.pkm.design"]).contains("proj.pkm.design"));
         assert!(ignoring(&["Notes.org"]).contains("Notes"));
         assert!(!ignoring(&["Report.pdf"]).contains("Report"));
     }

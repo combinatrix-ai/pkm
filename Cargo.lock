@@ -578,27 +578,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "knapper"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "attestation-verify",
- "chrono",
- "clap",
- "libc",
- "percent-encoding",
- "rayon",
- "regex",
- "serde",
- "serde_json",
- "serde_yaml",
- "tempfile",
- "unicode-normalization",
- "uuid",
- "walkdir",
-]
-
-[[package]]
 name = "libc"
 version = "0.2.189"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -690,6 +669,27 @@ checksum = "451913da69c775a56034ea8d9003d27ee8948e12443eae7c038ba100a4f21cb7"
 dependencies = [
  "der",
  "spki",
+]
+
+[[package]]
+name = "pkm"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "attestation-verify",
+ "chrono",
+ "clap",
+ "libc",
+ "percent-encoding",
+ "rayon",
+ "regex",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "tempfile",
+ "unicode-normalization",
+ "uuid",
+ "walkdir",
 ]
 
 [[package]]

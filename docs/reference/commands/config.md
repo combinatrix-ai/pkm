@@ -1,9 +1,9 @@
-# knapper config
+# pkm config
 
 ```text
-Inspect or print the knapper YAML configuration schema
+Inspect or print the pkm YAML configuration schema
 
-Usage: knapper config [OPTIONS] <COMMAND>
+Usage: pkm config [OPTIONS] <COMMAND>
 
 Commands:
   check   Validate the discovered config without scanning the vault
@@ -16,12 +16,12 @@ Options:
   -h, --help             Print help
 ```
 
-## knapper config check
+## pkm config check
 
 ```text
 Validate the discovered config without scanning the vault
 
-Usage: knapper config check [OPTIONS]
+Usage: pkm config check [OPTIONS]
 
 Options:
   -c, --config <CONFIG>  Path to config file
@@ -30,12 +30,12 @@ Options:
   -h, --help             Print help
 ```
 
-## knapper config schema
+## pkm config schema
 
 ```text
 Print the JSON Schema used by YAML-aware editors
 
-Usage: knapper config schema [OPTIONS]
+Usage: pkm config schema [OPTIONS]
 
 Options:
   -c, --config <CONFIG>  Path to config file

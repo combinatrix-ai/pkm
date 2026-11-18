@@ -1,4 +1,4 @@
-//! Run the contract cases against the knapper binary.
+//! Run the contract cases against the pkm binary.
 //!
 //! The cases live in `contract/cases.yaml` as data, so this file only knows
 //! how to invoke a command line and check assertions. Nothing here is tied to
@@ -66,8 +66,8 @@ struct FileChecks {
     excludes: Vec<String>,
 }
 
-/// Ecosystem fixtures answer "does knapper read Foam / Logseq / org?".
-/// Behaviour fixtures answer "does knapper do the right thing?" and belong to
+/// Ecosystem fixtures answer "does pkm read Foam / Logseq / org?".
+/// Behaviour fixtures answer "does pkm do the right thing?" and belong to
 /// no ecosystem. Both are just vaults as far as a case is concerned.
 fn fixture_roots() -> [PathBuf; 2] {
     let here = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures");
@@ -131,13 +131,13 @@ fn sorted_json(value: &serde_json::Value) -> serde_json::Value {
 
 /// Where the run's provider config lives, under a config home of its own.
 fn providers_file(config_home: &Path) -> PathBuf {
-    config_home.join("knapper").join("providers.yaml")
+    config_home.join("pkm").join("providers.yaml")
 }
 
 /// Every failure carries the whole invocation, because a bare assertion
 /// message is not enough to act on.
 fn check(case: &Case, vault: &Path, config_home: &Path) -> Result<(), String> {
-    let output = Command::new(env!("CARGO_BIN_EXE_knapper"))
+    let output = Command::new(env!("CARGO_BIN_EXE_pkm"))
         .args(&case.args)
         .current_dir(vault)
         // Every case gets a config home of its own, so no run can read the
@@ -145,14 +145,14 @@ fn check(case: &Case, vault: &Path, config_home: &Path) -> Result<(), String> {
         // needs a provider gets exactly the one it declared.
         .env("XDG_CONFIG_HOME", config_home)
         .output()
-        .map_err(|e| format!("could not run knapper: {e}"))?;
+        .map_err(|e| format!("could not run pkm: {e}"))?;
 
     let stdout = String::from_utf8_lossy(&output.stdout).into_owned();
     let stderr = String::from_utf8_lossy(&output.stderr).into_owned();
     let code = output.status.code().unwrap_or(-1);
 
     let context = format!(
-        "\n$ knapper {}\n--- exit {code} ---\n--- stdout ---\n{stdout}\n--- stderr ---\n{stderr}",
+        "\n$ pkm {}\n--- exit {code} ---\n--- stdout ---\n{stdout}\n--- stderr ---\n{stderr}",
         case.args.join(" ")
     );
     let fail = |what: String| Err(format!("{what}{context}"));

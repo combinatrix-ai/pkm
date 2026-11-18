@@ -26,7 +26,7 @@ static WIKI: LazyLock<Regex> = LazyLock::new(|| {
 });
 
 /// What a bare markdown destination may contain, shared by every pattern in
-/// knapper that reads one.
+/// pkm that reads one.
 ///
 /// Three files used to spell this out separately, and every one of them was
 /// wrong in a different way: one stopped at whitespace and lost `<With

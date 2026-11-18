@@ -2,18 +2,18 @@ use std::path::Path;
 use std::process::{Command, Output};
 
 fn run(root: &Path, args: &[&str]) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_knapper"))
+    Command::new(env!("CARGO_BIN_EXE_pkm"))
         .args(args)
         .current_dir(root)
         .env("HOME", root)
-        .env("KNAPPER_NO_UPDATE_CHECK", "1")
+        .env("PKM_NO_UPDATE_CHECK", "1")
         .output()
         .unwrap()
 }
 
 fn vault(body: &str) -> tempfile::TempDir {
     let dir = tempfile::tempdir().unwrap();
-    std::fs::write(dir.path().join("knapper.yaml"), "vault_path: .\n").unwrap();
+    std::fs::write(dir.path().join("pkm.yaml"), "vault_path: .\n").unwrap();
     std::fs::write(dir.path().join("Tasks.md"), body).unwrap();
     dir
 }

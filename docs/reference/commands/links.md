@@ -1,9 +1,9 @@
-# knapper links
+# pkm links
 
 ```text
 List outgoing links from a file
 
-Usage: knapper links [OPTIONS] <FILE>
+Usage: pkm links [OPTIONS] <FILE>
 
 Arguments:
   <FILE>

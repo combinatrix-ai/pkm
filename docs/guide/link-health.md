@@ -1,7 +1,7 @@
 # Broken links include headings and block IDs
 
 A link is only healthy when its complete destination exists. Resolving the
-note is not enough when the link names an anchor: knapper also checks that the
+note is not enough when the link names an anchor: pkm also checks that the
 heading or Obsidian block ID exists in the resolved Markdown note.
 
 | Form | What is checked |

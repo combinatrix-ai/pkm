@@ -1,6 +1,6 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/combinatrix-ai/knapper/main/schema/knapper.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/combinatrix-ai/pkm/main/schema/pkm.schema.json
 #
-# This file is the starting point for a knapper vault. YAML-aware editors can
+# This file is the starting point for a pkm vault. YAML-aware editors can
 # use the schema above for completion, hover documentation and diagnostics.
 
 vault_path: .
@@ -16,7 +16,7 @@ exclude:                  # subtrees no whole-vault command should read
 # lint:
 #   rules:
 #     # Rules are enabled by default. A disabled rule is omitted from a plain
-#     # `knapper lint`, but `knapper lint --check RULE` still runs it.
+#     # `pkm lint`, but `pkm lint --check RULE` still runs it.
 #     broken-links:
 #       enabled: true
 #       # include: [Projects/]  # source/file paths covered by this rule
@@ -42,7 +42,7 @@ exclude:                  # subtrees no whole-vault command should read
 #   #         status:
 #   #           type: string
 #   #           enum: [open, deciding, decided, dropped]
-# templates:              # named templates for `knapper new TITLE --template NAME`
+# templates:              # named templates for `pkm new TITLE --template NAME`
 #   Project:
 #     file: Templates/Project.md
 #     folder: Projects

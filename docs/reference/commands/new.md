@@ -1,9 +1,9 @@
-# knapper new
+# pkm new
 
 ```text
 Create a note from a configured template or a template file
 
-Usage: knapper new [OPTIONS] --template <TEMPLATE> <TITLE>
+Usage: pkm new [OPTIONS] --template <TEMPLATE> <TITLE>
 
 Arguments:
   <TITLE>

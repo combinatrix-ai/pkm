@@ -7,19 +7,19 @@ const commands = readdirSync(new URL('../../docs/reference/commands', import.met
   .sort();
 
 export default defineConfig({
-  title: 'knapper',
-  description: "Your notes don't need an app anymore. knapper gives your agent what the app knew about your Markdown: links, metadata, tasks, and safe renames.",
-  base: process.env.KNAPPER_SITE_BASE || '/knapper/',
+  title: 'pkm',
+  description: "Your notes don't need an app anymore. pkm gives your agent what the app knew about your Markdown: links, metadata, tasks, and safe renames.",
+  base: process.env.PKM_SITE_BASE || '/pkm/',
   cleanUrls: true,
   appearance: false,
   head: [['meta', { name: 'theme-color', content: '#216546' }]],
   themeConfig: {
-    siteTitle: 'knapper /',
+    siteTitle: 'pkm /',
     nav: [
       { text: 'Quick start', link: '/guide/quick-start' },
       { text: 'Guides', link: '/guide/' },
       { text: 'CLI', link: '/reference/' },
-      { text: 'GitHub', link: 'https://github.com/combinatrix-ai/knapper' },
+      { text: 'GitHub', link: 'https://github.com/combinatrix-ai/pkm' },
     ],
     sidebar: [
       { text: 'Get started', items: [

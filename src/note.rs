@@ -198,10 +198,10 @@ mod tests {
     /// so they are read without a Logseq-specific path.
     #[test]
     fn logseq_page_properties_are_read() {
-        let parsed = note("title:: Knapper\ntags:: tooling, cli\nid:: 663f0a11\n\n- a block\n");
+        let parsed = note("title:: pkm\ntags:: tooling, cli\nid:: 663f0a11\n\n- a block\n");
         assert_eq!(
             parsed.inline_fields.get("title").map(String::as_str),
-            Some("Knapper")
+            Some("pkm")
         );
         assert_eq!(
             parsed.inline_fields.get("tags").map(String::as_str),
@@ -216,7 +216,7 @@ mod tests {
     /// `alias::` is Logseq's equivalent of Obsidian's `aliases:` property.
     #[test]
     fn a_logseq_alias_property_becomes_an_alias() {
-        let parsed = note("title:: Knapper\nalias:: knap, the tool\n\n- body\n");
+        let parsed = note("title:: pkm\nalias:: knap, the tool\n\n- body\n");
         assert!(parsed.aliases.contains(&"knap".to_string()));
         assert!(parsed.aliases.contains(&"the tool".to_string()));
     }

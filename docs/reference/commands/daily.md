@@ -1,9 +1,9 @@
-# knapper daily
+# pkm daily
 
 ```text
 Create or get daily note
 
-Usage: knapper daily [OPTIONS] [DATE]
+Usage: pkm daily [OPTIONS] [DATE]
 
 Arguments:
   [DATE]

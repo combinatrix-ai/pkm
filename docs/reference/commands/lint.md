@@ -1,9 +1,9 @@
-# knapper lint
+# pkm lint
 
 ```text
 Check vault health (exit 1 when any issues are found)
 
-Usage: knapper lint [OPTIONS] [FILE]...
+Usage: pkm lint [OPTIONS] [FILE]...
 
 Arguments:
   [FILE]...  Vault-relative or absolute note filenames (repeatable)

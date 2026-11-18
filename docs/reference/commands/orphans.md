@@ -1,9 +1,9 @@
-# knapper orphans
+# pkm orphans
 
 ```text
 Find orphan notes (not linked by any other note)
 
-Usage: knapper orphans [OPTIONS]
+Usage: pkm orphans [OPTIONS]
 
 Options:
   -c, --config <CONFIG>  Path to config file

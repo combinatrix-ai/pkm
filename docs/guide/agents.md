@@ -5,19 +5,19 @@
 is made to be piped:
 
 ```bash
-knapper backlinks "Projects/recipe.md" --format json | jq -r '.[].source'
-knapper broken-links --format paths
-knapper frontmatter set "Projects/x.md" status done
+pkm backlinks "Projects/recipe.md" --format json | jq -r '.[].source'
+pkm broken-links --format paths
+pkm frontmatter set "Projects/x.md" status done
 ```
 
-`knapper links FILE` lists a note's outgoing links and `knapper backlinks FILE`
+`pkm links FILE` lists a note's outgoing links and `pkm backlinks FILE`
 its incoming ones; both take `-A`/`-B` for surrounding lines.
 
 And `context` aggregates what a model would otherwise need five calls to
 gather — content, outgoing links, backlinks, tags, headings, stats:
 
 ```bash
-knapper context "Notes/Lit Review.md"
+pkm context "Notes/Lit Review.md"
 ```
 
 ```json
@@ -39,9 +39,9 @@ hit, and includes a compact first-layer document map plus the complete heading
 breadcrumb:
 
 ```bash
-knapper context "Notes/Lit Review.md" --line 9
-knapper context "Notes/Lit Review.md" --line 9 -B 1 -A 8 --format json
-knapper context "Notes/Lit Review.md" --line 9 --section
+pkm context "Notes/Lit Review.md" --line 9
+pkm context "Notes/Lit Review.md" --line 9 -B 1 -A 8 --format json
+pkm context "Notes/Lit Review.md" --line 9 --section
 ```
 
 `--section` selects the smallest enclosing Markdown section and cannot be
@@ -84,13 +84,13 @@ truncation marker.
 
 ## The skill ships inside the binary
 
-An agent host does not need this repository to learn how to drive knapper:
+An agent host does not need this repository to learn how to drive pkm:
 
 ```bash
-knapper skill              # print it
-knapper skill --install    # write it into ~/.claude and ~/.codex
+pkm skill              # print it
+pkm skill --install    # write it into ~/.claude and ~/.codex
 ```
 
-`install.sh` registers it for you, and `knapper self-update` re-registers it,
+`install.sh` registers it for you, and `pkm self-update` re-registers it,
 so the instructions an agent reads cannot drift behind the binary they
-describe. The source is [`assets/knapper-skill.md`](../../assets/knapper-skill.md).
+describe. The source is [`assets/pkm-skill.md`](../../assets/pkm-skill.md).

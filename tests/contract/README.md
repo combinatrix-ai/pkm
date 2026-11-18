@@ -1,6 +1,6 @@
 # The contract
 
-`cases.yaml` describes what the `knapper` command line does, as data rather
+`cases.yaml` describes what the `pkm` command line does, as data rather
 than as code. Each case names a fixture vault, an argument list, and what the
 result must look like.
 
@@ -64,11 +64,11 @@ declares one — outside the vault, because that is the rule being tested:
 ```yaml
 - name: broker / resolve prints what the provider command wrote
   vault: bare
-  providers: |                       # written to <tmp>/config/knapper/providers.yaml
+  providers: |                       # written to <tmp>/config/pkm/providers.yaml
     providers:
       personal:
         command: [printf, "%s\n", "value-of-{locator}"]
-  args: [resolve, "knapper://personal/address.home"]
+  args: [resolve, "pkm://personal/address.home"]
   expect:
     lines: ["value-of-address.home"]
     providers:                       # the same file, read back after the run
@@ -76,7 +76,7 @@ declares one — outside the vault, because that is the rule being tested:
 ```
 
 The provider commands in these cases are `printf`, `true` and `false`.
-knapper is provider-agnostic, so a fixture provider is just a command that
+pkm is provider-agnostic, so a fixture provider is just a command that
 produces known bytes.
 
 ## Fixtures
@@ -87,13 +87,13 @@ Logseq, org-mode and the rest -- and backs the compatibility claims in
 
 `fixtures/behaviour/` holds vaults that belong to no ecosystem and exist to
 pin behaviour: `bare` has no config at all, `configured` exercises what
-`knapper.yaml` can change, `vaultproviders` declares a `providers:` block
+`pkm.yaml` can change, `vaultproviders` declares a `providers:` block
 that must never be executed or accepted, `refactor` collects every form a link
 can take so a rename has something to get wrong, and `repair` collects every
 kind of broken link — the ones a stale path settles, the ones two files answer
 to, and the ones nothing on disk can settle.
 
-Every other fixture's config must be one knapper accepts. Configs are
+Every other fixture's config must be one pkm accepts. Configs are
 validated strictly, so a fixture carrying an unknown key fails every case that
 uses it rather than the one that meant to test the key.
 

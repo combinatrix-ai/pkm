@@ -28,7 +28,7 @@ impl Vault {
         let vault = Vault {
             root: tempfile::tempdir().unwrap(),
         };
-        vault.write("knapper.yaml", "vault_path: .\n");
+        vault.write("pkm.yaml", "vault_path: .\n");
         for (path, content) in files {
             vault.write(path, content);
         }
@@ -80,11 +80,11 @@ impl Vault {
     }
 
     fn run(&self, args: &[&str]) -> Run {
-        let output = Command::new(env!("CARGO_BIN_EXE_knapper"))
+        let output = Command::new(env!("CARGO_BIN_EXE_pkm"))
             .args(args)
             .current_dir(self.path())
             .output()
-            .expect("knapper runs");
+            .expect("pkm runs");
         Run {
             code: output.status.code().unwrap_or(-1),
             stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
@@ -267,7 +267,7 @@ fn an_excluded_note_is_never_rewritten() {
         ("note.md", "[[Topic]]\n"),
         ("Archives/old.md", "[[Topic]]\n"),
     ]);
-    vault.write("knapper.yaml", "vault_path: .\nexclude:\n  - Archives/\n");
+    vault.write("pkm.yaml", "vault_path: .\nexclude:\n  - Archives/\n");
 
     let run = vault.run(&["demote", "Topic", "--format", "json"]).ok();
     assert_eq!(run.json()["links_updated"], 1);
@@ -329,7 +329,7 @@ fn a_target_that_cannot_be_a_tag_is_refused_with_a_way_forward() {
     assert_eq!(vault.read("note.md"), "#work/daily\n");
 }
 
-/// knapper reads org and does not rewrite it. A link it cannot touch is
+/// pkm reads org and does not rewrite it. A link it cannot touch is
 /// reported with the line it is on, not silently dropped from the plan.
 #[test]
 fn an_org_link_is_reported_and_left_alone() {
@@ -425,7 +425,9 @@ fn a_tag_never_becomes_a_graph_node() {
     vault
         .run(&["backlinks", "#SF読書会", "--format", "json"])
         .ok();
-    vault.run(&["context", "#SF読書会", "--format", "json"]).ok();
+    vault
+        .run(&["context", "#SF読書会", "--format", "json"])
+        .ok();
 
     for command in ["orphans", "hubs", "broken-links"] {
         let out = vault.run(&[command, "--format", "json"]).ok().stdout;

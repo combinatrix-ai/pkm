@@ -1,19 +1,19 @@
 # Hard links and soft tags
 
 ```bash
-knapper tags                        # list tags across the vault
-knapper tags Notes/Example.md       # list tags in one note
-knapper tags --find research        # find notes carrying a tag
-knapper backlinks '#research'       # inspect occurrences
-knapper context '#research' --format json
+pkm tags                        # list tags across the vault
+pkm tags Notes/Example.md       # list tags in one note
+pkm tags --find research        # find notes carrying a tag
+pkm backlinks '#research'       # inspect occurrences
+pkm context '#research' --format json
 ```
 
 A vault that has been written in for years is full of `[[book-club]]` — square
 brackets used as a highlighter, never as a promise that a note by that name
-exists. knapper is right to call those broken links, and the fix is not to
+exists. pkm is right to call those broken links, and the fix is not to
 soften the report. It is to write what was meant.
 
-So knapper distinguishes two kinds of reference:
+So pkm distinguishes two kinds of reference:
 
 | | means | missing target | in the graph |
 |---|---|---|---|
@@ -25,7 +25,7 @@ A tag is not a note and never becomes one. It is not an orphan, not a hub, and
 a label you cannot follow is only half a label:
 
 ```
-$ knapper backlinks '#book-club'
+$ pkm backlinks '#book-club'
 
 Daily/2026-07-01.md (line 10) #book-club
 
@@ -44,7 +44,7 @@ writing a path for it, `./#notes.md`.
 note that does not exist:
 
 ```bash
-knapper context '#book-club' --format json
+pkm context '#book-club' --format json
 ```
 
 ```json
@@ -96,7 +96,7 @@ The matching rules are deliberately narrow, and the same in both commands:
 `demote` is the migration: it rewrites the **exact** form and nothing else.
 
 ```
-$ knapper demote "book-club" --dry-run
+$ pkm demote "book-club" --dry-run
 [DRY RUN] Demoting [[book-club]] -> #book-club
   Would update 2 links in 2 files:
     Daily/2026-07-01.md
@@ -121,7 +121,7 @@ passed over in silence, because those are the ones still to deal with by hand:
 | `path-qualified` | `[[Folder/X]]` — a path names a file, not a topic |
 | `adjacent text` | `saw[[X]]again` — `#Xagain` would be a *different* tag |
 | `frontmatter` | a YAML value is not prose, and `#X` in one is a string |
-| `org-mode` | knapper reads org and does not rewrite it, here as elsewhere |
+| `org-mode` | pkm reads org and does not rewrite it, here as elsewhere |
 
 Code fences, inline code and `%%comments%%` are neither rewritten nor
 reported: there are no references in them to report. Excluded subtrees are

@@ -1,9 +1,9 @@
-# knapper skill
+# pkm skill
 
 ```text
 Print the embedded agent skill, or register it with the agents here
 
-Usage: knapper skill [OPTIONS]
+Usage: pkm skill [OPTIONS]
 
 Options:
   -c, --config <CONFIG>  Path to config file

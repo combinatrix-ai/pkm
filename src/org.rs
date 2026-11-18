@@ -121,7 +121,7 @@ pub fn normalize_org_target(raw: &str) -> Option<String> {
 /// character to a single space rather than to its own width, so an offset
 /// taken from the masked text does not point at the same byte in the file --
 /// enough for a line number, which counts newlines, and not enough to edit
-/// with. knapper reads org and never rewrites it, so a line is all a report
+/// with. pkm reads org and never rewrites it, so a line is all a report
 /// needs.
 #[derive(Debug, Clone)]
 pub struct OrgLink {

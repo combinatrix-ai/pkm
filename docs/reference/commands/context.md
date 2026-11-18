@@ -1,9 +1,9 @@
-# knapper context
+# pkm context
 
 ```text
 Get comprehensive context for a file or a '#tag' (for LLMs)
 
-Usage: knapper context [OPTIONS] <FILE|#TAG>
+Usage: pkm context [OPTIONS] <FILE|#TAG>
 
 Arguments:
   <FILE|#TAG>  A note, or a '#tag' to read as a virtual topic

@@ -1,4 +1,4 @@
-//! knapper - a headless CLI for markdown knowledge bases.
+//! pkm - a headless CLI for markdown knowledge bases.
 //!
 //! Reads and writes note files directly; nothing needs to be running.
 //! Behaviour is pinned by tests/contract/cases.yaml, which this binary and the
@@ -36,10 +36,10 @@ use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 #[command(
-    name = "knapper",
+    name = "pkm",
     version,
     about = "A headless CLI for markdown knowledge bases",
-    long_about = "knapper - a headless CLI for markdown knowledge bases.\n\n\
+    long_about = "pkm - a headless CLI for markdown knowledge bases.\n\n\
                   Reads and writes markdown files directly; nothing needs to be running.\n\
                   Resolves both [[wikilinks]] and [inline](links.md)."
 )]
@@ -265,7 +265,7 @@ enum Command {
         name = "repair-links",
         long_about = "Plan repairs for links that are already broken.\n\n\
         This is the other half of `rename` and `move`: they keep links intact through a\n\
-        refactor knapper performs, and this reports the ones that broke while knapper was\n\
+        refactor pkm performs, and this reports the ones that broke while pkm was\n\
         not looking -- a folder reorganised elsewhere, an exporter's stale path.\n\n\
         A repair is proposed only where the filesystem settles it: exactly one file, reached\n\
         by an exact structural transformation of the target as written. A resemblance is\n\
@@ -279,12 +279,12 @@ enum Command {
         #[arg(short = 'f', long = "format", default_value = "text")]
         format: String,
     },
-    /// Initialize a new knapper config file.
+    /// Initialize a new pkm config file.
     Init {
         #[arg(short = 'f', long = "force")]
         force: bool,
     },
-    /// Inspect or print the knapper YAML configuration schema.
+    /// Inspect or print the pkm YAML configuration schema.
     #[command(subcommand)]
     Config(ConfigCommand),
     /// Print the embedded agent skill, or register it with the agents here.
@@ -548,7 +548,7 @@ enum Command {
         #[arg(short = 'f', long = "format", default_value = "text")]
         format: String,
     },
-    /// List external references (knapper://provider/locator) in the vault.
+    /// List external references (pkm://provider/locator) in the vault.
     Refs {
         file: Option<String>,
         #[arg(long = "provider", help = "Only references naming this provider")]
@@ -558,7 +558,7 @@ enum Command {
     },
     /// Read the value behind one reference, through its provider's command.
     Resolve {
-        #[arg(value_name = "REFERENCE", help = "knapper://<provider>/<locator>")]
+        #[arg(value_name = "REFERENCE", help = "pkm://<provider>/<locator>")]
         reference: String,
         #[arg(long = "timeout", value_name = "SECS", help = "Give up after SECS")]
         timeout: Option<f64>,

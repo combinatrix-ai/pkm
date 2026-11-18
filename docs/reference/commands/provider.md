@@ -1,9 +1,9 @@
-# knapper provider
+# pkm provider
 
 ```text
 Configure the commands that resolve references
 
-Usage: knapper provider [OPTIONS] <COMMAND>
+Usage: pkm provider [OPTIONS] <COMMAND>
 
 Commands:
   list    List the configured providers and the commands they run
@@ -17,12 +17,12 @@ Options:
   -h, --help             Print help
 ```
 
-## knapper provider list
+## pkm provider list
 
 ```text
 List the configured providers and the commands they run
 
-Usage: knapper provider list [OPTIONS]
+Usage: pkm provider list [OPTIONS]
 
 Options:
   -c, --config <CONFIG>  Path to config file
@@ -31,12 +31,12 @@ Options:
   -h, --help             Print help
 ```
 
-## knapper provider set
+## pkm provider set
 
 ```text
 Define or replace one provider's command
 
-Usage: knapper provider set [OPTIONS] <NAME> -- <COMMAND>...
+Usage: pkm provider set [OPTIONS] <NAME> -- <COMMAND>...
 
 Arguments:
   <NAME>
@@ -48,12 +48,12 @@ Options:
   -h, --help             Print help
 ```
 
-## knapper provider remove
+## pkm provider remove
 
 ```text
 Forget one provider
 
-Usage: knapper provider remove [OPTIONS] <NAME>
+Usage: pkm provider remove [OPTIONS] <NAME>
 
 Arguments:
   <NAME>

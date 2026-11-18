@@ -1,7 +1,7 @@
 import { readFile, writeFile, mkdir, rm, readdir } from 'node:fs/promises';
 import path from 'node:path';
 
-const REPO = 'https://github.com/combinatrix-ai/knapper';
+const REPO = 'https://github.com/combinatrix-ai/pkm';
 const DOCS = 'docs';
 const SITE = 'website';
 

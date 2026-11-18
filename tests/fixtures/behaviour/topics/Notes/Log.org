@@ -2,5 +2,5 @@
 #+filetags: :work/events:
 
 * 発表メモ :SF読書会:
-knapper reads org and does not rewrite it, so this [[SF読書会]] is reported
+pkm reads org and does not rewrite it, so this [[SF読書会]] is reported
 rather than demoted.

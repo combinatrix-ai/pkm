@@ -1,9 +1,9 @@
-# knapper fields
+# pkm fields
 
 ```text
 List what query can filter on, computed and declared
 
-Usage: knapper fields [OPTIONS]
+Usage: pkm fields [OPTIONS]
 
 Options:
   -c, --config <CONFIG>  Path to config file

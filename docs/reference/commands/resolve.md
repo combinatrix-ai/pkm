@@ -1,12 +1,12 @@
-# knapper resolve
+# pkm resolve
 
 ```text
 Read the value behind one reference, through its provider's command
 
-Usage: knapper resolve [OPTIONS] <REFERENCE>
+Usage: pkm resolve [OPTIONS] <REFERENCE>
 
 Arguments:
-  <REFERENCE>  knapper://<provider>/<locator>
+  <REFERENCE>  pkm://<provider>/<locator>
 
 Options:
   -c, --config <CONFIG>  Path to config file

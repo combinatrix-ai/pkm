@@ -1,9 +1,9 @@
-# knapper tasks
+# pkm tasks
 
 ```text
 Find and filter tasks (- [ ] items) in the vault
 
-Usage: knapper tasks [OPTIONS] [COMMAND]
+Usage: pkm tasks [OPTIONS] [COMMAND]
 
 Commands:
   new     Create a new task
@@ -82,12 +82,12 @@ Options:
           Print help
 ```
 
-## knapper tasks new
+## pkm tasks new
 
 ```text
 Create a new task
 
-Usage: knapper tasks new [OPTIONS] <TEXT>
+Usage: pkm tasks new [OPTIONS] <TEXT>
 
 Arguments:
   <TEXT>
@@ -104,12 +104,12 @@ Options:
   -h, --help                   Print help
 ```
 
-## knapper tasks done
+## pkm tasks done
 
 ```text
 Mark a task as done, adding the next occurrence of a recurring one
 
-Usage: knapper tasks done [OPTIONS] [TEXT]...
+Usage: pkm tasks done [OPTIONS] [TEXT]...
 
 Arguments:
   [TEXT]...
@@ -125,12 +125,12 @@ Options:
   -h, --help                 Print help
 ```
 
-## knapper tasks wip
+## pkm tasks wip
 
 ```text
 Mark a task as in progress
 
-Usage: knapper tasks wip [OPTIONS] [TEXT]
+Usage: pkm tasks wip [OPTIONS] [TEXT]
 
 Arguments:
   [TEXT]
@@ -144,12 +144,12 @@ Options:
   -h, --help                 Print help
 ```
 
-## knapper tasks cancel
+## pkm tasks cancel
 
 ```text
 Mark a task as cancelled
 
-Usage: knapper tasks cancel [OPTIONS] [TEXT]...
+Usage: pkm tasks cancel [OPTIONS] [TEXT]...
 
 Arguments:
   [TEXT]...
@@ -164,12 +164,12 @@ Options:
   -h, --help                 Print help
 ```
 
-## knapper tasks set
+## pkm tasks set
 
 ```text
 Transition a task to a named status
 
-Usage: knapper tasks set [OPTIONS] <STATUS> [TEXT]
+Usage: pkm tasks set [OPTIONS] <STATUS> [TEXT]
 
 Arguments:
   <STATUS>

@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/combinatrix-ai/knapper/main/schema/knapper.schema.json",
-  "title": "Knapper configuration",
-  "description": "Configuration for the knapper CLI and its vault-level commands.",
+  "$id": "https://raw.githubusercontent.com/combinatrix-ai/pkm/main/schema/pkm.schema.json",
+  "title": "pkm configuration",
+  "description": "Configuration for the pkm CLI and its vault-level commands.",
   "type": ["object", "null"],
   "additionalProperties": false,
   "properties": {
@@ -17,7 +17,7 @@
     },
     "templates": {
       "type": "object",
-      "description": "Named templates for knapper new. Paths are relative to the vault.",
+      "description": "Named templates for pkm new. Paths are relative to the vault.",
       "additionalProperties": {
         "type": "object",
         "additionalProperties": false,
@@ -130,7 +130,7 @@
       "properties": {
         "enabled": {
           "type": "boolean",
-          "description": "Include this check in a plain knapper lint run."
+          "description": "Include this check in a plain pkm lint run."
         },
         "include": {
           "$ref": "#/$defs/stringList",

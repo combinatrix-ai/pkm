@@ -1,4 +1,4 @@
-//! What `knapper daily` does when the template it was told to use is not
+//! What `pkm daily` does when the template it was told to use is not
 //! there.
 //!
 //! This is the case a contract case cannot state: the assertion is about what
@@ -17,17 +17,17 @@ use tempfile::TempDir;
 /// search cannot reach the one belonging to whoever is running the suite.
 fn vault(config: &str) -> TempDir {
     let dir = tempfile::tempdir().unwrap();
-    std::fs::write(dir.path().join("knapper.yaml"), config).unwrap();
+    std::fs::write(dir.path().join("pkm.yaml"), config).unwrap();
     dir
 }
 
-fn knapper(vault: &Path, args: &[&str]) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_knapper"))
+fn pkm(vault: &Path, args: &[&str]) -> Output {
+    Command::new(env!("CARGO_BIN_EXE_pkm"))
         .args(args)
         .current_dir(vault)
         .env("HOME", vault)
         .output()
-        .expect("knapper runs")
+        .expect("pkm runs")
 }
 
 fn write(vault: &Path, relative: &str, body: &str) {
@@ -43,7 +43,7 @@ const NO_TEMPLATE: &str = "vault_path: .\ndaily_notes:\n  folder: Journal\n";
 #[test]
 fn a_missing_configured_template_fails_and_creates_nothing() {
     let dir = vault(CONFIGURED);
-    let out = knapper(dir.path(), &["daily"]);
+    let out = pkm(dir.path(), &["daily"]);
 
     assert!(!out.status.success(), "expected a failure exit");
 
@@ -68,7 +68,7 @@ fn a_missing_configured_template_fails_and_creates_nothing() {
         .unwrap()
         .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
         .collect();
-    assert_eq!(left, ["knapper.yaml"], "the vault gained files");
+    assert_eq!(left, ["pkm.yaml"], "the vault gained files");
 }
 
 /// `--path-only` and `--format json` are output flags, not dry runs: they
@@ -81,7 +81,7 @@ fn every_output_mode_fails_the_same_way() {
         vec!["daily", "yesterday"],
     ] {
         let dir = vault(CONFIGURED);
-        let out = knapper(dir.path(), &args);
+        let out = pkm(dir.path(), &args);
         assert!(!out.status.success(), "{args:?} succeeded");
         assert!(
             String::from_utf8_lossy(&out.stdout).trim().is_empty(),
@@ -103,12 +103,12 @@ fn an_existing_daily_note_is_still_reachable_without_its_template() {
     // The same vault minus the template setting names today's note for us,
     // so this test does not have to keep its own clock.
     let scratch = vault(NO_TEMPLATE);
-    let out = knapper(scratch.path(), &["daily", "--path-only"]);
+    let out = pkm(scratch.path(), &["daily", "--path-only"]);
     let dated = String::from_utf8_lossy(&out.stdout).trim().to_string();
 
     write(dir.path(), &dated, "# already here\n");
 
-    let out = knapper(dir.path(), &["daily", "--path-only"]);
+    let out = pkm(dir.path(), &["daily", "--path-only"]);
     assert!(
         out.status.success(),
         "{}",
@@ -127,7 +127,7 @@ fn an_existing_daily_note_is_still_reachable_without_its_template() {
 #[test]
 fn a_vault_with_no_configured_template_gets_a_plain_dated_note() {
     let dir = vault(NO_TEMPLATE);
-    let out = knapper(dir.path(), &["daily", "--format", "json"]);
+    let out = pkm(dir.path(), &["daily", "--format", "json"]);
     assert!(
         out.status.success(),
         "{}",
@@ -150,7 +150,7 @@ fn a_configured_template_that_exists_is_expanded() {
     let dir = vault(CONFIGURED);
     write(dir.path(), "assets/daily.md", "# {{title}}\n\n- [ ] plan\n");
 
-    let out = knapper(dir.path(), &["daily", "--format", "json"]);
+    let out = pkm(dir.path(), &["daily", "--format", "json"]);
     assert!(
         out.status.success(),
         "{}",

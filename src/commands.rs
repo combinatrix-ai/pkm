@@ -12,7 +12,7 @@ use crate::parser::{extract_links, mask_noncontent};
 use crate::repair;
 use crate::vault::{all_notes, relative_path, resolve_path, Config};
 
-/// Every JSON value knapper prints goes through here, so non-ASCII stays
+/// Every JSON value pkm prints goes through here, so non-ASCII stays
 /// readable rather than becoming \uXXXX escapes.
 fn print_json(value: &serde_json::Value) {
     println!("{}", serde_json::to_string_pretty(value).unwrap());
@@ -163,7 +163,7 @@ pub fn orphans(config: &Config, format: &str, include_special: bool) -> Result<(
     let graph = build_link_graph(config);
 
     // A folder of templates is not special by name: a vault that does not
-    // want its templates counted excludes them in `knapper.yaml`, the
+    // want its templates counted excludes them in `pkm.yaml`, the
     // same way it hides any other subtree. Only hidden files are dropped
     // here, and `--include-special` is what asks for them back.
     let orphans: Vec<String> = graph
@@ -192,7 +192,7 @@ pub fn hubs(config: &Config, limit: usize, format: &str) -> Result<()> {
         .incoming
         .iter()
         // Excluded notes and attachment files are valid leaf targets in the
-        // resolver, but they are not part of knapper's note graph for
+        // resolver, but they are not part of pkm's note graph for
         // reporting purposes. Keep hubs a ranking of queryable notes.
         .filter(|(file, _)| graph.files.contains(*file))
         .map(|(file, sources)| (file.clone(), sources.len()))
@@ -312,7 +312,7 @@ pub fn broken_links(config: &Config, format: &str, all: bool) -> Result<()> {
             }
             let counts = repair::counts(&occurrences);
             println!(
-                "\n{} could be repaired safely; see `knapper repair-links --dry-run`.",
+                "\n{} could be repaired safely; see `pkm repair-links --dry-run`.",
                 counts[repair::SAFE]
             );
         }

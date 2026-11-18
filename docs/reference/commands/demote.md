@@ -1,4 +1,4 @@
-# knapper demote
+# pkm demote
 
 ```text
 Demote a wikilink target to a tag.
@@ -8,7 +8,7 @@ topic reference: it labels a note and promises no note exists. This rewrites the
 exact form -- [[X]] becomes #X -- and reports every occurrence it will not touch,
 such as [[X|alias]], [[X#heading]], ![[X]] and [[folder/X]].
 
-Usage: knapper demote [OPTIONS] <TARGET>
+Usage: pkm demote [OPTIONS] <TARGET>
 
 Arguments:
   <TARGET>

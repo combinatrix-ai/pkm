@@ -13,9 +13,9 @@ npm run docs:build
 npm run docs:preview
 ```
 
-The output is `website/.vitepress/dist/`, configured for `/knapper/`.
+The output is `website/.vitepress/dist/`, configured for `/pkm/`.
 A pull request builds the site but does not deploy it. Pushing a `v*` release
-tag from `main` deploys it to GitHub Pages at `combinatrix.ai/knapper/`
+tag from `main` deploys it to GitHub Pages at `combinatrix.ai/pkm/`
 (`.github/workflows/pages.yml`); the same workflow can be run by hand.
 
 VitePress is pinned to 2.0.0-alpha.21. The older stable series currently pulls
@@ -23,9 +23,9 @@ dependencies with reported vulnerabilities; run `npm audit` when updating.
 The generated output is static and needs no Node.js runtime in production.
 
 Command output on the landing page is real output from a synthetic vault.
-Regenerate it with `cargo build --bin knapper` and
+Regenerate it with `cargo build --bin pkm` and
 `python3 scripts/capture-examples.py`. The questions and the agent's replies
 are written by hand in that script; keep them consistent with the output. No
 user notes or live account data are used.
 
-Set `KNAPPER_SITE_BASE` to build for a path other than `/knapper/`.
+Set `PKM_SITE_BASE` to build for a path other than `/pkm/`.

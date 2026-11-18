@@ -5,7 +5,7 @@
       "you": "Rename the Redesign project to Relaunch.",
       "agent": "Renamed. The three notes that linked to it now point to Relaunch.",
       "caption": "A rename that carries every link with it.",
-      "command": "knapper rename Redesign Relaunch",
+      "command": "pkm rename Redesign Relaunch",
       "result": "Renaming: Projects/Redesign.md -> Projects/Relaunch.md\nFound 3 files with links to update\n  Updated 1 links in Diary/2026-01-12.md\n  Updated 1 links in Meetings/Kickoff.md\n  Updated 1 links in Index.md\n\nDone! Renamed and updated 3 links in 3 files."
     },
     {
@@ -13,7 +13,7 @@
       "you": "What's overdue?",
       "agent": "Two things: send the proposal (Jan 15) and book the user sessions (Jan 20). Want me to move either one?",
       "caption": "Tasks from every note, filtered by date, status, or tag.",
-      "command": "knapper tasks --overdue",
+      "command": "pkm tasks --overdue",
       "result": "Projects/Tasks.md:\n  3: - [ ] Send the proposal 📅 2026-01-15\n  4: - [ ] Book the user sessions 📅 2026-01-20\n\nFound 2 tasks in 1 files"
     },
     {
@@ -21,7 +21,7 @@
       "you": "Where have I mentioned the redesign?",
       "agent": "Three places: your index, the kickoff meeting note, and the Jan 12 diary entry.",
       "caption": "The backlinks pane, as an answer.",
-      "command": "knapper backlinks Projects/Redesign.md",
+      "command": "pkm backlinks Projects/Redesign.md",
       "result": "Diary/2026-01-12.md (line 3)\n\nMeetings/Kickoff.md (line 3)\n\nIndex.md (line 3)"
     },
     {
@@ -29,37 +29,37 @@
       "you": "Is anything broken?",
       "agent": "One broken link: Projects/Pricing.md points at \"Competitor notes\", which does not exist. Should I create it or fix the link?",
       "caption": "Every broken link, with the line and the reason.",
-      "command": "knapper broken-links",
-      "result": "Found 1 broken links in 1 files:\n\n  Projects/Pricing.md:\n    3: [[Competitor notes]] (missing-note, unresolved)\n\n0 could be repaired safely; see `knapper repair-links --dry-run`."
+      "command": "pkm broken-links",
+      "result": "Found 1 broken links in 1 files:\n\n  Projects/Pricing.md:\n    3: [[Competitor notes]] (missing-note, unresolved)\n\n0 could be repaired safely; see `pkm repair-links --dry-run`."
     }
   ],
   "snippets": {
     "rename": {
-      "command": "knapper rename Redesign Relaunch",
+      "command": "pkm rename Redesign Relaunch",
       "result": "Renaming: Projects/Redesign.md -> Projects/Relaunch.md\nFound 3 files with links to update\n  Updated 1 links in Diary/2026-01-12.md\n  Updated 1 links in Meetings/Kickoff.md\n  Updated 1 links in Index.md\n\nDone! Renamed and updated 3 links in 3 files."
     },
     "repair": {
-      "command": "knapper repair-links --dry-run",
+      "command": "pkm repair-links --dry-run",
       "result": "[DRY RUN] repair-links: 3 broken link occurrence(s) in 1 file(s)\n  safe 2, ambiguous 0, unresolved 1\n\nsafe (2)\n  Index.md:3:3  [[old/Meetings/Kickoff.md]] -> [[Meetings/Kickoff.md]]\n      Meetings/Kickoff.md (unique-path-suffix: the only file whose path ends with \"Meetings/Kickoff.md\", and \"Meetings/Kickoff.md\" resolves back to it)\n  Index.md:4:3  [[Projects/My%20Plan]] -> [[Projects/My Plan]]\n      Projects/My Plan.md (percent-decoding: decoding the target gives \"Projects/My Plan\", and \"Projects/My Plan\" resolves back to it)\n\nunresolved (1)\n  Index.md:5:3  [[Roam]]\n      missing-note: no file matches this target\n\nNothing was written. repair-links plans repairs; it never edits the vault."
     },
     "demote": {
-      "command": "knapper demote to-read --dry-run",
+      "command": "pkm demote to-read --dry-run",
       "result": "[DRY RUN] Demoting [[to-read]] -> #to-read\n  Would update 2 links in 2 files:\n    Diary/2026-01-12.md\n      3: [[to-read]] -> #to-read\n    Diary/2026-01-13.md\n      3: [[to-read]] -> #to-read\n  ⚠️ Diary/2026-01-12.md:4: [[to-read|the reading list]] cannot be demoted (alias)\n\nNothing was written."
     },
     "rules": {
-      "command": "knapper lint --check headings",
+      "command": "pkm lint --check headings",
       "result": "Running lint checks...\n\nMissing headings: 2\n  Projects/Redesign.md: Missing required heading: Next steps\n  Projects/Redesign.md: Missing required heading: Summary\n\nTotal issues: 2"
     },
     "refs": {
-      "command": "knapper refs Projects/Application.md",
-      "result": "Projects/Application.md:3:25  knapper://personal/address.home  Home address"
+      "command": "pkm refs Projects/Application.md",
+      "result": "Projects/Application.md:3:25  pkm://personal/address.home  Home address"
     },
     "movedir": {
-      "command": "knapper move Projects Archive/2025/",
+      "command": "pkm move Projects Archive/2025/",
       "result": "Moving directory: Projects -> Archive/2025/Projects\n  2 files (2 notes) move with it\n  Updated 1 links in Diary/2026-01-12.md\n  Updated 1 links in Index.md\n  Updated 1 links in Meetings/Kickoff.md\n\nDone! Moved Projects -> Archive/2025/Projects and updated 3 links in 3 files."
     },
     "context": {
-      "command": "knapper context Projects/Redesign.md --format json",
+      "command": "pkm context Projects/Redesign.md --format json",
       "result": "{\n  \"path\": \"Projects/Redesign.md\",\n  \"title\": \"Redesign\",\n  \"content\": \"# Redesign\\n\\nScope agreed in [[Meetings/Kickoff]].\\n\",\n  \"links\": [\n    \"Meetings/Kickoff\"\n  ],\n  \"backlinks\": [\n    \"Diary/2026-01-12.md\",\n    \"Index.md\",\n    \"Meetings/Kickoff.md\"\n  ],\n  \"headings\": [\n    {\n      \"level\": 1,\n      \"text\": \"Redesign\",\n      \"line\": 1\n    }\n  ],\n  \"stats\": {\n    \"chars\": 50,\n    \"words\": 6,\n    \"lines\": 4\n  }\n}"
     }
   },

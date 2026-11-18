@@ -1,9 +1,9 @@
-# knapper backlinks
+# pkm backlinks
 
 ```text
 List incoming links to a file, or the notes carrying a '#tag'
 
-Usage: knapper backlinks [OPTIONS] <FILE|#TAG>
+Usage: pkm backlinks [OPTIONS] <FILE|#TAG>
 
 Arguments:
   <FILE|#TAG>  A note, or a '#tag' to look up as a topic

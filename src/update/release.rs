@@ -22,7 +22,7 @@ const INSTALLER_SCRIPT: &str = include_str!("../../install.sh");
 
 const PKM_REPOSITORY: &str = "combinatrix-ai/pkm";
 const PKM_SOURCE_OWNER_ID: u64 = 139_831_903;
-const PKM_SOURCE_REPOSITORY_ID: u64 = 1_314_722_218;
+const PKM_SOURCE_REPOSITORY_ID: u64 = 1_462_514_749;
 const PKM_RELEASE_WORKFLOW_PATH: &str = ".github/workflows/release.yml";
 const PUBLIC_GOOD_CHECKPOINT_ORIGIN: &str = "rekor.sigstore.dev - 1193050959916656506";
 /// Verify and install `latest` over this release binary.
@@ -494,7 +494,7 @@ mod tests {
         assert_eq!(policy.source.repository.owner_id(), Some(139_831_903));
         assert_eq!(
             policy.source.repository.repository_id(),
-            Some(1_314_722_218)
+            Some(1_462_514_749)
         );
         assert_eq!(
             policy.source.git_ref,

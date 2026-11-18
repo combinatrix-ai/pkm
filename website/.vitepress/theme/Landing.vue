@@ -72,8 +72,8 @@ const more = [
     <section class="hero">
       <div>
         <p class="eyebrow">Markdown + your agent</p>
-        <h1>Your notes don't need<br>an app anymore.</h1>
-        <p class="hero-description">Your agent already reads and writes Markdown. pkm gives it what the app knew: links, metadata, tasks, and renames that don't break anything.</p>
+        <h1>Harness engineering<br>for your notes.</h1>
+        <p class="hero-description">Your agent already reads and writes Markdown. pkm is the harness around it: context to read, commands that write without breaking links, and lint that pushes back until the vault is clean.</p>
         <div class="hero-actions">
           <a class="primary-link" href="#install">Give it to your agent <span aria-hidden="true">↓</span></a>
           <a class="text-link" :href="withBase('/guide/quick-start')">Quick start <span aria-hidden="true">→</span></a>
@@ -96,22 +96,10 @@ const more = [
       </div>
     </section>
 
-    <section class="band recipe" aria-labelledby="why-title">
-      <div>
-        <p class="eyebrow">Why now</p>
-        <h2 id="why-title">The app was the interface.<br>Now the agent is.</h2>
-        <p>Note apps exist so a person can click through a folder of text files. If you ask an agent instead, the window has nothing left to do. What the agent still lacks is the app's understanding of your notes. That part is pkm.</p>
-      </div>
-      <div class="flows">
-        <div class="flow old"><small>Before</small><div class="chain"><span>You</span><i>→</i><span class="gone">Notes app</span><i>→</i><span>Markdown</span></div></div>
-        <div class="flow now"><small>Now</small><div class="chain"><span>You</span><i>→</i><span>Agent</span><i>→</i><span class="k">pkm</span><i>→</i><span>Markdown</span></div></div>
-      </div>
-    </section>
-
     <section class="band harness" aria-labelledby="harness-title">
       <p class="eyebrow">The harness</p>
-      <h2 id="harness-title">Harness engineering<br>for your notes.</h2>
-      <p>A model is only as good as the harness around it: what it can see, what it may change, and what tells it when it got something wrong. pkm is that harness for a folder of notes.</p>
+      <h2 id="harness-title">Context in.<br>Backpressure out.</h2>
+      <p>A model is only as good as what surrounds it. pkm is that layer for a folder of notes, in three parts.</p>
       <div class="parts">
         <article>
           <small>Context</small>
@@ -143,6 +131,18 @@ const more = [
         <pre tabindex="0" class="config">{{ rulesConfig }}</pre>
       </div>
       <p class="aside">Codex runs Stop hooks too. <a class="text-link" :href="withBase('/guide/lint')">Lint rules →</a></p>
+    </section>
+
+    <section class="band recipe" aria-labelledby="why-title">
+      <div>
+        <p class="eyebrow">Why now</p>
+        <h2 id="why-title">The app was the interface.<br>Now the agent is.</h2>
+        <p>Note apps exist so a person can click through a folder of text files. If you ask an agent instead, the window has nothing left to do. What the agent still lacks is the app's understanding of your notes. That part is pkm.</p>
+      </div>
+      <div class="flows">
+        <div class="flow old"><small>Before</small><div class="chain"><span>You</span><i>→</i><span class="gone">Notes app</span><i>→</i><span>Markdown</span></div></div>
+        <div class="flow now"><small>Now</small><div class="chain"><span>You</span><i>→</i><span>Agent</span><i>→</i><span class="k">pkm</span><i>→</i><span>Markdown</span></div></div>
+      </div>
     </section>
 
     <section class="band" aria-labelledby="grep-title">

@@ -26,12 +26,9 @@ use serde_json::{json, Value};
 
 use crate::commands::context_window;
 use crate::note::{frontmatter_tags, split_frontmatter};
+use crate::output::print_json;
 use crate::parser::{extract_tags, mask_noncontent};
 use crate::vault::{all_notes, is_org, relative_path, Config};
-
-fn print_json(value: &Value) {
-    println!("{}", serde_json::to_string_pretty(value).unwrap());
-}
 
 // ------------------------------------------------------------- selectors --
 

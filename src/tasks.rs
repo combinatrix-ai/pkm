@@ -14,6 +14,7 @@ use regex::Regex;
 use serde_json::json;
 
 use crate::org;
+use crate::output::print_json;
 use crate::parser::mask_noncontent;
 use crate::vault::{all_notes, is_org, relative_path, Config};
 
@@ -734,7 +735,7 @@ pub fn print_tasks(tasks: &[Task], format: &str, display: &Display) {
                     serde_json::Value::Object(item)
                 })
                 .collect();
-            println!("{}", serde_json::to_string_pretty(&items).unwrap());
+            print_json(&items);
         }
         "paths" => {
             let mut files: Vec<&String> = tasks.iter().map(|t| &t.file).collect();

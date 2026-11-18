@@ -29,9 +29,11 @@ use walkdir::WalkDir;
 
 use crate::links::{line_of, render, scan_links, strip_unwritten_extension, Kind, RawLink};
 use crate::note::parse_note;
+use crate::output::print_json;
 use crate::parser::fold_name;
 use crate::vault::{
-    all_notes, is_excluded, is_org, relative_path, Config, CONFIG_FILENAME, DEFAULT_EXTENSIONS,
+    all_notes, is_excluded, is_note_path, is_org, relative_path, Config, CONFIG_FILENAME,
+    DEFAULT_EXTENSIONS,
 };
 
 #[derive(Debug, Default, Clone, Copy)]
@@ -142,14 +144,6 @@ fn remap(path: &str, source: &str, dest: &str) -> String {
 
 fn inside(path: &str, source: &str) -> bool {
     path == source || path.starts_with(&format!("{source}/"))
-}
-
-fn is_note_path(relative: &str) -> bool {
-    Path::new(relative)
-        .extension()
-        .and_then(|e| e.to_str())
-        .map(|e| DEFAULT_EXTENSIONS.contains(&e.to_ascii_lowercase().as_str()))
-        .unwrap_or(false)
 }
 
 /// Turn a user-supplied path into a vault-relative one, or refuse it.
@@ -980,10 +974,7 @@ fn report(plan: &Plan, outcome: Outcome, blocked: bool, format: &str) {
                     .collect::<Vec<_>>()),
             );
         }
-        println!(
-            "{}",
-            serde_json::to_string_pretty(&Value::Object(out)).unwrap()
-        );
+        print_json(&Value::Object(out));
         return;
     }
 

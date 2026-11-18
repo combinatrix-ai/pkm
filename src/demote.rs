@@ -24,7 +24,9 @@ use rayon::prelude::*;
 use regex::Regex;
 use serde_json::{json, Value};
 
+use crate::links::line_of;
 use crate::note::split_frontmatter;
+use crate::output::print_json;
 use crate::parser::{mask_noncontent, strip_anchor};
 use crate::topic::is_taggable;
 use crate::vault::{all_notes, is_org, relative_path, Config};
@@ -201,10 +203,6 @@ fn classify(
     } else {
         None
     })
-}
-
-fn line_of(content: &str, offset: usize) -> usize {
-    content[..offset].matches('\n').count() + 1
 }
 
 /// Plan one note: the spans to rewrite, and the ones that cannot be.
@@ -433,10 +431,7 @@ fn report(plan: &Plan, dry_run: bool, format: &str) {
                 }))
                 .collect::<Vec<_>>()),
         );
-        println!(
-            "{}",
-            serde_json::to_string_pretty(&Value::Object(out)).unwrap()
-        );
+        print_json(&Value::Object(out));
         return;
     }
 

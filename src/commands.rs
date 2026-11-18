@@ -8,15 +8,10 @@ use serde_json::json;
 
 use crate::graph::{build_link_graph, build_resolver};
 use crate::note::parse_note;
+use crate::output::print_json;
 use crate::parser::{extract_links, mask_noncontent};
 use crate::repair;
 use crate::vault::{all_notes, relative_path, resolve_path, Config};
-
-/// Every JSON value pkm prints goes through here, so non-ASCII stays
-/// readable rather than becoming \uXXXX escapes.
-fn print_json(value: &serde_json::Value) {
-    println!("{}", serde_json::to_string_pretty(value).unwrap());
-}
 
 /// The lines around a match, as `-A`/`-B` ask for. `line` is 1-based.
 pub fn context_window(lines: &[&str], line: usize, before: usize, after: usize) -> Option<String> {

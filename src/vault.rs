@@ -12,6 +12,17 @@ use walkdir::WalkDir;
 pub const CONFIG_FILENAME: &str = "pkm.yaml";
 pub const DEFAULT_EXTENSIONS: &[&str] = &["md", "markdown", "mdx", "org"];
 
+pub fn is_note_extension(extension: &str) -> bool {
+    DEFAULT_EXTENSIONS.contains(&extension.to_ascii_lowercase().as_str())
+}
+
+pub fn is_note_path(path: impl AsRef<Path>) -> bool {
+    path.as_ref()
+        .extension()
+        .and_then(|extension| extension.to_str())
+        .is_some_and(is_note_extension)
+}
+
 /// The checks exposed by `pkm lint`, in the order used by its reports.
 pub const LINT_RULE_NAMES: &[&str] = &[
     "broken-links",
@@ -1318,14 +1329,8 @@ pub fn all_notes(config: &Config) -> Vec<PathBuf> {
     all_files(config)
         .into_iter()
         .filter(|path| {
-            let Some(ext) = path.extension().and_then(|e| e.to_str()) else {
-                return false;
-            };
-            if !DEFAULT_EXTENSIONS.contains(&ext.to_ascii_lowercase().as_str()) {
-                return false;
-            }
-            let relative = relative_path(&config.vault_path, path);
-            !is_excluded(&relative, &config.exclude)
+            is_note_path(path)
+                && !is_excluded(&relative_path(&config.vault_path, path), &config.exclude)
         })
         .collect()
 }

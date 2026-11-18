@@ -12,7 +12,7 @@ use crate::parser::{
     anchor_kind, extract_anchor_inventory, fold_name, normalize_markdown_path,
     normalize_wikilink_target, strip_anchor, AnchorInventory, AnchorKind,
 };
-use crate::vault::{all_files, all_notes, is_org, relative_path, Config, DEFAULT_EXTENSIONS};
+use crate::vault::{all_files, all_notes, is_note_extension, is_org, relative_path, Config};
 
 pub const MISSING_HEADING: &str = "missing-heading";
 pub const MISSING_BLOCK: &str = "missing-block";
@@ -316,7 +316,7 @@ fn normalize_link_target(target: &str) -> String {
         target = rest.to_string();
     }
     if let Some((stem, ext)) = target.rsplit_once('.') {
-        if DEFAULT_EXTENSIONS.contains(&ext.to_ascii_lowercase().as_str()) && !stem.is_empty() {
+        if is_note_extension(ext) && !stem.is_empty() {
             target = stem.to_string();
         }
     }

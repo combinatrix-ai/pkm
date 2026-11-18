@@ -26,6 +26,8 @@ use std::time::{Duration, Instant};
 
 use serde::{Deserialize, Serialize};
 
+use crate::output::print_json;
+
 /// The one substitution a provider command gets. Everything else in argv is
 /// passed through untouched.
 pub const PLACEHOLDER: &str = "{locator}";
@@ -186,7 +188,7 @@ pub fn list(format: &str) -> Result<()> {
             .iter()
             .map(|(name, provider)| serde_json::json!({"name": name, "command": provider.command}))
             .collect();
-        println!("{}", serde_json::to_string_pretty(&items).unwrap());
+        print_json(&items);
         return Ok(());
     }
     for (name, provider) in &configured.providers {

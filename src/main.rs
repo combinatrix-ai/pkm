@@ -18,6 +18,7 @@ mod move_tree;
 mod note;
 mod notes_cmd;
 mod org;
+mod output;
 mod parser;
 mod providers;
 mod query;

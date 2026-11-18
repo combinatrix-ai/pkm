@@ -20,6 +20,7 @@ use anyhow::{anyhow, Result};
 use regex::Regex;
 use serde::Serialize;
 
+use crate::output::print_json;
 use crate::parser::mask_noncontent;
 use crate::vault::{all_notes, relative_path, resolve_path, Config};
 
@@ -171,7 +172,7 @@ fn collect(config: &Config, file: Option<&str>) -> Result<Vec<Reference>> {
 
 fn print(refs: &[Reference], format: &str) {
     match format {
-        "json" => println!("{}", serde_json::to_string_pretty(refs).unwrap()),
+        "json" => print_json(refs),
         "paths" => {
             let paths: BTreeSet<&str> = refs.iter().map(|r| r.path.as_str()).collect();
             paths.iter().for_each(|path| println!("{path}"));

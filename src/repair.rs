@@ -34,8 +34,9 @@ use crate::graph::{
 };
 use crate::links::{column_of, line_of, render, strip_unwritten_extension, Kind, RawLink};
 use crate::org;
-use crate::parser::{normalize_markdown_path, normalize_wikilink_target, NOTE_SUFFIXES};
-use crate::vault::{all_files, all_notes, is_org, relative_path, Config};
+use crate::output::print_json;
+use crate::parser::{normalize_markdown_path, normalize_wikilink_target};
+use crate::vault::{all_files, all_notes, is_note_extension, is_org, relative_path, Config};
 
 /// What a caller may rely on in the JSON. These strings are the contract.
 pub const SAFE: &str = "safe";
@@ -159,9 +160,7 @@ impl Destinations {
         for file in files {
             entries.push((components(file), file.clone()));
             if let Some((stem, ext)) = file.rsplit_once('.') {
-                if NOTE_SUFFIXES.contains(&ext.to_ascii_lowercase().as_str())
-                    || ext.eq_ignore_ascii_case("org")
-                {
+                if is_note_extension(ext) {
                     entries.push((components(stem), file.clone()));
                 }
             }
@@ -673,10 +672,7 @@ fn report(occurrences: &[Occurrence], format: &str) {
                 .map(|o| occurrence_json(o, true))
                 .collect::<Vec<_>>()),
         );
-        println!(
-            "{}",
-            serde_json::to_string_pretty(&Value::Object(out)).unwrap()
-        );
+        print_json(&Value::Object(out));
         return;
     }
 

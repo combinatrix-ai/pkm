@@ -13,15 +13,12 @@ use unicode_normalization::UnicodeNormalization;
 
 use crate::graph::build_link_graph;
 use crate::note::{parse_note, split_frontmatter};
+use crate::output::print_json;
 use crate::parser::{fold_name, name_pattern, same_name};
 use crate::vault::{
     all_notes, relative_path, resolve_path, Config, FrontmatterFieldType, FrontmatterPolicy,
     LintRuleConfig, LINT_RULE_NAMES,
 };
-
-fn print_json(value: &Value) {
-    println!("{}", serde_json::to_string_pretty(value).unwrap());
-}
 
 static HEADING: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?m)^(#{1,6})\s+(.+)$").unwrap());
 static ATX_HEADING_LINE: LazyLock<Regex> =

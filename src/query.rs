@@ -14,6 +14,7 @@ use serde_json::{json, Value};
 
 use crate::graph::{build_link_graph, LinkGraph};
 use crate::note::parse_note;
+use crate::output::print_json;
 use crate::vault::{all_notes, relative_path, Config};
 
 pub const COMPUTED_FIELDS: &[&str] = &[
@@ -387,7 +388,7 @@ fn output(records: &[serde_json::Map<String, Value>], fields: &[String], format:
                     })
                     .collect()
             };
-            println!("{}", serde_json::to_string_pretty(&items).unwrap());
+            print_json(&items);
         }
         "paths" => records
             .iter()
@@ -484,14 +485,10 @@ pub fn fields(config: &Config, format: &str) -> Result<()> {
     }
 
     if format == "json" {
-        println!(
-            "{}",
-            serde_json::to_string_pretty(&json!({
-                "computed": COMPUTED_FIELDS,
-                "declared": declared,
-            }))
-            .unwrap()
-        );
+        print_json(&json!({
+            "computed": COMPUTED_FIELDS,
+            "declared": declared,
+        }));
         return Ok(());
     }
 

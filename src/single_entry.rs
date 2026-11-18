@@ -4,10 +4,10 @@ use std::path::{Component, Path};
 use anyhow::{anyhow, Context, Result};
 use serde::Deserialize;
 use serde_json::{json, Value};
-use unicode_normalization::UnicodeNormalization;
 use walkdir::WalkDir;
 
-use crate::vault::{is_excluded, relative_path, Config, DEFAULT_EXTENSIONS};
+use crate::parser::fold_name;
+use crate::vault::{is_excluded, is_note_path, relative_path, Config};
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -33,12 +33,6 @@ fn relative(value: &str) -> bool {
             .all(|c| matches!(c, Component::Normal(_)))
 }
 
-fn is_note(path: &Path) -> bool {
-    path.extension()
-        .and_then(|s| s.to_str())
-        .is_some_and(|s| DEFAULT_EXTENSIONS.contains(&s.to_ascii_lowercase().as_str()))
-}
-
 pub fn parse(value: &serde_yaml::Value) -> Result<Vec<Layout>> {
     let layouts: Vec<Layout> =
         serde_yaml::from_value(value.clone()).context("invalid lint.single_entry")?;
@@ -46,7 +40,7 @@ pub fn parse(value: &serde_yaml::Value) -> Result<Vec<Layout>> {
         if !relative(&layout.path)
             || !relative(&layout.main)
             || Path::new(&layout.main).components().count() != 1
-            || !is_note(Path::new(&layout.main))
+            || !is_note_path(&layout.main)
             || layout.exclude.iter().any(|s| !relative(s))
         {
             return Err(anyhow!("lint.single_entry requires a relative path, a single note filename for main, and relative exclusions without '..'"));
@@ -65,10 +59,6 @@ pub fn parse(value: &serde_yaml::Value) -> Result<Vec<Layout>> {
         }
     }
     Ok(layouts)
-}
-
-fn same_name(left: &str, right: &str) -> bool {
-    left.nfc().collect::<String>().to_lowercase() == right.nfc().collect::<String>().to_lowercase()
 }
 
 fn matches_entry(path: &Path, layout: &Layout) -> Result<bool> {
@@ -128,17 +118,15 @@ pub fn check(
             continue;
         }
         let mut entries = std::fs::read_dir(&root)?.collect::<std::io::Result<Vec<_>>>()?;
+        entries
+            .retain(|e| !excluded(&e.path()) && !e.file_name().to_string_lossy().starts_with('.'));
         entries.sort_by_key(|e| e.file_name());
         let dirs: Vec<_> = entries
             .iter()
             .filter(|e| e.file_type().is_ok_and(|t| t.is_dir()))
-            .filter(|e| !excluded(&e.path()) && !e.file_name().to_string_lossy().starts_with('.'))
             .collect();
         for item in &entries {
             let path = item.path();
-            if excluded(&path) || item.file_name().to_string_lossy().starts_with('.') {
-                continue;
-            }
             let kind = item.file_type()?;
             if kind.is_symlink() {
                 if selected(&path) {
@@ -150,7 +138,7 @@ pub fn check(
                 }
                 continue;
             }
-            if kind.is_file() && is_note(&path) {
+            if kind.is_file() && is_note_path(&path) {
                 if item.file_name() == layout.main.as_str() {
                     continue;
                 }
@@ -165,7 +153,7 @@ pub fn check(
                     let stem = path.file_stem().unwrap().to_string_lossy();
                     if let Some(dir) = dirs
                         .iter()
-                        .find(|d| same_name(&d.file_name().to_string_lossy(), &stem))
+                        .find(|d| fold_name(&d.file_name().to_string_lossy()) == fold_name(&stem))
                     {
                         report(
                             &path,
@@ -207,7 +195,7 @@ pub fn check(
                     let member = member?;
                     if member.file_type().is_file()
                         && member.path() != main
-                        && is_note(member.path())
+                        && is_note_path(member.path())
                         && matches_entry(member.path(), layout)?
                     {
                         report(

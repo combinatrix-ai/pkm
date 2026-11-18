@@ -1,6 +1,6 @@
 # Obsidian compatibility specification
 
-Last verified: 2026-10-03. This is the canonical specification for knapper's
+Last verified: 2026-10-03. This is the canonical specification for pkm's
 Obsidian and plugin compatibility. It describes the current development branch;
 feature availability in an installed release must be checked separately.
 CLI syntax lives in [docs/CLI.md](docs/CLI.md), and DQL build/licensing instructions
@@ -9,7 +9,7 @@ live in [dql/README.md](dql/README.md).
 ## Contract and status
 
 Compatibility means reproducing a named feature's data and behavior through a
-specified knapper command. It does not mean running the Obsidian application,
+specified pkm command. It does not mean running the Obsidian application,
 loading arbitrary plugins, or implementing every feature of an installed plugin.
 
 | Status | Meaning |
@@ -28,8 +28,8 @@ an upstream test count alone is not evidence of complete compatibility.
 
 - Note files remain the source of truth. Queries read a fresh snapshot and do not
   require a running Obsidian instance, persistent index, Node, or JS sidecar.
-- `knapper.yaml` determines note scope, exclusions, daily-note configuration,
-  templates, and knapper task statuses. DQL imports the explicitly scoped
+- `pkm.yaml` determines note scope, exclusions, daily-note configuration,
+  templates, and pkm task statuses. DQL imports the explicitly scoped
   Core Bookmarks data described below.
   Other Obsidian/community-plugin settings are not imported automatically.
 - Commands may have distinct adapters. Native `query`/`tasks`/link commands and
@@ -38,7 +38,7 @@ an upstream test count alone is not evidence of complete compatibility.
 - DQL is read-only. It does not change a task checkbox, bookmark, plugin setting,
   or note. Existing explicit mutation commands retain their own contracts.
 - Only known, documented adapters may interpret plugin data. Installing a plugin
-  does not authorize its JavaScript to run inside knapper.
+  does not authorize its JavaScript to run inside pkm.
 
 ## Feature registry
 
@@ -89,7 +89,7 @@ Native Tasks parsing recognizes checkboxes, configured custom statuses, date
 markers (due/done/created/scheduled/start), priorities and recurrence text.
 The native adapter does not execute Tasks query blocks or import Tasks global filters/status
 settings; `tasks --query` uses the separate pinned adapter described below. DQL task metadata is produced by the vendored Dataview importer;
-knapper's native task configuration is not the DQL status engine.
+pkm's native task configuration is not the DQL status engine.
 
 ## Dataview contract
 
@@ -102,7 +102,7 @@ Adapters and runtime polyfills are maintained separately.
 
 `TABLE`, `LIST`, `TASK`, `CALENDAR`, source expressions, `WHERE`, `SORT`, `LIMIT`,
 `GROUP BY`, `FLATTEN` and upstream functions use that pinned implementation,
-including its quirks. Native `knapper query` is a separate language.
+including its quirks. Native `pkm query` is a separate language.
 The command accepts DQL directly; it does not automatically find/evaluate every
 `dataview` fence in a note. No DOM, live refresh or DataviewJS is provided.
 
@@ -111,7 +111,7 @@ The command accepts DQL directly; it does not automatically find/evaluate every
 - DQL pages are scoped `.md`/`.markdown` files. Org and MDX are not DQL pages.
 - YAML and inline fields are supplied to the upstream importer. Duplicate fields,
   typed links, dates, durations, nulls and list/task fields follow that importer.
-- CommonMark section/list structure plus knapper's link/tag scanner approximate
+- CommonMark section/list structure plus pkm's link/tag scanner approximate
   Obsidian metadata. Custom-status tasks and ordinary nested lists have tests;
   complex callouts, quoted lists and multiline list ranges remain partial.
 - DQL link resolution tries vault-relative and origin-relative paths, optional
@@ -156,7 +156,7 @@ is still an improvement target.
 3. Ten full DQL queries are compared with a Node-native-Intl reference. Both
    runtimes use the same adapter, so this does not test Obsidian metadata parity.
 4. On 2026-10-03, actual Obsidian 1.13.7 + existing Dataview 0.5.68 was compared
-   with knapper's 0.5.70 using three daily-note snapshots and their source notes.
+   with pkm's 0.5.70 using three daily-note snapshots and their source notes.
    Six queries agreed on per-account counts, dates, links, aggregates, arithmetic
    checks, filtering, sorting and limit. Private inputs/results remain outside
    this repository. This is limited manual evidence, not an automated whole-plugin
@@ -181,13 +181,13 @@ For each metadata-dependent feature:
 
 1. Pin and record installer/app and community-plugin versions. The current
    bookmark check still compares Dataview 0.5.68 with embedded 0.5.70.
-2. Load identical fixture files/settings in App and knapper; wait for metadata
+2. Load identical fixture files/settings in App and pkm; wait for metadata
    and plugin indexes. Verify the CLI-connected vault path, not only its name.
 3. Use native CLI commands (`bookmarks`, `links`, `backlinks`, `properties`,
    `tags`, `tasks`, `outline`) for applicable core observations. Use CLI `eval`
    to query Dataview's actual API and serialize typed results where necessary.
 4. Compare supported fields and ordered typed values, with matching scope,
-   origin, timezone and plugin state. Raw CLI shape is not the knapper contract.
+   origin, timezone and plugin state. Raw CLI shape is not the pkm contract.
    Record intentional differences rather than normalizing away semantics.
 5. Include enabled, missing/invalid input where the App accepts it, warm changes
    and cold restart. Never infer cold behavior from a live plugin toggle.
@@ -220,7 +220,7 @@ daily aggregates, typed-link paths and bookmark membership.
 Every relevant new plugin/metadata feature or discovered regression must extend
 this vault/case manifest or an explicitly focused sibling fixture. Update the
 expected results, live comparison evidence and this specification together; do
-not derive the answer key solely from knapper's current behavior. The fixture
+not derive the answer key solely from pkm's current behavior. The fixture
 README is the extension contract and root AGENTS.md makes it a development rule.
 
 Ordinary CI runs the full case registry plus a task-completion/note-create/delete
@@ -289,7 +289,7 @@ This models a **cold snapshot of saved state**, not live plugin lifecycle/cache
 state. In actual Obsidian 1.13.7 + Dataview 0.5.68, disabling an already-loaded
 Bookmarks plugin retained its item list: Dataview continued returning true even
 after its starred cache was explicitly refreshed. Starting with the plugin
-already disabled returned false, matching knapper. This warm-disable difference
+already disabled returned false, matching pkm. This warm-disable difference
 is explicit; compatibility does not include reproducing transient retained data.
 Legacy migration-file state is not imported.
 
@@ -436,7 +436,7 @@ The three case registries in `tests/fixtures/pkm` hold six same-version actual-A
 comparisons per plugin. CI replays those results; it also runs all 134 selected
 upstream test cases in the embedded QuickJS engine. These are selected suites,
 not all upstream tests. The generated bundles and dependency notices are checked
-for reproducible regeneration. `knapper licenses` prints their MIT/BSD/0BSD/ISC/
+for reproducible regeneration. `pkm licenses` prints their MIT/BSD/0BSD/ISC/
 Apache-2.0/BlueOak notices along with the existing DQL/runtime notices.
 
 `scripts/verify-plugin-vault.py` reruns all 18 comparisons against a disposable
@@ -447,7 +447,7 @@ not a public plugin API contract. Normal user Vault settings are never needed.
 
 ## Dataview-backed lint rules
 
-`lint.dataview` in `knapper.yaml` maps lowercase rule names (`[a-z][a-z0-9-]*`)
+`lint.dataview` in `pkm.yaml` maps lowercase rule names (`[a-z][a-z0-9-]*`)
 to required nonblank `query` and `message` strings, optional `enabled` (default
 true) and `severity` (`error` by default, `warning` or `info`). Unknown keys and
 invalid values fail configuration loading. This is a native lint adapter around

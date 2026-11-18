@@ -11,11 +11,11 @@ import time
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--knapper', required=True)
+    parser.add_argument('--pkm', required=True)
     parser.add_argument('--vault', required=True, type=pathlib.Path)
     parser.add_argument('--obsidian-cli')
     parser.add_argument('--output', required=True, type=pathlib.Path)
-    parser.add_argument('--watch', action='store_true', help='Poll App/knapper parity after edits; do not require baseline values')
+    parser.add_argument('--watch', action='store_true', help='Poll App/pkm parity after edits; do not require baseline values')
     parser.add_argument('--interval', type=float, default=5)
     parser.add_argument('--iterations', type=int, default=0, help='Stop watch after N passes (0: until interrupted)')
     args = parser.parse_args()
@@ -29,7 +29,7 @@ def main():
         parser.error('unsupported cases schema')
 
     def command(argv):
-        return subprocess.check_output(argv, text=True, timeout=60, env={**os.environ, 'KNAPPER_NO_UPDATE_CHECK': '1'}).strip()
+        return subprocess.check_output(argv, text=True, timeout=60, env={**os.environ, 'PKM_NO_UPDATE_CHECK': '1'}).strip()
 
     def cli(*argv):
         return command([args.obsidian_cli, 'vault=' + vault.name, *argv])
@@ -64,11 +64,11 @@ def main():
             # Retry live disagreements during App's asynchronous reindexing;
             # persistent mismatches still fail and are saved verbatim.
             for attempt in range(10 if args.obsidian_cli else 1):
-                argv = [args.knapper, '-v', str(vault), '-c', str(vault / 'knapper.yaml'), 'dql', case['query'], '--format', 'json', '--timezone', manifest['timezone']]
+                argv = [args.pkm, '-v', str(vault), '-c', str(vault / 'pkm.yaml'), 'dql', case['query'], '--format', 'json', '--timezone', manifest['timezone']]
                 if case.get('origin'):
                     argv += ['--origin', case['origin']]
                 actual = normalize(json.loads(command(argv)), case)
-                entry = {'id': case['id'], 'query': case['query'], 'knapper': actual}
+                entry = {'id': case['id'], 'query': case['query'], 'pkm': actual}
                 entry['baselineEqual'] = actual == case['expected']
                 if args.obsidian_cli:
                     origin = json.dumps(case.get('origin', ''))

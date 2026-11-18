@@ -1,6 +1,6 @@
 # Compatibility
 
-What knapper understands, ecosystem by ecosystem and convention by
+What pkm understands, ecosystem by ecosystem and convention by
 convention. ✅ works · ⚠️ partial · ❌ not supported.
 
 The ecosystem fixtures here are exercised by fixture vaults in
@@ -28,17 +28,17 @@ DQL engine. Each has its own scope; none is a blanket full-Obsidian claim.
 
 ## Dendron
 
-- ✅ Dot-hierarchy filenames — `proj.knapper.design.md`
-- ✅ Wikilinks over that hierarchy — `[[proj.knapper.design]]`
-- ✅ Markdown links with the extension — `[d](proj.knapper.design.md)`
-- ✅ **Markdown links without the extension** — `[d](proj.knapper.design)` resolves; a dot that is not a known extension is treated as part of the name
+- ✅ Dot-hierarchy filenames — `proj.pkm.design.md`
+- ✅ Wikilinks over that hierarchy — `[[proj.pkm.design]]`
+- ✅ Markdown links with the extension — `[d](proj.pkm.design.md)`
+- ✅ **Markdown links without the extension** — `[d](proj.pkm.design)` resolves; a dot that is not a known extension is treated as part of the name
 - ⚠️ Frontmatter `id:` is readable but is not used to resolve links, so a rename still relies on the name
 
 ## Zettelkasten
 
 - ✅ ID-prefixed filenames — `202607281530 block model.md`
 - ✅ Bare wikilinks between them
-- ✅ Works equally with `zk`-style or Luhmann-style naming, since knapper only cares about filenames and links
+- ✅ Works equally with `zk`-style or Luhmann-style naming, since pkm only cares about filenames and links
 
 ## Plain markdown, and static site generators
 
@@ -52,10 +52,10 @@ Jekyll, Hugo, MkDocs, Quartz content directories.
 
 ## Logseq
 
-Support is deliberately partial: knapper reads the **file-level projection**
+Support is deliberately partial: pkm reads the **file-level projection**
 of a Logseq graph and ignores block identity. See "Why not blocks" below.
 
-Set `flavor: logseq` in `knapper.yaml` to turn on the ambiguous parts.
+Set `flavor: logseq` in `pkm.yaml` to turn on the ambiguous parts.
 
 - ✅ **Page references** — `[[page]]`
 - ✅ Outline files parse as ordinary markdown; nesting is preserved as text
@@ -90,8 +90,8 @@ all of this is always on.
 ### Why not blocks
 
 Logseq and Roam make the *block* the addressable unit: every bullet can carry
-an ID, be referenced from anywhere, and hold its own properties. knapper's
-commands are all shaped `knapper VERB FILE`, and `backlinks FILE` has no
+an ID, be referenced from anywhere, and hold its own properties. pkm's
+commands are all shaped `pkm VERB FILE`, and `backlinks FILE` has no
 meaning when the referent is a bullet. Supporting it is not a parser change
 but a second data model.
 
@@ -126,7 +126,7 @@ no syntax with markdown, so it is not a variant of the markdown path.
 
 ## Elsewhere
 
-knapper reads notes. Formats that are not notes -- Obsidian Canvas and Bases,
+pkm reads notes. Formats that are not notes -- Obsidian Canvas and Bases,
 Dendron schemas, Excalidraw drawings -- are left alone, and correctly ignored
 as link targets rather than reported as broken.
 

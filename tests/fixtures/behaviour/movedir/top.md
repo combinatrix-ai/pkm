@@ -20,7 +20,7 @@ Every form a link into Guide/ can take:
 Things that merely look like one, and must not be rewritten:
 
 - an external URL that ends the same way: [ext](https://x.com/Guide/README.md)
-- an external reference: [ref](knapper://personal/Guide/README)
+- an external reference: [ref](pkm://personal/Guide/README)
 - prose: Guide/README.md is where it lives
 - inline code: `[[Guide/README]]`
 - a comment: %% [[Guide/README]] %%

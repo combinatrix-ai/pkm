@@ -7,7 +7,7 @@ use std::time::{Duration, Instant};
 const ENGINE: &str = include_str!("../plugins/tasks-engine.js");
 
 pub fn evaluate(input: &Value) -> Result<Value> {
-    evaluate_engine(ENGINE, "knapperTasks", input)
+    evaluate_engine(ENGINE, "pkmTasks", input)
 }
 
 pub(crate) fn evaluate_engine(engine: &str, name: &str, input: &Value) -> Result<Value> {
@@ -101,7 +101,7 @@ mod tests {
         context.with(|ctx| {
             ctx.eval::<(), _>(include_str!("../plugins/upstream-tests.js"))
                 .unwrap();
-            let f: Function = ctx.globals().get("knapperTestReport").unwrap();
+            let f: Function = ctx.globals().get("pkmTestReport").unwrap();
             let raw: String = f.call(()).unwrap();
             let result: Value = serde_json::from_str(&raw).unwrap();
             assert_eq!(result["total"], result["passed"], "{result}");

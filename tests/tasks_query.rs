@@ -6,12 +6,12 @@ fn tasks_plugin_actual_app_references() {
     let manifest: Value =
         serde_json::from_str(include_str!("fixtures/pkm/tasks-plugin-cases.json")).unwrap();
     for case in manifest["cases"].as_array().unwrap() {
-        let out = Command::new(env!("CARGO_BIN_EXE_knapper"))
-            .env("KNAPPER_NO_UPDATE_CHECK", "1")
+        let out = Command::new(env!("CARGO_BIN_EXE_pkm"))
+            .env("PKM_NO_UPDATE_CHECK", "1")
             .arg("-v")
             .arg(&vault)
             .arg("-c")
-            .arg(vault.join("knapper.yaml"))
+            .arg(vault.join("pkm.yaml"))
             .args([
                 "tasks",
                 "--query",
@@ -37,8 +37,8 @@ fn tasks_query_rejects_native_flags_and_mutations() {
         vec!["tasks", "--query", "done", "--all"],
         vec!["tasks", "--query", "done", "done", "Finish draft"],
     ] {
-        let out = Command::new(env!("CARGO_BIN_EXE_knapper"))
-            .env("KNAPPER_NO_UPDATE_CHECK", "1")
+        let out = Command::new(env!("CARGO_BIN_EXE_pkm"))
+            .env("PKM_NO_UPDATE_CHECK", "1")
             .arg("-v")
             .arg(&vault)
             .args(args)
@@ -53,12 +53,12 @@ fn tasks_numeric_collation_gap_is_explicit() {
     let vault = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/pkm");
     let gap: Value =
         serde_json::from_str(include_str!("fixtures/pkm/tasks-plugin-known-gaps.json")).unwrap();
-    let out = Command::new(env!("CARGO_BIN_EXE_knapper"))
-        .env("KNAPPER_NO_UPDATE_CHECK", "1")
+    let out = Command::new(env!("CARGO_BIN_EXE_pkm"))
+        .env("PKM_NO_UPDATE_CHECK", "1")
         .arg("-v")
         .arg(&vault)
         .arg("-c")
-        .arg(vault.join("knapper.yaml"))
+        .arg(vault.join("pkm.yaml"))
         .args([
             "tasks",
             "--query",
@@ -77,6 +77,6 @@ fn tasks_numeric_collation_gap_is_explicit() {
         .flat_map(|g| g["tasks"].as_array().unwrap())
         .map(|t| t["description"].clone())
         .collect();
-    assert_eq!(serde_json::json!(descriptions), gap["knapper"]);
-    assert_ne!(gap["knapper"], gap["obsidian"]);
+    assert_eq!(serde_json::json!(descriptions), gap["pkm"]);
+    assert_ne!(gap["pkm"], gap["obsidian"]);
 }

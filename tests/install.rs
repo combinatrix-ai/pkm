@@ -9,21 +9,17 @@ use tempfile::tempdir;
 fn installer_checks_archive_before_atomic_replacement() {
     let temp = tempdir().unwrap();
     let root = temp.path();
-    fs::create_dir_all(root.join("stage/knapper")).unwrap();
+    fs::create_dir_all(root.join("stage/pkm")).unwrap();
     fs::create_dir(root.join("transport")).unwrap();
     fs::create_dir(root.join("bin")).unwrap();
-    fs::write(
-        root.join("stage/knapper/knapper"),
-        "#!/bin/sh\necho knapper 0.1.0\n",
-    )
-    .unwrap();
-    let asset = "knapper-v0.1.0-aarch64-apple-darwin.tar.gz";
+    fs::write(root.join("stage/pkm/pkm"), "#!/bin/sh\necho pkm 0.1.0\n").unwrap();
+    let asset = "pkm-v0.1.0-aarch64-apple-darwin.tar.gz";
     assert!(Command::new("tar")
         .args(["-czf"])
         .arg(root.join(asset))
         .arg("-C")
         .arg(root.join("stage"))
-        .arg("knapper")
+        .arg("pkm")
         .status()
         .unwrap()
         .success());
@@ -39,7 +35,7 @@ fn installer_checks_archive_before_atomic_replacement() {
         .unwrap()
         .to_owned();
     fs::write(
-        root.join("knapper-v0.1.0-checksums.txt"),
+        root.join("pkm-v0.1.0-checksums.txt"),
         format!("{digest}  {asset}\n"),
     )
     .unwrap();
@@ -72,12 +68,12 @@ fn installer_checks_archive_before_atomic_replacement() {
             .output()
             .unwrap()
     };
-    fs::write(root.join("bin/knapper"), "old binary").unwrap();
+    fs::write(root.join("bin/pkm"), "old binary").unwrap();
     let rejected = run(&"0".repeat(64));
     assert!(!rejected.status.success());
     assert!(String::from_utf8_lossy(&rejected.stderr).contains("attested checksum mismatch"));
     assert_eq!(
-        fs::read_to_string(root.join("bin/knapper")).unwrap(),
+        fs::read_to_string(root.join("bin/pkm")).unwrap(),
         "old binary"
     );
     let accepted = run(&digest);
@@ -86,6 +82,6 @@ fn installer_checks_archive_before_atomic_replacement() {
         "{}",
         String::from_utf8_lossy(&accepted.stderr)
     );
-    let version = Command::new(root.join("bin/knapper")).output().unwrap();
-    assert_eq!(version.stdout, b"knapper 0.1.0\n");
+    let version = Command::new(root.join("bin/pkm")).output().unwrap();
+    assert_eq!(version.stdout, b"pkm 0.1.0\n");
 }

@@ -13,12 +13,12 @@ import subprocess
 
 TASKS_CODE = '''(async()=>{const p=app.plugins.plugins['obsidian-tasks-plugin'];let child;const el=document.createElement('div');await p.queryRenderer.addQueryRenderChild(QUERY,el,{sourcePath:'PluginTasks/Plugin.md',addChild:c=>{child=c;}});try{const q=child.queryResultsRenderer.query;if(q.error)throw Error(q.error);const r=q.applyQueryToTasks(p.getTasks());return JSON.stringify({type:'tasks',total:r.totalTasksCount,beforeLimit:r.totalTasksCountBeforeLimit,groups:r.groups.map(g=>({names:g.groups,tasks:g.tasks.map(t=>({path:t.taskLocation.path,line:t.taskLocation.lineNumber+1,status:t.status.symbol,description:t.description,markdown:t.toFileLineString(),due:t.dueDate?.format('YYYY-MM-DD')??null,priority:t.priority}))}))});}finally{child.unload();}})()'''
 LINTER_CODE = '''(()=>{const p=app.plugins.plugins['obsidian-linter'];const settings=JSON.parse(JSON.stringify(p.settings));for(const r of Object.values(settings.ruleConfigs))r.enabled=false;for(const name of RULES)settings.ruleConfigs[name].enabled=true;settings.customRegexes=[];return JSON.stringify(p.rulesRunner.lintText({oldText:TEXT,fileInfo:{name:'Input',createdAtFormatted:'2026-10-03',modifiedAtFormatted:'2026-10-03',path:'PluginLinter/Input.md'},settings,momentLocale:'en',getCurrentTime:()=>window.moment('2026-10-03'),defaultMisspellings:new Map()}));})()'''
-QUICKADD_CODE = '''(async()=>{const path='PluginCapture/Log.md';if(!app.vault.getAbstractFileByPath('PluginCapture'))await app.vault.createFolder('PluginCapture');let file=app.vault.getFileByPath(path);if(file)await app.vault.modify(file,BEFORE);else file=await app.vault.create(path,BEFORE);const p=app.plugins.plugins.quickadd;const original=p.settings.choices;const choice={id:'knapper-capture-test',name:'knapper-capture-test',type:'Capture',command:false,onePageInput:'never',captureTo:path,captureToActiveFile:false,activeFileWritePosition:'cursor',createFileIfItDoesntExist:{enabled:false,createWithTemplate:false,template:''},format:{enabled:true,format:TEMPLATE},insertAfter:{enabled:false,after:'',insertAtEnd:false},insertBefore:{enabled:false,before:''},newLineCapture:{enabled:false,direction:'below'},prepend:POSITION==='append',task:false,openFile:false,appendLink:false,copyLinkToClipboard:false,templater:{afterCapture:'none'}};p.settings.choices=[choice];try{await p.api.executeChoice(choice.name,{value:TEXT});return JSON.stringify(await app.vault.read(file));}finally{p.settings.choices=original;}})()'''
+QUICKADD_CODE = '''(async()=>{const path='PluginCapture/Log.md';if(!app.vault.getAbstractFileByPath('PluginCapture'))await app.vault.createFolder('PluginCapture');let file=app.vault.getFileByPath(path);if(file)await app.vault.modify(file,BEFORE);else file=await app.vault.create(path,BEFORE);const p=app.plugins.plugins.quickadd;const original=p.settings.choices;const choice={id:'pkm-capture-test',name:'pkm-capture-test',type:'Capture',command:false,onePageInput:'never',captureTo:path,captureToActiveFile:false,activeFileWritePosition:'cursor',createFileIfItDoesntExist:{enabled:false,createWithTemplate:false,template:''},format:{enabled:true,format:TEMPLATE},insertAfter:{enabled:false,after:'',insertAtEnd:false},insertBefore:{enabled:false,before:''},newLineCapture:{enabled:false,direction:'below'},prepend:POSITION==='append',task:false,openFile:false,appendLink:false,copyLinkToClipboard:false,templater:{afterCapture:'none'}};p.settings.choices=[choice];try{await p.api.executeChoice(choice.name,{value:TEXT});return JSON.stringify(await app.vault.read(file));}finally{p.settings.choices=original;}})()'''
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--knapper', required=True)
+    parser.add_argument('--pkm', required=True)
     parser.add_argument('--obsidian-cli', required=True)
     parser.add_argument('--vault', required=True, type=pathlib.Path)
     parser.add_argument('--output', required=True, type=pathlib.Path)
@@ -28,7 +28,7 @@ def main():
     vault = args.vault.resolve()
     if not args.allow_fixture_writes or vault == (root / 'tests/fixtures/pkm').resolve():
         parser.error('use a disposable fixture copy and --allow-fixture-writes')
-    env = {**os.environ, 'KNAPPER_NO_UPDATE_CHECK': '1'}
+    env = {**os.environ, 'PKM_NO_UPDATE_CHECK': '1'}
 
     def command(argv):
         return subprocess.check_output(argv, text=True, timeout=60, env=env).strip()
@@ -68,17 +68,17 @@ def main():
                 (vault / 'PluginCapture/Log.md').write_text(case['before'])
                 (vault / 'PluginCapture/Template.md').write_text(case['template'])
                 argv = ['capture', 'PluginCapture/Log.md', '--text', case['text'], '--template', 'PluginCapture/Template.md', '--position', case['position'], '--format', 'json']
-            actual = json.loads(command([args.knapper, '-v', str(vault), '-c', str(vault / 'knapper.yaml'), *argv]))
+            actual = json.loads(command([args.pkm, '-v', str(vault), '-c', str(vault / 'pkm.yaml'), *argv]))
             if kind != 'tasks':
                 actual = actual['after']
-            records.append({'id': case['id'], 'plugin': plugin, 'obsidian': expected, 'knapper': actual, 'liveEqual': actual == expected, 'baselineEqual': expected == case['expected']})
+            records.append({'id': case['id'], 'plugin': plugin, 'obsidian': expected, 'pkm': actual, 'liveEqual': actual == expected, 'baselineEqual': expected == case['expected']})
     gap = json.loads((vault / 'tasks-plugin-known-gaps.json').read_text())
     observed = evaluate(TASKS_CODE.replace('QUERY', json.dumps(gap['query'])))
-    actual = json.loads(command([args.knapper, '-v', str(vault), '-c', str(vault / 'knapper.yaml'), 'tasks', '--query', gap['query'], '--format', 'json']))
+    actual = json.loads(command([args.pkm, '-v', str(vault), '-c', str(vault / 'pkm.yaml'), 'tasks', '--query', gap['query'], '--format', 'json']))
     def descriptions(value):
         return [task['description'] for group in value['groups'] for task in group['tasks']]
-    known_gap = {'id': gap['id'], 'obsidian': descriptions(observed), 'knapper': descriptions(actual)}
-    known_gap['recordedGapEqual'] = known_gap['obsidian'] == gap['obsidian'] and known_gap['knapper'] == gap['knapper']
+    known_gap = {'id': gap['id'], 'obsidian': descriptions(observed), 'pkm': descriptions(actual)}
+    known_gap['recordedGapEqual'] = known_gap['obsidian'] == gap['obsidian'] and known_gap['pkm'] == gap['pkm']
     result = {'appVersion': command([args.obsidian_cli, 'version']), 'versions': info['versions'], 'comparisons': records, 'knownGaps': [known_gap]}
     args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n')
     failed = [c['id'] for c in records if not c['liveEqual'] or not c['baselineEqual']]

@@ -10,7 +10,7 @@ import { resetSettings, updateSettings, getSettings } from '../vendor/tasks/src/
 import { initializeI18n } from '../vendor/tasks/src/i18n/i18n';
 (globalThis as any).window = { moment };
 (globalThis as any).console = { log() {}, warn() {}, error() {}, debug() {}, info() {}, trace() {} };
-(globalThis as any).knapperTasks = async (raw: string) => {
+(globalThis as any).pkmTasks = async (raw: string) => {
  try {
   const input = JSON.parse(raw);
   // Narrow declared contract: reject host-dependent/custom executable syntax.

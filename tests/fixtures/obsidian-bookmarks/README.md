@@ -2,7 +2,7 @@
 
 Open a temporary copy of this vault in Obsidian with Core Bookmarks and
 Dataview enabled. Do not add plugin binaries or generated workspace/profile
-files to this fixture. Compare these DQL queries with `knapper dql`:
+files to this fixture. Compare these DQL queries with `pkm dql`:
 
 ```sql
 TABLE WITHOUT ID file.path, file.starred
@@ -21,8 +21,8 @@ SORT file.path
 ```
 
 Expected values: `A.md`, `B.md`. The explicit exclusion in the Obsidian queries
-matches knapper's `exclude: [Excluded]`; installing knapper does not make Obsidian
-read knapper.yaml. Disable Core Bookmarks, restart Obsidian, and repeat: all booleans should be
+matches pkm's `exclude: [Excluded]`; installing pkm does not make Obsidian
+read pkm.yaml. Disable Core Bookmarks, restart Obsidian, and repeat: all booleans should be
 false and the starred-only query should return no rows. A live disable may retain
 loaded items in Dataview; see spec.md for that explicit difference.
 
@@ -34,12 +34,12 @@ General → Advanced → Command line interface in that profile. No global PATH
 registration is needed when invoking the app's bundled CLI binary directly.
 The runner targets the vault name and checks its absolute path, validates plugin
 state, waits for the fixture's five indexed pages, and compares the two queries
-against knapper and the recorded reference. Use Python 3 and absolute binaries:
+against pkm and the recorded reference. Use Python 3 and absolute binaries:
 
 ```sh
 python3 scripts/verify-obsidian-cli.py \
   --obsidian-cli /path/Obsidian.app/Contents/MacOS/obsidian-cli \
-  --knapper /path/knapper \
+  --pkm /path/pkm \
   --vault /path/disposable-vault \
   --state enabled --output /tmp/bookmarks-enabled.json
 ```

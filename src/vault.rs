@@ -8,11 +8,11 @@ use walkdir::WalkDir;
 
 /// The vault-local machine configuration. This is deliberately a real YAML
 /// file rather than Markdown frontmatter so YAML-aware editors can validate
-/// and complete it against `knapper.schema.json`.
-pub const CONFIG_FILENAME: &str = "knapper.yaml";
+/// and complete it against `pkm.schema.json`.
+pub const CONFIG_FILENAME: &str = "pkm.yaml";
 pub const DEFAULT_EXTENSIONS: &[&str] = &["md", "markdown", "mdx", "org"];
 
-/// The checks exposed by `knapper lint`, in the order used by its reports.
+/// The checks exposed by `pkm lint`, in the order used by its reports.
 pub const LINT_RULE_NAMES: &[&str] = &[
     "broken-links",
     "orphans",
@@ -215,7 +215,7 @@ fn as_string_list(value: Option<&serde_yaml::Value>) -> Vec<String> {
 //
 // A note is read leniently: a header that does not parse costs that note its
 // frontmatter and nothing else, because one bad file must not take down a
-// whole-vault command. `knapper.yaml` gets the opposite treatment. It
+// whole-vault command. `pkm.yaml` gets the opposite treatment. It
 // decides what every command does to every note, so a misspelt key there is
 // not a key that does nothing -- it is `exclude` silently switching off, or a
 // task marker silently reverting, with no output to say so. Everything below
@@ -245,7 +245,7 @@ enum Shape {
 /// The engines `templater::expand` actually implements.
 pub const TEMPLATE_ENGINES: &[&str] = &["templater", "core"];
 
-/// The flavors that change how a note is read. knapper supports more
+/// The flavors that change how a note is read. pkm supports more
 /// ecosystems than this -- Foam, Dendron, Roam, org-mode -- but they need no
 /// setting, so accepting their names here would promise a switch that does
 /// nothing.
@@ -316,7 +316,7 @@ fn unknown_setting(path: &str, fields: &[(&str, Shape)]) -> anyhow::Error {
         return anyhow!(
             "`providers` is not vault configuration and is never run from a vault. \
              A provider command belongs to a machine, not to a set of notes: write it \
-             with `knapper provider set NAME -- COMMAND`, which keeps it in the local \
+             with `pkm provider set NAME -- COMMAND`, which keeps it in the local \
              provider config outside the vault."
         );
     }
@@ -852,7 +852,7 @@ fn check_statuses(settings: &serde_yaml::Mapping) -> Result<()> {
         return Ok(());
     };
 
-    // Start from what knapper already knows and apply the config on top, so
+    // Start from what pkm already knows and apply the config on top, so
     // the checks below see the statuses a run would actually have. A vault
     // may hand one status's character to another without tripping the
     // duplicate rule, as long as the result is still unambiguous.
@@ -908,7 +908,7 @@ fn check_statuses(settings: &serde_yaml::Mapping) -> Result<()> {
         if let Some(other) = taken.insert(key, name) {
             return Err(anyhow!(
                 "`tasks.statuses` gives `{char}` to both `{other}` and `{name}`. A task \
-                 written `- [{char}]` could be either, so knapper cannot tell them apart: \
+                 written `- [{char}]` could be either, so pkm cannot tell them apart: \
                  give one of them a different `char`."
             ));
         }
@@ -1088,11 +1088,11 @@ pub fn config_path(explicit: Option<&str>) -> Result<PathBuf> {
     let path = match explicit {
         Some(p) => PathBuf::from(p),
         None => find_config(&std::env::current_dir()?)
-            .ok_or_else(|| anyhow!("Config file not found. Run 'knapper init' to create one."))?,
+            .ok_or_else(|| anyhow!("Config file not found. Run 'pkm init' to create one."))?,
     };
     if !path.exists() {
         return Err(anyhow!(
-            "Config file not found. Run 'knapper init' to create one."
+            "Config file not found. Run 'pkm init' to create one."
         ));
     }
     Ok(path)
@@ -1123,7 +1123,7 @@ pub fn load_config(explicit: Option<&str>, vault_override: Option<&str>) -> Resu
 /// Everything a config says, validated, before its `vault_path` is resolved
 /// against wherever the file turned out to live.
 ///
-/// `knapper init` reads the config it is about to write through this, so the
+/// `pkm init` reads the config it is about to write through this, so the
 /// generated file and what init does about it cannot drift apart.
 pub fn config_from(raw: &str) -> Result<Config> {
     let meta = config_settings(raw).and_then(|settings| validate(&settings).map(|()| settings))?;
@@ -1305,7 +1305,7 @@ pub fn all_files(config: &Config) -> Vec<PathBuf> {
         .filter(|e| e.path().is_file())
         .filter_map(|entry| {
             let path = entry.path();
-            // knapper's own config is not one of the user's notes.
+            // pkm's own config is not one of the user's notes.
             if path.file_name()?.to_str()? == CONFIG_FILENAME {
                 return None;
             }
@@ -1573,7 +1573,7 @@ mod tests {
         );
     }
 
-    /// A key knapper does not know is a key that does nothing, and a key that
+    /// A key pkm does not know is a key that does nothing, and a key that
     /// does nothing is indistinguishable from a setting that stopped working.
     #[test]
     fn an_unknown_setting_is_named_and_refused() {
@@ -1633,7 +1633,7 @@ mod tests {
         );
     }
 
-    /// Naming an engine or flavor knapper does not implement used to select
+    /// Naming an engine or flavor pkm does not implement used to select
     /// the default one, so the config claimed a behaviour it never got.
     #[test]
     fn an_unsupported_engine_or_flavor_is_refused() {
@@ -1761,7 +1761,7 @@ mod tests {
             &[
                 "`providers` is not vault configuration",
                 "never run from a vault",
-                "knapper provider set",
+                "pkm provider set",
             ],
         );
     }
@@ -1920,13 +1920,13 @@ mod tests {
         assert_eq!(config.tasks_statuses["forward"].char, Some('>'));
     }
 
-    /// `knapper init` must write a config `knapper init` can then read.
+    /// `pkm init` must write a config `pkm init` can then read.
     #[test]
     fn the_generated_config_validates_against_the_schema() {
         let config = load(crate::notes_cmd::DEFAULT_CONFIG)
-            .unwrap_or_else(|err| panic!("knapper init writes an invalid config: {err}"));
+            .unwrap_or_else(|err| panic!("pkm init writes an invalid config: {err}"));
         // It configures a template folder, so it excludes that folder: no
-        // folder name is special to knapper any more.
+        // folder name is special to pkm any more.
         assert!(
             config
                 .exclude

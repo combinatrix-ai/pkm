@@ -4,7 +4,7 @@ import RemoveMultipleSpaces from '../vendor/linter/src/rules/remove-multiple-spa
 import HeadingBlankLines from '../vendor/linter/src/rules/heading-blank-lines';
 import {getDisabledRules} from '../vendor/linter/src/rules';
 const builders:any={'trailing-spaces':TrailingSpaces,'remove-multiple-spaces':RemoveMultipleSpaces,'heading-blank-lines':HeadingBlankLines};
-(globalThis as any).knapperLinter=async(raw:string)=>{
+(globalThis as any).pkmLinter=async(raw:string)=>{
  try {
   const input=JSON.parse(raw);let text=input.text;
   const [disabled,all]=getDisabledRules(text);

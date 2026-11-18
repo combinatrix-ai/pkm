@@ -1,10 +1,10 @@
 //! Planning repairs for links that are already broken.
 //!
 //! A vault that has outlived two or three tools carries links nobody wrote
-//! wrong: a folder was reorganised outside knapper, an exporter wrote a path
+//! wrong: a folder was reorganised outside pkm, an exporter wrote a path
 //! that has since moved, an encoding survived a round trip it should not have.
-//! `rename` and `move` keep links intact through a refactor knapper performs;
-//! this is the other half -- the links that broke while knapper was not
+//! `rename` and `move` keep links intact through a refactor pkm performs;
+//! this is the other half -- the links that broke while pkm was not
 //! looking.
 //!
 //! What it will not do is guess. A repair is proposed only when the filesystem
@@ -305,7 +305,7 @@ fn candidates_for(
 /// resolve to the candidate.
 ///
 /// The check is the point. Everything up to here is evidence about which file
-/// was meant; this asks the resolver whether the text knapper would write
+/// was meant; this asks the resolver whether the text pkm would write
 /// actually lands there, so a proposal can never be published on the strength
 /// of a search that the reader would not reproduce.
 ///
@@ -509,7 +509,7 @@ impl Scanner<'_> {
     }
 
     /// org links are reported with their line and never with a repair.
-    /// knapper reads org and does not rewrite it, here as in `move` and
+    /// pkm reads org and does not rewrite it, here as in `move` and
     /// `demote`, so proposing an edit would promise something no apply could
     /// keep.
     fn org_note(&self, source: &str, content: &str) -> Vec<Occurrence> {
@@ -531,7 +531,7 @@ impl Scanner<'_> {
                 status: UNRESOLVED,
                 candidates: Vec::new(),
                 edit: None,
-                note: Some("knapper reads org links and never rewrites them".into()),
+                note: Some("pkm reads org links and never rewrites them".into()),
             })
             .collect()
     }

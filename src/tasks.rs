@@ -109,7 +109,7 @@ pub struct Status {
     pub date_format: Option<String>,
 }
 
-/// The statuses knapper knows without being told: name, checkbox character,
+/// The statuses pkm knows without being told: name, checkbox character,
 /// whether it closes a task, and the marker stamped when a task enters it.
 ///
 /// `vault`'s config validation reads this too. A config may override one of
@@ -408,7 +408,7 @@ pub struct Filters<'a> {
     pub done_to: Option<&'a str>,
     pub context_before: usize,
     pub context_after: usize,
-    /// Drop checkboxes that sit where knapper does not read prose: a fenced
+    /// Drop checkboxes that sit where pkm does not read prose: a fenced
     /// example, a `%%comment%%`, an inline-code span, an outliner macro.
     ///
     /// Off by default, unlike every other scanner, and deliberately. Masking

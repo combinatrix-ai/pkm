@@ -1,13 +1,13 @@
 //! Compatibility, pinned per ecosystem.
 //!
-//! `README.md` and `docs/COMPATIBILITY.md` name the flavors knapper works
+//! `README.md` and `docs/COMPATIBILITY.md` name the flavors pkm works
 //! with. This file is what makes those names mean something: each row runs
 //! the real commands against a tiny fixture vault and pins the result, so a
 //! change in link or task handling shows up here as a diff instead of as a
 //! silent regression in somebody's vault.
 //!
 //! The numbers are a description of current behaviour, not an aspiration.
-//! Where knapper is wrong today the expected value records the wrong answer
+//! Where pkm is wrong today the expected value records the wrong answer
 //! and the comment says so, so that fixing it is a visible, deliberate edit.
 
 use std::path::{Path, PathBuf};
@@ -16,7 +16,7 @@ use std::process::Command;
 /// files, links, broken, tasks.
 type Counts = (usize, usize, usize, usize);
 
-/// `files` excludes knapper.yaml, which is knapper's own settings
+/// `files` excludes pkm.yaml, which is pkm's own settings
 /// rather than one of the user's notes.
 const EXPECTED: &[(&str, Counts)] = &[
     // Fully supported. The obsidian fixture also proves that links inside a
@@ -30,7 +30,7 @@ const EXPECTED: &[(&str, Counts)] = &[
     // tests/fixtures/flavors/README.md.
     //
     // dendron: all three link forms resolve, including the extensionless
-    // "[d](proj.knapper.design)". The count is edges, not link occurrences,
+    // "[d](proj.pkm.design)". The count is edges, not link occurrences,
     // and all three point at the same note, so it stays at 2.
     ("dendron", (2, 2, 0, 0)),
     // dataview: the wikilink inside an inline field is found; the field
@@ -55,14 +55,14 @@ fn flavors_dir() -> PathBuf {
 }
 
 fn run(vault: &Path, args: &[&str]) -> String {
-    let output = Command::new(env!("CARGO_BIN_EXE_knapper"))
+    let output = Command::new(env!("CARGO_BIN_EXE_pkm"))
         .args(args)
         .current_dir(vault)
         .output()
-        .expect("knapper runs");
+        .expect("pkm runs");
     assert!(
         output.status.success(),
-        "knapper {args:?} failed in {}: {}",
+        "pkm {args:?} failed in {}: {}",
         vault.display(),
         String::from_utf8_lossy(&output.stderr)
     );

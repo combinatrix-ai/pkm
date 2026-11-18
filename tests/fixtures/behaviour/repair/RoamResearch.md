@@ -1,4 +1,4 @@
 # RoamResearch
 
-The note somebody renamed `Roam` into. knapper cannot know that, and guessing
+The note somebody renamed `Roam` into. pkm cannot know that, and guessing
 it is not a repair.

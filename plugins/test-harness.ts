@@ -16,7 +16,7 @@ const it = (name:string,body:()=>void)=>cases.push({name,body});
  const check=(value:boolean)=>{if(!value)throw Error('unexpected '+JSON.stringify(actual));};
  return {toBe:(expected:any)=>check(Object.is(actual,expected)),toEqual:(expected:any)=>check(compare(expected)),toBeNull:()=>check(actual===null),not:{toMatch:(pattern:RegExp)=>check(!pattern.test(actual)),toEqual:(expected:any)=>check(!compare(expected)),toBeNull:()=>check(actual!==null)}};
 };
-(globalThis as any).knapperTestReport=()=>{
+(globalThis as any).pkmTestReport=()=>{
  const failures:any[]=[];
  for(const {name,body} of cases)try{body();}catch(e){failures.push({name,error:String(e)});}
  return JSON.stringify({total:cases.length,passed:cases.length-failures.length,failures});

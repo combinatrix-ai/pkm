@@ -2,7 +2,7 @@
 //!
 //! A vault that has been written in for years accumulates `[[SF読書会]]`:
 //! square brackets used as a highlighter, never as a promise that a note by
-//! that name exists. knapper is right to call those broken links -- a hard
+//! that name exists. pkm is right to call those broken links -- a hard
 //! reference to a missing note is a broken link -- and the fix is not to
 //! weaken the report but to write what was meant. `#SF読書会` is the same
 //! label with none of the promise.
@@ -220,7 +220,7 @@ fn plan_note(
     let file = relative_path(&config.vault_path, path);
     let mut skipped = Vec::new();
 
-    // knapper reads org-mode but does not rewrite it, here as everywhere
+    // pkm reads org-mode but does not rewrite it, here as everywhere
     // else. An org note that links to the target is reported and left alone.
     //
     // The report still has to be actionable, so the lines come from the file

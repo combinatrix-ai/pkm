@@ -1,7 +1,7 @@
 import {prepareCapture,surroundCapture} from '../vendor/quickadd/src/formatters/helpers/capturePlacement';
 import {protectUserText,restoreUserTextInCapture} from '../vendor/quickadd/src/formatters/helpers/userText';
 import {insertAtNoteBodyStartWithResult} from '../vendor/quickadd/src/utils/noteContentInsertion';
-(globalThis as any).knapperCapture=async(raw:string)=>{
+(globalThis as any).pkmCapture=async(raw:string)=>{
  try {
   const input=JSON.parse(raw);
   const template=input.template ?? '{{VALUE}}';

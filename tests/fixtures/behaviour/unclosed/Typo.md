@@ -3,7 +3,7 @@
 An example that forgot its closing fence:
 
 ```
-knapper links Note.md
+pkm links Note.md
 
 ## Still Prose
 

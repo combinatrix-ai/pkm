@@ -1,6 +1,6 @@
 //! Link and tag extraction.
 //!
-//! A port of the Python `knapper.parser`. The behaviour it implements is
+//! A port of the Python `pkm.parser`. The behaviour it implements is
 //! pinned by `tests/contract/cases.yaml`, which both implementations answer
 //! to, so this file is a translation of a specification rather than a
 //! reinterpretation.
@@ -64,7 +64,7 @@ static INLINE_FIELD_BARE: LazyLock<Regex> = LazyLock::new(|| {
 pub const NOTE_SUFFIXES: &[&str] = &["md", "markdown", "mdx"];
 
 /// Attachments, as a deny list rather than an allow list, so a dotted note
-/// name such as `proj.knapper.design` still resolves.
+/// name such as `proj.pkm.design` still resolves.
 pub const ATTACHMENT_SUFFIXES: &[&str] = &[
     "png",
     "jpg",
@@ -142,7 +142,7 @@ fn mask_with(text: &str, re: &Regex) -> String {
 /// line, which leaks whatever follows into the link graph.
 ///
 /// Only a *closed* block is masked. CommonMark runs an unclosed fence to the
-/// end of the document, which is right for rendering, but knapper reports what
+/// end of the document, which is right for rendering, but pkm reports what
 /// is in a vault: one stray ``` should not silently delete every link, tag and
 /// heading written after it. An opening fence with no closing one is read as
 /// ordinary content.
@@ -392,7 +392,7 @@ pub fn extract_anchor_inventory(content: &str) -> AnchorInventory {
 ///
 /// `None` means the href is not a note reference: an attachment, or nothing at
 /// all. This is where "a dot that is not an extension is part of the name"
-/// lives, so a Dendron `proj.knapper.design` survives and a `.pdf` does not
+/// lives, so a Dendron `proj.pkm.design` survives and a `.pdf` does not
 /// become a link.
 pub fn normalize_markdown_path(target: &str) -> Option<String> {
     let mut target = target.to_string();
@@ -535,7 +535,7 @@ mod tests {
         serde_yaml::from_str(src).unwrap()
     }
 
-    /// knapper is not tied to Obsidian, so both link syntaxes must resolve:
+    /// pkm is not tied to Obsidian, so both link syntaxes must resolve:
     /// the wikilinks used by Obsidian/Foam/Dendron, and the inline markdown
     /// links used by everything else.
     #[test]
@@ -811,8 +811,8 @@ mod tests {
     #[test]
     fn dotted_note_names_survive() {
         for (content, expected) in [
-            ("[d](proj.knapper.design)", "proj.knapper.design"),
-            ("[d](proj.knapper.design.md)", "proj.knapper.design"),
+            ("[d](proj.pkm.design)", "proj.pkm.design"),
+            ("[d](proj.pkm.design.md)", "proj.pkm.design"),
             ("[d](notes/v1.2.release)", "notes/v1.2.release"),
         ] {
             assert_eq!(extract_links(content), vec![expected], "input: {content}");
@@ -926,7 +926,7 @@ mod tests {
     }
 
     // ----------------------------------------------------- outliners --
-    // knapper reads the file-level projection of an outliner graph and
+    // pkm reads the file-level projection of an outliner graph and
     // ignores block identity. What it must not do is let outliner syntax
     // leak into the link graph as phantom edges.
 

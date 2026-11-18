@@ -31,7 +31,7 @@ const tests: {name:string,body:()=>any}[] = [];
     toBeCloseTo: (expected:number, digits = 2) => check(Math.abs(actual-expected) < 0.5 * 10**(-digits),'toBeCloseTo',expected),
   };
 };
-(globalThis as any).knapperTestReport = () => {
+(globalThis as any).pkmTestReport = () => {
   for (const {name,body} of tests.splice(0)) {
     total++;
     try {const result = body(); if (result && typeof result.then === 'function') throw Error('Async upstream test needs a supported runner'); passed++;}

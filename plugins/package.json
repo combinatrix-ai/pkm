@@ -1,5 +1,5 @@
 {
-  "name": "knapper-plugin-engines",
+  "name": "pkm-plugin-engines",
   "private": true,
   "type": "module",
   "scripts": {

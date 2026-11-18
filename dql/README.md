@@ -9,23 +9,23 @@ Markdown/CSV snapshot to the index interfaces required by that engine.
 ## Use
 
 ```sh
-knapper dql 'TABLE messages FROM "Diary" SORT file.day' --format json
-knapper dql 'TABLE sum(rows.messages) FROM "Diary" GROUP BY status'
-knapper dql 'TASK FROM #work WHERE !completed'
-knapper dql 'CALENDAR file.day FROM "Diary"'
-knapper dql 'TABLE this.messages FROM "Diary"' --origin Diary/2026-10-03.md
-knapper dql 'TABLE messages FROM "Diary"' --memory-limit-mib 1024 --timeout-seconds 120
-knapper dql 'LIST WHERE file.starred'
-knapper dql 'LIST WHERE file.starred' --obsidian-config-dir .custom-obsidian
-knapper dql 'TABLE count FROM csv("counts.csv")' --origin Diary/2026-10-03.md
-knapper dql --licenses
+pkm dql 'TABLE messages FROM "Diary" SORT file.day' --format json
+pkm dql 'TABLE sum(rows.messages) FROM "Diary" GROUP BY status'
+pkm dql 'TASK FROM #work WHERE !completed'
+pkm dql 'CALENDAR file.day FROM "Diary"'
+pkm dql 'TABLE this.messages FROM "Diary"' --origin Diary/2026-10-03.md
+pkm dql 'TABLE messages FROM "Diary"' --memory-limit-mib 1024 --timeout-seconds 120
+pkm dql 'LIST WHERE file.starred'
+pkm dql 'LIST WHERE file.starred' --obsidian-config-dir .custom-obsidian
+pkm dql 'TABLE count FROM csv("counts.csv")' --origin Diary/2026-10-03.md
+pkm dql --licenses
 ```
 
 `TABLE`, `LIST`, `TASK`, `CALENDAR`, source expressions, `WHERE`, `SORT`,
 `LIMIT`, `GROUP BY`, `FLATTEN`, and functions use upstream implementations.
 `--origin` supplies the current page for `this` and relative CSV paths.
 `--timezone` selects an IANA timezone; the default is the host timezone.
-The existing `knapper query` command retains its own metadata/filter behavior.
+The existing `pkm query` command retains its own metadata/filter behavior.
 
 The JSON output has `type`, `headers`, `values`, `tasks` and `diagnostics`.
 Dates, durations and links retain type tags instead of silently turning into
@@ -40,10 +40,10 @@ The canonical feature contracts and verification status are in [spec.md](../spec
 
 - DQL query/evaluation semantics are pinned to the vendored version, including
   its quirks. Upstream updates require regenerated bundles and reference tests.
-- The source snapshot respects knapper's hidden-directory and `exclude` rules.
+- The source snapshot respects pkm's hidden-directory and `exclude` rules.
   Only `.md`/`.markdown` pages and scoped CSV files are indexed; Org and MDX are
   not Dataview pages. CSV sources cannot fetch URLs or files outside this scope.
-- CommonMark sections/list nesting and knapper's link/tag scanner provide the
+- CommonMark sections/list nesting and pkm's link/tag scanner provide the
   Obsidian-shaped metadata. Obsidian-specific syntax (such as callout/list
   cache edge cases), ambiguous/case-insensitive link lookup and bookmark state
   are not fully matched. `file.starred` reads native `bookmarks.json` and saved
@@ -76,7 +76,7 @@ pnpm --dir dql install --frozen-lockfile --ignore-scripts
 pnpm --dir dql build
 pnpm --dir dql test
 cargo test
-KNAPPER_DQL_NODE=node cargo test node_reference_matches_embedded_runtime -- --ignored
+PKM_DQL_NODE=node cargo test node_reference_matches_embedded_runtime -- --ignored
 cargo fmt -- --check
 cargo clippy --all-targets -- -D warnings
 cargo build --release
@@ -106,7 +106,7 @@ they do **not** establish full Obsidian metadata-cache equivalence.
 ## Vendoring and notices
 
 Dataview and the bundled JS packages are MIT-licensed; retain their notices
-when copying or distributing the bundle. `knapper dql --licenses` prints the
+when copying or distributing the bundle. `pkm dql --licenses` prints the
 notices embedded in the binary even outside a vault. Build and test tools are
 not embedded in the release executable. Cargo dependencies retain their own
 license obligations; added runtime notices are in `RUST_NOTICES.txt`.

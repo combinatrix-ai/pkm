@@ -8,7 +8,7 @@ import time
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--obsidian-cli', required=True)
-parser.add_argument('--knapper', required=True)
+parser.add_argument('--pkm', required=True)
 parser.add_argument('--vault', required=True, type=pathlib.Path)
 parser.add_argument('--state', choices=['enabled', 'cold-start-disabled'], required=True)
 parser.add_argument('--output', required=True, type=pathlib.Path)
@@ -43,11 +43,11 @@ for row in state['rows']:
     if not actual['successful']:
         raise RuntimeError(actual)
     actual = actual['value']
-    expected = json.loads(subprocess.check_output([a.knapper, '-v', str(vault), '-c', str(vault / 'knapper.yaml'), 'dql', row['query'], '--format', 'json'], text=True, timeout=60))
+    expected = json.loads(subprocess.check_output([a.pkm, '-v', str(vault), '-c', str(vault / 'pkm.yaml'), 'dql', row['query'], '--format', 'json'], text=True, timeout=60))
     normalize = lambda r: {k: r.get(k) for k in ('type', 'headers', 'values')}
     actual, expected = normalize(actual), normalize(expected)
     equal = actual == expected == normalize(row)
-    result['comparisons'].append({'query': row['query'], 'obsidian': actual, 'knapper': expected, 'equal': equal})
+    result['comparisons'].append({'query': row['query'], 'obsidian': actual, 'pkm': expected, 'equal': equal})
 a.output.write_text(json.dumps(result, indent=2) + '\n')
 if not all(r['equal'] for r in result['comparisons']):
     raise SystemExit('Comparison failed; inspect output')

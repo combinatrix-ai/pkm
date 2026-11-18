@@ -1,19 +1,19 @@
 #!/bin/sh
-# Install knapper, and register its agent skill.
+# Install pkm, and register its agent skill.
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/combinatrix-ai/knapper/v0.1.0/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/combinatrix-ai/pkm/v0.1.0/install.sh | sh
 #   sh install.sh --version v0.1.0 --skill claude
-#   sh install.sh --register-skills-from ./target/release/knapper --skill both
+#   sh install.sh --register-skills-from ./target/release/pkm --skill both
 
 set -eu
 
-KNAPPER_GITHUB_REPO="combinatrix-ai/knapper"
-KNAPPER_BINARY_NAME="knapper"
-KNAPPER_INSTALLER_NO_MAIN="${KNAPPER_INSTALLER_NO_MAIN:-0}"
+PKM_GITHUB_REPO="combinatrix-ai/pkm"
+PKM_BINARY_NAME="pkm"
+PKM_INSTALLER_NO_MAIN="${PKM_INSTALLER_NO_MAIN:-0}"
 
 die() {
-  printf 'knapper installer: %s\n' "$*" >&2
+  printf 'pkm installer: %s\n' "$*" >&2
   exit 1
 }
 
@@ -21,16 +21,16 @@ usage() {
   cat <<'EOF'
 Usage: install.sh [options]
 
-Install the published knapper binary into a user-writable directory.
+Install the published pkm binary into a user-writable directory.
 
 Options:
   --version VERSION  Install VERSION (for example v0.1.0); default: latest
   --target TARGET    Select a release target (normally detected automatically)
   --expect-sha256 HEX Require the digest from an authenticated checksum manifest
-  --bin-dir DIR      Install into DIR; default: $KNAPPER_BIN_DIR or ~/.local/bin
+  --bin-dir DIR      Install into DIR; default: $PKM_BIN_DIR or ~/.local/bin
   --skill MODE       Register the embedded skill: auto, none, codex, claude, or both
   --register-skills-from BINARY
-                     Register skills from an existing knapper binary; skip download
+                     Register skills from an existing pkm binary; skip download
   --no-skill         Alias for --skill none
   -h, --help         Show this help
 EOF
@@ -66,7 +66,7 @@ detect_target() {
 }
 
 release_asset_name() {
-  printf '%s-%s-%s.tar.gz\n' "$KNAPPER_BINARY_NAME" "$1" "$2"
+  printf '%s-%s-%s.tar.gz\n' "$PKM_BINARY_NAME" "$1" "$2"
 }
 
 validate_version() {
@@ -91,18 +91,18 @@ validate_version() {
 resolve_release_tag() {
   requested="$1"
   if [ "$requested" = "latest" ]; then
-    latest_url="https://github.com/${KNAPPER_GITHUB_REPO}/releases/latest"
+    latest_url="https://github.com/${PKM_GITHUB_REPO}/releases/latest"
     final_url="$(curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' --tlsv1.2 \
       --output /dev/null --write-out '%{url_effective}' "$latest_url")" \
-      || die "could not resolve the latest knapper release"
+      || die "could not resolve the latest pkm release"
     # With at least one release, /releases/latest redirects to /releases/tag/vX.
     # With none it lands on /releases, whose last path segment is the literal
     # word "releases" -- which used to reach the version check and be reported
     # as an invalid version rather than as the missing release it is.
     case "$final_url" in
       */releases/tag/*) ;;
-      *) die "$KNAPPER_GITHUB_REPO has published no release to install.
-Build from source instead: git clone https://github.com/${KNAPPER_GITHUB_REPO} && cargo build --release" ;;
+      *) die "$PKM_GITHUB_REPO has published no release to install.
+Build from source instead: git clone https://github.com/${PKM_GITHUB_REPO} && cargo build --release" ;;
     esac
     release_tag="${final_url##*/}"
   else
@@ -162,16 +162,16 @@ install_skill() {
   skill_target="$1"
   skill_directory="$(dirname "$skill_target")"
   mkdir -p "$skill_directory" || die "could not create skill directory: $skill_directory"
-  skill_temp="$(mktemp "$skill_directory/.knapper-skill.XXXXXX")" \
+  skill_temp="$(mktemp "$skill_directory/.pkm-skill.XXXXXX")" \
     || die "could not create a temporary skill file in $skill_directory"
   if ! "$installed_path" skill > "$skill_temp"; then
     rm -f "$skill_temp"
-    die "could not read the embedded knapper skill"
+    die "could not read the embedded pkm skill"
   fi
 
   if [ -f "$skill_target" ] && cmp -s "$skill_temp" "$skill_target"; then
     rm -f "$skill_temp"
-    printf 'knapper skill already current: %s\n' "$skill_target"
+    printf 'pkm skill already current: %s\n' "$skill_target"
     return 0
   fi
 
@@ -184,7 +184,7 @@ install_skill() {
   fi
   chmod 644 "$skill_temp"
   mv -f "$skill_temp" "$skill_target" || die "could not install skill: $skill_target"
-  printf 'registered knapper skill: %s\n' "$skill_target"
+  printf 'registered pkm skill: %s\n' "$skill_target"
 }
 
 register_skills() {
@@ -193,40 +193,40 @@ register_skills() {
   case "$skill_mode" in
     none) return 0 ;;
     auto)
-      # Only where the host already exists, so installing knapper does not
+      # Only where the host already exists, so installing pkm does not
       # create an agent directory on a machine that has never run one.
       if [ -n "${CODEX_HOME:-}" ] || [ -d "$HOME/.codex" ] || command -v codex >/dev/null 2>&1; then
-        install_skill "${CODEX_HOME:-$HOME/.codex}/skills/knapper/SKILL.md"
+        install_skill "${CODEX_HOME:-$HOME/.codex}/skills/pkm/SKILL.md"
         registered=1
       fi
       if [ -d "$HOME/.claude" ] || command -v claude >/dev/null 2>&1; then
-        install_skill "$HOME/.claude/skills/knapper/SKILL.md"
+        install_skill "$HOME/.claude/skills/pkm/SKILL.md"
         registered=1
       fi
       ;;
     codex)
-      install_skill "${CODEX_HOME:-$HOME/.codex}/skills/knapper/SKILL.md"
+      install_skill "${CODEX_HOME:-$HOME/.codex}/skills/pkm/SKILL.md"
       registered=1
       ;;
     claude)
-      install_skill "$HOME/.claude/skills/knapper/SKILL.md"
+      install_skill "$HOME/.claude/skills/pkm/SKILL.md"
       registered=1
       ;;
     both)
-      install_skill "${CODEX_HOME:-$HOME/.codex}/skills/knapper/SKILL.md"
-      install_skill "$HOME/.claude/skills/knapper/SKILL.md"
+      install_skill "${CODEX_HOME:-$HOME/.codex}/skills/pkm/SKILL.md"
+      install_skill "$HOME/.claude/skills/pkm/SKILL.md"
       registered=1
       ;;
     *) die "invalid skill mode '$skill_mode'; expected auto, none, codex, claude, or both" ;;
   esac
   if [ "$registered" -eq 0 ]; then
-    printf 'knapper skill registration skipped; use --skill codex, --skill claude, or --skill both\n'
+    printf 'pkm skill registration skipped; use --skill codex, --skill claude, or --skill both\n'
   fi
 }
 
 main() {
   requested_version="latest"
-  bin_dir="${KNAPPER_BIN_DIR:-$HOME/.local/bin}"
+  bin_dir="${PKM_BIN_DIR:-$HOME/.local/bin}"
   skill_mode="auto"
   register_skills_from=""
   requested_target=""
@@ -283,7 +283,7 @@ main() {
   need_command tar
 
   target="$(detect_target "$(uname -s)" "$(uname -m)")" \
-    || die "could not map this machine to a published knapper target"
+    || die "could not map this machine to a published pkm target"
 
   if [ -n "$requested_target" ]; then
     case "$requested_target" in
@@ -293,8 +293,8 @@ main() {
   fi
   release_tag="$(resolve_release_tag "$requested_version")"
   archive_name="$(release_asset_name "$release_tag" "$target")"
-  release_base="https://github.com/${KNAPPER_GITHUB_REPO}/releases/download/${release_tag}"
-  installed_path="$bin_dir/$KNAPPER_BINARY_NAME"
+  release_base="https://github.com/${PKM_GITHUB_REPO}/releases/download/${release_tag}"
+  installed_path="$bin_dir/$PKM_BINARY_NAME"
 
   temporary_directory="$(mktemp -d)" || die "could not create a temporary directory"
   cleanup() {
@@ -306,36 +306,36 @@ main() {
   trap cleanup 0 1 2 15
 
   archive_path="$temporary_directory/$archive_name"
-  sums_path="$temporary_directory/knapper-${release_tag}-checksums.txt"
-  printf 'installing knapper %s for %s\n' "$release_tag" "$target"
+  sums_path="$temporary_directory/pkm-${release_tag}-checksums.txt"
+  printf 'installing pkm %s for %s\n' "$release_tag" "$target"
   download "$release_base/$archive_name" "$archive_path"
-  download "$release_base/knapper-${release_tag}-checksums.txt" "$sums_path"
+  download "$release_base/pkm-${release_tag}-checksums.txt" "$sums_path"
   verify_checksum "$archive_path" "$sums_path"
   if [ -n "$expect_sha256" ]; then verify_expected_sha256 "$archive_path" "$expect_sha256"; fi
 
   extract_directory="$temporary_directory/extract"
   mkdir -p "$extract_directory"
   tar -xzf "$archive_path" -C "$extract_directory" \
-    || die "could not extract knapper archive: $archive_name"
-  extracted_binary="$extract_directory/$KNAPPER_BINARY_NAME/$KNAPPER_BINARY_NAME"
-  [ -f "$extracted_binary" ] || die "knapper archive did not contain an executable"
+    || die "could not extract pkm archive: $archive_name"
+  extracted_binary="$extract_directory/$PKM_BINARY_NAME/$PKM_BINARY_NAME"
+  [ -f "$extracted_binary" ] || die "pkm archive did not contain an executable"
 
   mkdir -p "$bin_dir" || die "could not create install directory: $bin_dir"
-  install_temp="$(mktemp "$bin_dir/.knapper.XXXXXX")" \
+  install_temp="$(mktemp "$bin_dir/.pkm.XXXXXX")" \
     || die "could not create a temporary binary in $bin_dir"
-  cp "$extracted_binary" "$install_temp" || die "could not copy knapper into $bin_dir"
+  cp "$extracted_binary" "$install_temp" || die "could not copy pkm into $bin_dir"
   chmod 755 "$install_temp"
-  mv -f "$install_temp" "$installed_path" || die "could not install knapper into $bin_dir"
+  mv -f "$install_temp" "$installed_path" || die "could not install pkm into $bin_dir"
   install_temp=""
-  printf 'installed knapper at %s\n' "$installed_path"
+  printf 'installed pkm at %s\n' "$installed_path"
 
   register_skills "$skill_mode"
   case ":${PATH:-}:" in
     *":$bin_dir:"*) ;;
-    *) printf 'add knapper to future shells with: export PATH="%s:\$PATH"\n' "$bin_dir" ;;
+    *) printf 'add pkm to future shells with: export PATH="%s:\$PATH"\n' "$bin_dir" ;;
   esac
 }
 
-if [ "$KNAPPER_INSTALLER_NO_MAIN" -eq 0 ]; then
+if [ "$PKM_INSTALLER_NO_MAIN" -eq 0 ]; then
   main "$@"
 fi

@@ -65,7 +65,7 @@ All three inspected roots are MIT. Retain their copyright/license notices and
 review every bundled dependency and copied asset before redistribution; root
 licenses alone are not a complete distribution audit.
 
-knapper currently declares MIT. [Templater's license](https://github.com/SilentVoid13/Templater/blob/master/LICENSE.TXT)
+pkm currently declares MIT. [Templater's license](https://github.com/SilentVoid13/Templater/blob/master/LICENSE.TXT)
 is AGPLv3. Being open source alone is insufficient. For a deeply integrated single
 binary containing AGPL-covered code, plan to distribute the combined covered work
 under AGPL-compatible terms, retain MIT notices, and provide complete Corresponding

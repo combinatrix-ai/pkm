@@ -28,7 +28,7 @@ case manifest. For every new plugin/data behavior or discovered discrepancy:
 2. Add a case with independently reviewed expectations and a `spec.md` feature ID.
 3. Compare with actual Obsidian App + official CLI and record app/plugin versions,
    supported fields and any intentional differences. Never generate the answer
-   key solely from knapper's output. Preserve upstream provenance/notices.
+   key solely from pkm's output. Preserve upstream provenance/notices.
 4. Keep the synthetic expected results in CI and update spec/docs together.
    Larger public corpora remain separate, version-pinned inputs.
 
@@ -37,7 +37,7 @@ case manifest. For every new plugin/data behavior or discovered discrepancy:
 Offline baseline (no Obsidian required):
 
 ```sh
-python3 scripts/verify-pkm-vault.py --knapper /absolute/path/knapper \
+python3 scripts/verify-pkm-vault.py --pkm /absolute/path/pkm \
   --vault /absolute/path/to/tests/fixtures/pkm --output /tmp/pkm-baseline.json
 ```
 
@@ -47,7 +47,7 @@ the official CLI in that profile and wait for indexing. Keep the App timezone
 at Asia/Tokyo to match the manifest. Set `--obsidian-cli` to its bundled binary:
 
 ```sh
-python3 scripts/verify-pkm-vault.py --knapper /absolute/path/knapper \
+python3 scripts/verify-pkm-vault.py --pkm /absolute/path/pkm \
   --vault /tmp/pkm-live \
   --obsidian-cli /path/Obsidian.app/Contents/MacOS/obsidian-cli \
   --output /tmp/pkm-live-result.json
@@ -57,7 +57,7 @@ Add `--watch` to poll the same queries while editing the disposable copy.
 The preview is `pass N: 7 cases matched`; a persistent mismatch exits nonzero
 and saves both results. `--interval 5` controls polling and `--iterations 2`
 bounds a trial. Ctrl-C stops an unbounded local watch. No scheduler or background
-service is installed. Watch checks App/knapper equality rather than demanding the
+service is installed. Watch checks App/pkm equality rather than demanding the
 original baseline after an intentional edit; `baselineEqual` is still recorded.
 Transient index differences are retried for up to ten samples at 0.5s intervals;
 this is a convergence check, not proof that App refresh is instantaneous.
@@ -84,7 +84,7 @@ To repeat the 18 live plugin comparisons, copy this fixture, install/enable thos
 exact versions in the disposable vault, and open it under an isolated profile:
 
 ```sh
-python3 scripts/verify-plugin-vault.py --knapper /absolute/path/knapper \
+python3 scripts/verify-plugin-vault.py --pkm /absolute/path/pkm \
   --obsidian-cli /path/Obsidian.app/Contents/MacOS/obsidian-cli \
   --vault /tmp/pkm-live --output /tmp/plugin-comparison.json --allow-fixture-writes
 ```
@@ -103,8 +103,8 @@ The live runner reports it separately and requires both recorded orders to agree
 
 `Diary/` adds four synthetic journal entries: YAML steps, inline steps, missing
 steps and explicit null. `daily-steps-missing` in `cases.json` expects the last
-two paths; `knapper.yaml` uses the equivalent file-link LIST as a named lint rule.
-Run `knapper lint --check dataview:daily-steps --format json` to replay it.
+two paths; `pkm.yaml` uses the equivalent file-link LIST as a named lint rule.
+Run `pkm lint --check dataview:daily-steps --format json` to replay it.
 The registry now has eight DQL cases.
 `daily-steps-reference.json` records the App 1.13.7/official CLI comparison,
 including exact configured file-link LIST and the path LIST case. Dataview assets

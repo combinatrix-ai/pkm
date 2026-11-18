@@ -2,19 +2,19 @@
 //!
 //! Shipping it inside the executable rather than as a file beside it keeps
 //! the "one binary, nothing to install alongside it" claim true: an agent
-//! host can be handed the skill by running `knapper skill`, and an installer
+//! host can be handed the skill by running `pkm skill`, and an installer
 //! can register it without fetching anything more.
 
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 
-pub const TEXT: &str = include_str!("../assets/knapper-skill.md");
+pub const TEXT: &str = include_str!("../assets/pkm-skill.md");
 
 /// Where each agent host looks for skills.
 ///
 /// Only hosts that appear to be present are written to, so installing
-/// knapper does not create a `.codex` directory on a machine that has never
+/// pkm does not create a `.codex` directory on a machine that has never
 /// run Codex.
 fn skill_targets() -> Vec<(&'static str, PathBuf)> {
     let mut targets = Vec::new();
@@ -25,13 +25,13 @@ fn skill_targets() -> Vec<(&'static str, PathBuf)> {
         .or_else(|| home.as_ref().map(|h| h.join(".codex")));
     if let Some(dir) = codex {
         if dir.is_dir() {
-            targets.push(("codex", dir.join("skills/knapper/SKILL.md")));
+            targets.push(("codex", dir.join("skills/pkm/SKILL.md")));
         }
     }
 
     if let Some(dir) = home.map(|h| h.join(".claude")) {
         if dir.is_dir() {
-            targets.push(("claude", dir.join("skills/knapper/SKILL.md")));
+            targets.push(("claude", dir.join("skills/pkm/SKILL.md")));
         }
     }
 
@@ -68,15 +68,12 @@ pub fn run(install: bool) -> Result<()> {
     let targets = skill_targets();
     if targets.is_empty() {
         println!("No agent host found. Looked for ~/.codex and ~/.claude.");
-        println!("Write the skill yourself with: knapper skill > path/to/SKILL.md");
+        println!("Write the skill yourself with: pkm skill > path/to/SKILL.md");
         return Ok(());
     }
     for (host, path) in targets {
         if write_skill(&path)? {
-            println!(
-                "Registered the knapper skill for {host}: {}",
-                path.display()
-            );
+            println!("Registered the pkm skill for {host}: {}", path.display());
         } else {
             println!("Already current for {host}: {}", path.display());
         }

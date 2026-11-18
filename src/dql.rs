@@ -37,7 +37,7 @@ pub fn evaluate(input: &Value, memory_limit_mib: u32, timeout_seconds: u64) -> R
     let (_rt, context) = runtime(memory_limit_mib, timeout_seconds)?;
     context.with(|ctx| {
         ctx.eval::<(), _>(ENGINE).map_err(|e| js_error(&ctx, e))?;
-        let function: Function = ctx.globals().get("knapperDql")?;
+        let function: Function = ctx.globals().get("pkmDql")?;
         let promise: Promise = function
             .call((serde_json::to_string(input)?,))
             .map_err(|e| js_error(&ctx, e))?;
@@ -51,7 +51,7 @@ pub fn evaluate(input: &Value, memory_limit_mib: u32, timeout_seconds: u64) -> R
 }
 
 /// Build the Obsidian-shaped metadata consumed by Dataview's own importer.
-/// CommonMark handles sections/list nesting; knapper's scanner handles local
+/// CommonMark handles sections/list nesting; pkm's scanner handles local
 /// wikilinks and its prose mask keeps examples/comments out of the index.
 fn markdown_metadata(contents: &str) -> Result<Value> {
     use pulldown_cmark::{Event, Options, Parser, Tag, TagEnd};
@@ -363,7 +363,7 @@ mod tests {
                 .map_err(|e| js_error(&ctx, e))
                 .unwrap();
             let report: String = ctx
-                .eval("knapperTestReport()")
+                .eval("pkmTestReport()")
                 .map_err(|e| js_error(&ctx, e))
                 .unwrap();
             let report: Value = serde_json::from_str(&report).unwrap();
@@ -379,7 +379,7 @@ mod tests {
         use std::process::{Command, Stdio};
         let vault = tempfile::tempdir().unwrap();
         std::fs::create_dir(vault.path().join("Diary")).unwrap();
-        std::fs::write(vault.path().join("knapper.yaml"), "vault_path: .\n").unwrap();
+        std::fs::write(vault.path().join("pkm.yaml"), "vault_path: .\n").unwrap();
         std::fs::write(vault.path().join("Diary/2026-10-02.md"), "---\ntags: [mail/history]\nstatus: open\nrelated: '[[2026-10-03]]'\n---\n# Mail\nmessages:: 800\n[accounts:: [[Personal]], [[Work]]]\n- [ ] respond [cost:: 2]\n  - [x] inspect\n").unwrap();
         std::fs::write(
             vault.path().join("Diary/2026-10-03.md"),
@@ -392,7 +392,7 @@ mod tests {
         )
         .unwrap();
         let config = crate::vault::load_config(
-            Some(vault.path().join("knapper.yaml").to_str().unwrap()),
+            Some(vault.path().join("pkm.yaml").to_str().unwrap()),
             Some(vault.path().to_str().unwrap()),
         )
         .unwrap();
@@ -419,7 +419,7 @@ mod tests {
             .unwrap();
             let embedded = evaluate(&input, 256, 30).unwrap();
             let mut child =
-                Command::new(std::env::var("KNAPPER_DQL_NODE").unwrap_or_else(|_| "node".into()))
+                Command::new(std::env::var("PKM_DQL_NODE").unwrap_or_else(|_| "node".into()))
                     .arg(concat!(env!("CARGO_MANIFEST_DIR"), "/dql/reference.mjs"))
                     .stdin(Stdio::piped())
                     .stdout(Stdio::piped())

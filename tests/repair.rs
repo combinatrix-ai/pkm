@@ -32,7 +32,7 @@ impl Vault {
         let vault = Vault {
             root: tempfile::tempdir().unwrap(),
         };
-        vault.write("knapper.yaml", &format!("vault_path: .\n{config}"));
+        vault.write("pkm.yaml", &format!("vault_path: .\n{config}"));
         for (path, content) in files {
             vault.write(path, content);
         }
@@ -79,11 +79,11 @@ impl Vault {
     }
 
     fn run(&self, args: &[&str]) -> Run {
-        let output = Command::new(env!("CARGO_BIN_EXE_knapper"))
+        let output = Command::new(env!("CARGO_BIN_EXE_pkm"))
             .args(args)
             .current_dir(self.path())
             .output()
-            .expect("knapper runs");
+            .expect("pkm runs");
         Run {
             code: output.status.code().unwrap_or(-1),
             stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
@@ -110,7 +110,7 @@ impl Run {
     }
 }
 
-/// A vault whose links went stale outside knapper: a folder was reorganised,
+/// A vault whose links went stale outside pkm: a folder was reorganised,
 /// and the tails of the paths are still exactly right.
 ///
 /// Note what is *not* here: a stale path to an ordinary note written without
@@ -217,7 +217,7 @@ fn the_plan_is_byte_identical_between_runs() {
 /// The point of publishing a byte span with the text before and after is that
 /// an apply can be built on the plan rather than on a second scan. So this
 /// carries one out from the JSON alone -- splice each span, deepest first --
-/// and asks knapper whether anything is still broken.
+/// and asks pkm whether anything is still broken.
 #[test]
 fn the_published_spans_are_enough_to_carry_the_repair_out() {
     let vault = stale_vault();

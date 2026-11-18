@@ -1,6 +1,6 @@
 # CLI manual
 
-The complete command and configuration manual for knapper. For a feature
+The complete command and configuration manual for pkm. For a feature
 overview, see the [README](../README.md); for format-specific support and
 limitations, see the [compatibility matrix](COMPATIBILITY.md).
 
@@ -26,13 +26,13 @@ limitations, see the [compatibility matrix](COMPATIBILITY.md).
 ## Install
 
 Download the binary for your platform from
-[Releases](https://github.com/combinatrix-ai/knapper/releases). It is one
+[Releases](https://github.com/combinatrix-ai/pkm/releases). It is one
 file, about 5 MB, with nothing to install alongside it — no interpreter, no
-virtualenv, no dependency resolution. That is the point: knapper is for
+virtualenv, no dependency resolution. That is the point: pkm is for
 machines where you would rather not stand up a runtime.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/combinatrix-ai/knapper/v0.1.0/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/combinatrix-ai/pkm/v0.1.0/install.sh | sh
 ```
 
 That puts the binary in `~/.local/bin`, verifies it against the release's
@@ -41,7 +41,7 @@ Codex it finds. `--bin-dir`, `--version` and `--skill none` change all three;
 `--help` lists them.
 
 Or take the archive yourself, from
-[Releases](https://github.com/combinatrix-ai/knapper/releases):
+[Releases](https://github.com/combinatrix-ai/pkm/releases):
 
 Choose the archive matching your OS and CPU. v0.1.0 supports macOS arm64 /
 x86_64 and Linux arm64 / x86_64 (musl). Windows is not a release target.
@@ -49,17 +49,17 @@ x86_64 and Linux arm64 / x86_64 (musl). Windows is not a release target.
 Verify its GitHub Actions provenance before extracting it:
 
 ```bash
-gh attestation verify knapper-v0.1.0-aarch64-apple-darwin.tar.gz --repo combinatrix-ai/knapper
+gh attestation verify pkm-v0.1.0-aarch64-apple-darwin.tar.gz --repo combinatrix-ai/pkm
 ```
 
 Linux builds are musl-linked, so they run on Alpine and in a scratch
 container.
 
-Because there is no package manager in that story, knapper upgrades itself:
+Because there is no package manager in that story, pkm upgrades itself:
 
 ```bash
-knapper self-update --check   # is there a newer release?
-knapper self-update           # install it
+pkm self-update --check   # is there a newer release?
+pkm self-update           # install it
 ```
 
 The updater verifies the checksum manifest's Sigstore provenance against the
@@ -71,8 +71,8 @@ directory, which must be writable. `--yes` confirms noninteractive updates;
 
 Automatic checks only notify; they never replace the executable. They run only
 with a terminal on stderr, outside CI, and leave stdout unchanged. Version and
-check-time cache files live under `$XDG_CACHE_HOME/knapper` (default
-`~/.cache/knapper`). No notes or provider values are sent. A failed check retains
+check-time cache files live under `$XDG_CACHE_HOME/pkm` (default
+`~/.cache/pkm`). No notes or provider values are sent. A failed check retains
 the last known notice. Explicit updates and configured provider commands may
 also use the network. Deleting the cache clears update-check state.
 
@@ -84,7 +84,7 @@ The installed binary's updater performs provenance verification itself.
 <summary>From source</summary>
 
 ```bash
-cargo install --git https://github.com/combinatrix-ai/knapper knapper
+cargo install --git https://github.com/combinatrix-ai/pkm pkm
 ```
 
 </details>
@@ -93,29 +93,29 @@ cargo install --git https://github.com/combinatrix-ai/knapper knapper
 
 ```bash
 cd ~/your-notes
-knapper init             # writes knapper.yaml — defaults are sane
-knapper lint             # how healthy is this vault?
-knapper tasks --overdue  # what slipped?
+pkm init             # writes pkm.yaml — defaults are sane
+pkm lint             # how healthy is this vault?
+pkm tasks --overdue  # what slipped?
 ```
 
-`knapper init` writes two files: the config, and the `Templates/daily.md` the
-config points at, so `knapper daily` works straight afterwards. A template you
+`pkm init` writes two files: the config, and the `Templates/daily.md` the
+config points at, so `pkm daily` works straight afterwards. A template you
 already have is never overwritten, `--force` included — that flag is about
-replacing knapper's config, not your writing.
+replacing pkm's config, not your writing.
 
-`knapper init` is one-time; after that, knapper walks up from wherever you are
-to find the nearest `knapper.yaml`, so commands work from any
+`pkm init` is one-time; after that, pkm walks up from wherever you are
+to find the nearest `pkm.yaml`, so commands work from any
 subdirectory.
 
 ## Invocation and output
 
 ```text
-knapper [--config PATH] [--vault PATH] COMMAND [OPTIONS]
+pkm [--config PATH] [--vault PATH] COMMAND [OPTIONS]
 ```
 
 `-c/--config` selects a config file. `-v/--vault` overrides the vault path.
 Both options are global and may be passed with any subcommand. Without an
-explicit config, knapper searches upward for `knapper.yaml`.
+explicit config, pkm searches upward for `pkm.yaml`.
 
 Commands with `-f/--format` default to text. Use `--format json` for scripts;
 list-producing commands also support paths where described below. Output
@@ -123,8 +123,8 @@ formats are command-specific: there is no global `--format` option.
 Quote predicates such as `'inlinks>3'` so the shell does not interpret `>`
 as redirection, and quote tag arguments such as `'#research'`.
 
-Use `knapper --help`, `knapper COMMAND --help`, or
-`knapper COMMAND SUBCOMMAND --help` for the installed version's syntax.
+Use `pkm --help`, `pkm COMMAND --help`, or
+`pkm COMMAND SUBCOMMAND --help` for the installed version's syntax.
 [Arguments and options](#arguments-and-options) below includes every public
 command and subcommand. The hidden background update helper is internal.
 
@@ -136,12 +136,12 @@ listed in [Resolving](#resolving).
 ## Frontmatter
 
 ```bash
-knapper frontmatter get Notes/Example.md --format json
-knapper frontmatter get Notes/Example.md status
-knapper frontmatter set Notes/Example.md status active
-knapper frontmatter set Notes/Example.md score 3
-knapper frontmatter set Notes/Example.md tags '[research, draft]'
-knapper frontmatter delete Notes/Example.md score
+pkm frontmatter get Notes/Example.md --format json
+pkm frontmatter get Notes/Example.md status
+pkm frontmatter set Notes/Example.md status active
+pkm frontmatter set Notes/Example.md score 3
+pkm frontmatter set Notes/Example.md tags '[research, draft]'
+pkm frontmatter delete Notes/Example.md score
 ```
 
 `get` reads the whole YAML mapping or one key. `set` parses its value as YAML,
@@ -153,36 +153,36 @@ key. These write commands have no dry-run flag.
 
 | Command | What it does |
 |---------|--------------|
-| [`knapper init`](#knapper-init) | Write `knapper.yaml`, and the daily template it names |
-| [`knapper config check`](#knapper-config) | Validate the config without scanning the vault |
-| [`knapper config schema`](#knapper-config) | Print the JSON Schema for YAML-aware editors |
-| [`knapper dql`](#knapper-dql) | Run pinned Dataview DQL; see [the DQL guide](../dql/README.md) and [Obsidian spec](../spec.md) |
-| [`knapper query`](#knapper-query) | Filter notes by frontmatter, inline fields and link counts |
-| [`knapper fields`](#knapper-fields) | List what `query` can filter on |
-| [`knapper lint`](#knapper-lint) | Vault health: `broken-links`, `orphans`, `duplicates`, `empty`, `frontmatter`, `headings`, configured Dataview rules |
-| [`knapper backlinks FILE`](#knapper-backlinks) | Incoming links to a file, or the notes carrying a `'#tag'` |
-| [`knapper links FILE`](#knapper-links) | Outgoing links from a file |
-| [`knapper orphans`](#knapper-orphans) | Notes no other note links to |
-| [`knapper hubs`](#knapper-hubs) | Most-linked-to notes |
-| [`knapper broken-links`](#knapper-broken-links) | Links to missing notes, headings or block IDs, one record per occurrence |
-| [`knapper repair-links --dry-run`](#knapper-repair-links) | Plan repairs for broken links; never writes |
-| [`knapper rename OLD NEW`](#knapper-rename) | Rename a note and update all links |
-| [`knapper move SRC DEST`](#knapper-move) | Move a note or a directory and update all links |
-| [`knapper demote TARGET`](#knapper-demote) | Rewrite the exact `[[TARGET]]` into `#TARGET` |
-| [`knapper context FILE`](#knapper-context) | Aggregated context; add `--line N` for focused Markdown context |
-| [`knapper tasks`](#knapper-tasks) | Find and filter `- [ ]` tasks |
-| [`knapper tasks new / done / wip / cancel / set`](#knapper-tasks) | Create a task or change its status |
-| [`knapper daily [DATE]`](#knapper-daily) | Create or get a daily note |
-| [`knapper frontmatter get / set / delete`](#knapper-frontmatter) | Read and write YAML frontmatter |
-| [`knapper tags`](#knapper-tags) | List tags, or find files by tag with `--find` |
-| [`knapper refs [FILE]`](#knapper-refs) | Find `knapper://` references, optionally for one provider |
-| [`knapper resolve REF`](#knapper-resolve) | Read one reference's value through its provider's command |
-| [`knapper provider list / set / remove`](#knapper-provider) | Configure those commands, outside the vault |
-| [`knapper skill`](#knapper-skill) | Print the embedded agent skill, or `--install` it |
-| [`knapper self-update`](#knapper-self-update) | Replace this binary with the newest release |
+| [`pkm init`](#pkm-init) | Write `pkm.yaml`, and the daily template it names |
+| [`pkm config check`](#pkm-config) | Validate the config without scanning the vault |
+| [`pkm config schema`](#pkm-config) | Print the JSON Schema for YAML-aware editors |
+| [`pkm dql`](#pkm-dql) | Run pinned Dataview DQL; see [the DQL guide](../dql/README.md) and [Obsidian spec](../spec.md) |
+| [`pkm query`](#pkm-query) | Filter notes by frontmatter, inline fields and link counts |
+| [`pkm fields`](#pkm-fields) | List what `query` can filter on |
+| [`pkm lint`](#pkm-lint) | Vault health: `broken-links`, `orphans`, `duplicates`, `empty`, `frontmatter`, `headings`, configured Dataview rules |
+| [`pkm backlinks FILE`](#pkm-backlinks) | Incoming links to a file, or the notes carrying a `'#tag'` |
+| [`pkm links FILE`](#pkm-links) | Outgoing links from a file |
+| [`pkm orphans`](#pkm-orphans) | Notes no other note links to |
+| [`pkm hubs`](#pkm-hubs) | Most-linked-to notes |
+| [`pkm broken-links`](#pkm-broken-links) | Links to missing notes, headings or block IDs, one record per occurrence |
+| [`pkm repair-links --dry-run`](#pkm-repair-links) | Plan repairs for broken links; never writes |
+| [`pkm rename OLD NEW`](#pkm-rename) | Rename a note and update all links |
+| [`pkm move SRC DEST`](#pkm-move) | Move a note or a directory and update all links |
+| [`pkm demote TARGET`](#pkm-demote) | Rewrite the exact `[[TARGET]]` into `#TARGET` |
+| [`pkm context FILE`](#pkm-context) | Aggregated context; add `--line N` for focused Markdown context |
+| [`pkm tasks`](#pkm-tasks) | Find and filter `- [ ]` tasks |
+| [`pkm tasks new / done / wip / cancel / set`](#pkm-tasks) | Create a task or change its status |
+| [`pkm daily [DATE]`](#pkm-daily) | Create or get a daily note |
+| [`pkm frontmatter get / set / delete`](#pkm-frontmatter) | Read and write YAML frontmatter |
+| [`pkm tags`](#pkm-tags) | List tags, or find files by tag with `--find` |
+| [`pkm refs [FILE]`](#pkm-refs) | Find `pkm://` references, optionally for one provider |
+| [`pkm resolve REF`](#pkm-resolve) | Read one reference's value through its provider's command |
+| [`pkm provider list / set / remove`](#pkm-provider) | Configure those commands, outside the vault |
+| [`pkm skill`](#pkm-skill) | Print the embedded agent skill, or `--install` it |
+| [`pkm self-update`](#pkm-self-update) | Replace this binary with the newest release |
 
 Query commands take `-f/--format`; the rest of the detail lives behind
-`knapper COMMAND --help`.
+`pkm COMMAND --help`.
 
 ## One filter over every note
 
@@ -191,16 +191,16 @@ details and applies lint policies by default. `query` is the general form, so th
 for are available:
 
 ```bash
-knapper query --where inlinks=0            # what orphans does
-knapper query --sort inlinks:desc --limit 10   # what hubs does
-knapper query --where 'broken>0' --field broken  # notes with broken links, without lint policies
+pkm query --where inlinks=0            # what orphans does
+pkm query --sort inlinks:desc --limit 10   # what hubs does
+pkm query --where 'broken>0' --field broken  # notes with broken links, without lint policies
 ```
 
 The point is what those presets could not express — filtering on a note's own
 fields and ranking by a computed one, in the same question:
 
 ```
-$ knapper query --from Questions --where status=open --field inlinks --sort inlinks:desc
+$ pkm query --from Questions --where status=open --field inlinks --sort inlinks:desc
 path                          inlinks
 ----------------------------  -------
 Questions/where-to-live.md    4
@@ -210,13 +210,13 @@ Questions/which-bank.md       1
 Frontmatter keys, Dataview inline fields and computed fields share one
 namespace, so `status=open`, `cost>40` and `inlinks=0` all work the same way.
 Operators are `=` `!=` `>` `<` `>=` `<=` `~` (contains), a bare name for
-"has this field" and `!name` for "does not". `knapper fields` lists what a
+"has this field" and `!name` for "does not". `pkm fields` lists what a
 given vault offers.
 
 ## Broken links include headings and block IDs
 
 A link is only healthy when its complete destination exists. Resolving the
-note is not enough when the link names an anchor: knapper also checks that the
+note is not enough when the link names an anchor: pkm also checks that the
 heading or Obsidian block ID exists in the resolved Markdown note.
 
 | Form | What is checked |
@@ -266,20 +266,20 @@ note; if the anchor is absent, the same occurrence is additionally broken.
 ## Hard links and soft tags
 
 ```bash
-knapper tags                        # list tags across the vault
-knapper tags Notes/Example.md       # list tags in one note
-knapper tags --find research        # find notes carrying a tag
-knapper backlinks '#research'       # inspect occurrences
-knapper context '#research' --format json
+pkm tags                        # list tags across the vault
+pkm tags Notes/Example.md       # list tags in one note
+pkm tags --find research        # find notes carrying a tag
+pkm backlinks '#research'       # inspect occurrences
+pkm context '#research' --format json
 ```
 
 
 A vault that has been written in for years is full of `[[book-club]]` — square
 brackets used as a highlighter, never as a promise that a note by that name
-exists. knapper is right to call those broken links, and the fix is not to
+exists. pkm is right to call those broken links, and the fix is not to
 soften the report. It is to write what was meant.
 
-So knapper distinguishes two kinds of reference:
+So pkm distinguishes two kinds of reference:
 
 | | means | missing target | in the graph |
 |---|---|---|---|
@@ -291,7 +291,7 @@ A tag is not a note and never becomes one. It is not an orphan, not a hub, and
 a label you cannot follow is only half a label:
 
 ```
-$ knapper backlinks '#book-club'
+$ pkm backlinks '#book-club'
 
 Daily/2026-07-01.md (line 10) #book-club
 
@@ -310,7 +310,7 @@ writing a path for it, `./#notes.md`.
 note that does not exist:
 
 ```bash
-knapper context '#book-club' --format json
+pkm context '#book-club' --format json
 ```
 
 ```json
@@ -362,7 +362,7 @@ The matching rules are deliberately narrow, and the same in both commands:
 `demote` is the migration: it rewrites the **exact** form and nothing else.
 
 ```
-$ knapper demote "book-club" --dry-run
+$ pkm demote "book-club" --dry-run
 [DRY RUN] Demoting [[book-club]] -> #book-club
   Would update 2 links in 2 files:
     Daily/2026-07-01.md
@@ -387,7 +387,7 @@ passed over in silence, because those are the ones still to deal with by hand:
 | `path-qualified` | `[[Folder/X]]` — a path names a file, not a topic |
 | `adjacent text` | `saw[[X]]again` — `#Xagain` would be a *different* tag |
 | `frontmatter` | a YAML value is not prose, and `#X` in one is a string |
-| `org-mode` | knapper reads org and does not rewrite it, here as elsewhere |
+| `org-mode` | pkm reads org and does not rewrite it, here as elsewhere |
 
 Code fences, inline code and `%%comments%%` are neither rewritten nor
 reported: there are no references in them to report. Excluded subtrees are
@@ -441,7 +441,7 @@ The command that earns the install. Rename or move a note, and every inbound
 link is rewritten — wikilinks and inline links alike:
 
 ```
-$ knapper rename "Recipe" "Cookbook"
+$ pkm rename "Recipe" "Cookbook"
 Renaming: Projects/Recipe.md -> Projects/Cookbook.md
 Found 2 files with links to update
   Updated 1 links in Notes/Experiment Plan.md
@@ -465,8 +465,8 @@ preserved; external URLs and image embeds are left alone. Preview any refactor
 with `--dry-run`:
 
 ```bash
-knapper rename "old-name" "new-name" --dry-run
-knapper move "note.md" "Archive/" --dry-run
+pkm rename "old-name" "new-name" --dry-run
+pkm move "note.md" "Archive/" --dry-run
 ```
 
 ### Moving a whole directory
@@ -476,7 +476,7 @@ notes, attachments, sidecar files, dotfiles, nested folders, byte for byte —
 and every link that *resolves* into it is rewritten:
 
 ```
-$ knapper move "Projects/Recipe" "Archive/" --dry-run
+$ pkm move "Projects/Recipe" "Archive/" --dry-run
 [DRY RUN] Moving directory: Projects/Recipe -> Archive/Recipe
   9 files (4 notes) move with it
   Would update 6 links in 3 files:
@@ -504,7 +504,7 @@ The whole plan is built before anything is written — so `--dry-run` shows the
 real one, and a write that fails part-way restores what it touched:
 
 ```bash
-knapper move "Projects/Recipe" "Archive/" --format json
+pkm move "Projects/Recipe" "Archive/" --format json
 ```
 
 ```json
@@ -529,11 +529,11 @@ without reading the vault again.
 Both ends have to be inside the real vault tree. A source or destination that
 reaches its directory through a **symlink** is refused, even when the path
 looks perfectly vault-relative: `Archive/` could be a link to anywhere, and
-following it would move the directory somewhere knapper can no longer see
+following it would move the directory somewhere pkm can no longer see
 while rewriting every inbound link to a path that no longer exists.
 
 That is about the directories being moved. A symlinked *note* is a different
-thing and is followed, as it is everywhere else in knapper: a link rewritten
+thing and is followed, as it is everywhere else in pkm: a link rewritten
 inside one changes the file the link points at, and leaves the link itself a
 link.
 
@@ -544,20 +544,20 @@ the link at the wrong place — and the same goes for `%`, `"`, `<`, `>` and a
 `#`, which would otherwise be read as the anchor. Wikilinks need none of this
 and get none of it; a `<...>` destination keeps its angle brackets.
 
-One gap it will not paper over: knapper reads org-mode but does not rewrite
+One gap it will not paper over: pkm reads org-mode but does not rewrite
 it. If an inbound `.org` link points into the directory, the move stops,
 reports the links under `unsupported_links`, and changes nothing —
 `--allow-broken-org-links` does it anyway and still reports them.
 
 ## Repairing links that broke somewhere else
 
-`rename` and `move` keep links intact through a refactor knapper performs.
-`repair-links` is the other half: the links that broke while knapper was not
+`rename` and `move` keep links intact through a refactor pkm performs.
+`repair-links` is the other half: the links that broke while pkm was not
 looking — a folder reorganised in Finder, an exporter that wrote a path which
 has since moved, an encoding that survived one round trip too many.
 
 ```
-$ knapper repair-links --dry-run
+$ pkm repair-links --dry-run
 [DRY RUN] repair-links: 12 broken link occurrence(s) in 2 file(s)
   safe 6, ambiguous 2, unresolved 4
 
@@ -591,7 +591,7 @@ lands in one of three buckets:
 
 | | means |
 |---|---|
-| `safe` | exactly one destination, reached by an exact structural transformation, and the link knapper would write resolves back to it |
+| `safe` | exactly one destination, reached by an exact structural transformation, and the link pkm would write resolves back to it |
 | `ambiguous` | something matches, but choosing between the matches is a judgement about meaning |
 | `unresolved` | nothing on disk could settle it |
 
@@ -606,7 +606,7 @@ resemblance:
   and the decoded text **names a path** that exists. `[[Docs/My%20Note]]` for
   `Docs/My Note.md`.
 
-Decoding is not a doorway to anything looser. knapper resolves a bare name by
+Decoding is not a doorway to anything looser. pkm resolves a bare name by
 stem and by alias when it *reads* a vault, and neither is evidence for an
 edit — so a decoded target is only safe when it names its destination as a
 path. `[[My%20Note]]` decodes onto the very same `Docs/My Note.md`, but gets
@@ -623,10 +623,10 @@ Everything else is a suggestion at most:
   nothing is proposed and both are listed.
 - **A renamed concept.** `[[Roam]]` next to a note called `RoamResearch` is a
   rename somebody performed in their head. No string distance turns that into
-  evidence, and knapper does not try; it stays `unresolved`.
+  evidence, and pkm does not try; it stays `unresolved`.
 - **Missing dates and citation labels.** `[[2026-07-04]]` and `[[12]]` name no
   note at all, so there is nothing to repair and nothing is invented.
-- **org links.** knapper reads org and does not rewrite it, here as in `move`
+- **org links.** pkm reads org and does not rewrite it, here as in `move`
   and `demote`, so an org occurrence is reported with its line and never with
   a plan.
 
@@ -643,7 +643,7 @@ non-note leaves are valid destinations**, exactly as they are for the
 resolver: `Archive/Old Plan.md` and `assets/paper.pdf` are real files a link
 may point at.
 
-Every safe proposal is checked by resolving the text knapper would write — as
+Every safe proposal is checked by resolving the text pkm would write — as
 a path, again, so a rewrite whose correctness depended on no other note ever
 taking that name is not proposed. Nothing is published on the strength of a
 search a reader would not reproduce.
@@ -653,7 +653,7 @@ directories, so nothing behind one can become a repair target.
 ### The plan, as JSON
 
 ```bash
-knapper repair-links --dry-run --format json
+pkm repair-links --dry-run --format json
 ```
 
 ```json
@@ -711,7 +711,7 @@ object per occurrence, with the position, the text as written and the
 candidates. Without `--all`, `broken-links` applies the same policies as
 ordinary lint. `query --where 'broken>0'` remains independent of lint policies.
 
-One consequence worth knowing: knapper resolves a path-qualified link by
+One consequence worth knowing: pkm resolves a path-qualified link by
 basename when the path itself misses, so `[[legacy/notes/Foo]]` to a live note
 already resolves and never appears here. What does appear is the case that
 basename fallback cannot rescue — a path written with its extension, or one
@@ -724,16 +724,16 @@ whose leaf is an excluded note or a non-note file.
 is made to be piped:
 
 ```bash
-knapper backlinks "Projects/recipe.md" --format json | jq -r '.[].source'
-knapper broken-links --format paths
-knapper frontmatter set "Projects/x.md" status done
+pkm backlinks "Projects/recipe.md" --format json | jq -r '.[].source'
+pkm broken-links --format paths
+pkm frontmatter set "Projects/x.md" status done
 ```
 
 And `context` aggregates what a model would otherwise need five calls to
 gather — content, outgoing links, backlinks, tags, headings, stats:
 
 ```bash
-knapper context "Notes/Lit Review.md"
+pkm context "Notes/Lit Review.md"
 ```
 
 ```json
@@ -755,9 +755,9 @@ hit, and includes a compact first-layer document map plus the complete heading
 breadcrumb:
 
 ```bash
-knapper context "Notes/Lit Review.md" --line 9
-knapper context "Notes/Lit Review.md" --line 9 -B 1 -A 8 --format json
-knapper context "Notes/Lit Review.md" --line 9 --section
+pkm context "Notes/Lit Review.md" --line 9
+pkm context "Notes/Lit Review.md" --line 9 -B 1 -A 8 --format json
+pkm context "Notes/Lit Review.md" --line 9 --section
 ```
 
 `--section` selects the smallest enclosing Markdown section and cannot be
@@ -800,16 +800,16 @@ truncation marker.
 
 ### The skill ships inside the binary
 
-An agent host does not need this repository to learn how to drive knapper:
+An agent host does not need this repository to learn how to drive pkm:
 
 ```bash
-knapper skill              # print it
-knapper skill --install    # write it into ~/.claude and ~/.codex
+pkm skill              # print it
+pkm skill --install    # write it into ~/.claude and ~/.codex
 ```
 
-`install.sh` registers it for you, and `knapper self-update` re-registers it,
+`install.sh` registers it for you, and `pkm self-update` re-registers it,
 so the instructions an agent reads cannot drift behind the binary they
-describe. The source is [`assets/knapper-skill.md`](../assets/knapper-skill.md).
+describe. The source is [`assets/pkm-skill.md`](../assets/pkm-skill.md).
 
 ## Tasks
 
@@ -826,31 +826,31 @@ the [Obsidian Tasks](https://publish.obsidian.md/tasks/) plugin (`📅` due,
 required — a vault of bare `- [ ]` items works fine.
 
 ```bash
-knapper tasks --overdue                     # past due
-knapper tasks --available                   # no start date, or start date <= today
-knapper tasks --due-from 2026-08-01 --due-to 2026-08-31
-knapper tasks --start-on 2026-08-01
-knapper tasks --scheduled-from 2026-08-01 --scheduled-to 2026-08-07
-knapper tasks --exclude Archive/ --tag work
-knapper tasks new "write the README" --start 2026-07-28 --due 2026-08-01
-knapper tasks done "write the README"       # exact match; --partial for substring
-knapper tasks --prose-only                  # skip checkboxes in fenced examples
+pkm tasks --overdue                     # past due
+pkm tasks --available                   # no start date, or start date <= today
+pkm tasks --due-from 2026-08-01 --due-to 2026-08-31
+pkm tasks --start-on 2026-08-01
+pkm tasks --scheduled-from 2026-08-01 --scheduled-to 2026-08-07
+pkm tasks --exclude Archive/ --tag work
+pkm tasks new "write the README" --start 2026-07-28 --due 2026-08-01
+pkm tasks done "write the README"       # exact match; --partial for substring
+pkm tasks --prose-only                  # skip checkboxes in fenced examples
 ```
 
 Every checkbox counts by default, including one written inside a code fence or
-a `%%comment%%` — the one place knapper does not mask non-prose, and
+a `%%comment%%` — the one place pkm does not mask non-prose, and
 deliberately: masking can only ever *hide* a task, and a visible example costs
 less than a missing entry on a list you act on. `--prose-only` is the opt-out
 for a vault that documents its own conventions.
 
 `--available` is also opt-in: it hides only tasks whose `🛫` start date is in
-the future. Tasks without a start date remain visible, and plain `knapper
+the future. Tasks without a start date remain visible, and plain `pkm
 tasks` keeps its established whole-list behaviour. A scheduled date says when
 you intend to work; it does not make a task unavailable.
 
 Statuses are configurable: `open` `[ ]`, `wip` `[/]`, `done` `[x]`, and
-`cancel` `[-]` are built in, and `knapper.yaml` can override their
-markers or add custom statuses, which `knapper tasks set STATUS TEXT` and
+`cancel` `[-]` are built in, and `pkm.yaml` can override their
+markers or add custom statuses, which `pkm tasks set STATUS TEXT` and
 `--status` filters then understand.
 
 ## Daily notes
@@ -860,9 +860,9 @@ note if missing. JSON output reports `path`, `date`, and `created`.
 
 
 ```bash
-knapper daily              # today (created from template if missing)
-knapper daily yesterday
-knapper daily 2026-01-15
+pkm daily              # today (created from template if missing)
+pkm daily yesterday
+pkm daily 2026-01-15
 ```
 
 Templates expand on creation — both Obsidian Core Templates (`{{date}}`,
@@ -876,7 +876,7 @@ Templates expand on creation — both Obsidian Core Templates (`{{date}}`,
 << [[Daily/2026-07-27]] | [[Daily/2026-07-29]] >>
 ```
 
-If `daily_notes.template` names a file knapper cannot read, `knapper daily`
+If `daily_notes.template` names a file pkm cannot read, `pkm daily`
 fails and writes nothing — no note, not even the folder that would have held
 it. A vault that names no template at all gets a plain `# YYYY-MM-DD`, because
 that is all it asked for.
@@ -885,15 +885,15 @@ that is all it asked for.
 
 Some things belong in your notes by name but not by value: an address, a
 licence key, a token. Write them as an ordinary markdown link with a
-`knapper://` destination, and the value stays wherever you already keep it:
+`pkm://` destination, and the value stays wherever you already keep it:
 
 ```markdown
-Address: [Billing address for invoices](knapper://personal/address.billing)
+Address: [Billing address for invoices](pkm://personal/address.billing)
 ```
 
-A reference is `knapper://<provider>/<locator>`. The **provider** is a name
+A reference is `pkm://<provider>/<locator>`. The **provider** is a name
 *you* chose — `personal`, `work`, `family` — and the **locator** is opaque to
-knapper: it is never decoded or normalised, and reaches the provider command
+pkm: it is never decoded or normalised, and reaches the provider command
 as written. Both halves still have a deliberate grammar. Provider names are
 lowercase letters, digits, `_` and `-`; locators use ASCII letters, digits,
 `.`, `_`, `-` and `/`, are at most 128 characters, and have no empty, `.` or
@@ -904,58 +904,58 @@ will not list it and `resolve` will refuse it. Keep locators machine-readable �
 ### Finding references
 
 ```bash
-knapper refs                          # every reference in the vault
-knapper refs "Projects/application.md"
-knapper refs --provider personal --format json
-knapper refs --format paths           # just the files, ready for a pipe
+pkm refs                          # every reference in the vault
+pkm refs "Projects/application.md"
+pkm refs --provider personal --format json
+pkm refs --format paths           # just the files, ready for a pipe
 ```
 
 Each result carries the vault-relative path, line, column, URI, provider,
 locator and link label. References inside fenced code, inline code and
-`%%comments%%` are ignored, as links there always are, and `knapper context
+`%%comments%%` are ignored, as links there always are, and `pkm context
 FILE --format json` reports the same under `references`.
 
-A `knapper://` link is *external*: it never becomes an edge in the link
+A `pkm://` link is *external*: it never becomes an edge in the link
 graph, never shows up as a broken link, and `rename` and `move` leave it
 alone — exactly like an `https://` link.
 
 ### Configuring a provider
 
-What actually runs lives in `$XDG_CONFIG_HOME/knapper/providers.yaml`
-(`~/.config/knapper/providers.yaml` if that is unset) — **never** in
-`knapper.yaml`. A vault is synced, shared and cloned; a file that decides
-what gets executed must not travel with it. knapper reads no provider
+What actually runs lives in `$XDG_CONFIG_HOME/pkm/providers.yaml`
+(`~/.config/pkm/providers.yaml` if that is unset) — **never** in
+`pkm.yaml`. A vault is synced, shared and cloned; a file that decides
+what gets executed must not travel with it. pkm reads no provider
 configuration from a vault, and a `providers:` block in a vault config is
 refused.
 
 ```bash
-knapper provider set personal -- op read 'op://Knapper/{locator}/value'
-knapper provider set family -- pass show 'knapper/{locator}'
-knapper provider list
-knapper provider remove personal
+pkm provider set personal -- op read 'op://pkm/{locator}/value'
+pkm provider set family -- pass show 'pkm/{locator}'
+pkm provider list
+pkm provider remove personal
 ```
 
 ```yaml
 providers:
   personal:
-    command: [op, read, "op://Knapper/{locator}/value"]
+    command: [op, read, "op://pkm/{locator}/value"]
 ```
 
-`command` is **argv**, not a shell line: knapper execs it directly, so there
+`command` is **argv**, not a shell line: pkm execs it directly, so there
 is no quoting, no word splitting and no shell to escape from. Every
 `{locator}` in it — in any argument — is replaced with the reference's
 locator, and nothing else is substituted.
 
-knapper is provider-agnostic. `op` above is one user's choice; `pass`,
+pkm is provider-agnostic. `op` above is one user's choice; `pass`,
 `gopass`, `security`, `bw`, `gcloud secrets`, `vault read`, or a script of
-your own work the same way, because knapper knows nothing about any of them.
+your own work the same way, because pkm knows nothing about any of them.
 
 ### Resolving
 
 ```bash
-knapper resolve "knapper://personal/address.billing"
-knapper resolve "knapper://work/tokens/ci.deploy" --dry-run    # print the argv, run nothing
-knapper resolve "knapper://work/tokens/ci.deploy" --timeout 30
+pkm resolve "pkm://personal/address.billing"
+pkm resolve "pkm://work/tokens/ci.deploy" --dry-run    # print the argv, run nothing
+pkm resolve "pkm://work/tokens/ci.deploy" --timeout 30
 ```
 
 The provider's stdout is the value. Exactly one trailing newline comes off;
@@ -966,7 +966,7 @@ with exit 4.
 stdin and stderr stay attached to your terminal, so a provider can still
 prompt for a PIN, a passphrase or a hardware key.
 
-knapper adds no newline of its own. This keeps redirection byte-exact; when
+pkm adds no newline of its own. This keeps redirection byte-exact; when
 run directly in a terminal, the next prompt may therefore follow the value.
 
 There is no default timeout — a provider may legitimately wait for you —
@@ -974,7 +974,7 @@ There is no default timeout — a provider may legitimately wait for you —
 stdout to close, and kills the provider process if it is still running.
 Provider commands remain responsible for any further processes they start.
 
-What knapper does *not* do: it never caches a resolved value, never writes one
+What pkm does *not* do: it never caches a resolved value, never writes one
 anywhere, never scans one for further references, and never puts one in a
 child process's arguments or environment. Failures are distinguishable by exit
 status: **2** for a malformed reference or bad usage, **3** for a provider that
@@ -983,15 +983,15 @@ timed out, or returned nothing usable.
 
 ## Configuration
 
-`knapper init` writes `knapper.yaml`, a plain YAML file. It includes a
+`pkm init` writes `pkm.yaml`, a plain YAML file. It includes a
 `yaml-language-server` schema modeline, so editors that support the YAML
 Language Server can offer completion, hover documentation and diagnostics.
-Only `knapper.yaml` is discovered; the former Markdown-frontmatter
-`knapper.config.md` is not a fallback.
+Only `pkm.yaml` is discovered; the former Markdown-frontmatter
+`pkm.config.md` is not a fallback.
 The defaults assume a conventional layout:
 
 ```yaml
-# yaml-language-server: $schema=https://raw.githubusercontent.com/combinatrix-ai/knapper/main/schema/knapper.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/combinatrix-ai/pkm/main/schema/pkm.schema.json
 vault_path: .
 template_engine: templater   # or "core"
 exclude:
@@ -1022,7 +1022,7 @@ tasks:
   default_file: daily        # where `tasks new` writes: daily | inbox | a path
 ```
 
-The schema is also available locally with `knapper config schema`. `knapper
+The schema is also available locally with `pkm config schema`. `pkm
 config check` is the authoritative runtime validator: it catches unknown keys,
 wrong types, unsupported values and semantic errors such as ambiguous task
 status markers without scanning any notes. Nothing in the config is
@@ -1031,10 +1031,10 @@ Obsidian-specific.
 ### Selecting files for lint
 
 ```bash
-knapper lint Notes/One.md "Notes/Two words.md"
-knapper lint --diff                 # staged + unstaged + untracked notes
-knapper lint --diff main            # working-tree changes against this ref + untracked notes
-knapper lint Notes/One.md --check headings --format json
+pkm lint Notes/One.md "Notes/Two words.md"
+pkm lint --diff                 # staged + unstaged + untracked notes
+pkm lint --diff main            # working-tree changes against this ref + untracked notes
+pkm lint Notes/One.md --check headings --format json
 ```
 
 File arguments are vault-relative or absolute and may omit the note extension.
@@ -1059,11 +1059,11 @@ Heading links accept visible titles and common Markdown slugs (`#quick-start`
 for `Quick Start`), including numbered duplicate slugs. Required-heading policies
 still compare heading titles, not slugs.
 
-`lint.rules` controls the six checks reported by `knapper lint`:
+`lint.rules` controls the six checks reported by `pkm lint`:
 `broken-links`, `orphans`, `duplicates`, `empty`, `frontmatter` and `headings`. Every rule
 is enabled with no configuration, preserving the default all-checks report.
-Set `enabled: false` to omit a rule from a plain `knapper lint`; an explicit
-`knapper lint --check RULE` always runs that rule. `--check` may be repeated.
+Set `enabled: false` to omit a rule from a plain `pkm lint`; an explicit
+`pkm lint --check RULE` always runs that rule. `--check` may be repeated.
 
 `include` and `exclude` are optional vault-relative path-prefix lists. A file
 must be under at least one `include` prefix (an absent or empty list means all
@@ -1118,7 +1118,7 @@ path normalization, such as `Guide#Install` or `#^build-step`; the anchor's
 written spelling is retained.
 
 Every setting is checked when it is read. An unknown key, a key of the wrong
-type, or a `template_engine` or `flavor` knapper does not implement is an
+type, or a `template_engine` or `flavor` pkm does not implement is an
 error naming the key, rather than a default quietly taking over — a config
 typo otherwise changes what every command does and says nothing. This strictness
 is the config's alone: an ordinary note with a broken YAML header is still read
@@ -1128,9 +1128,9 @@ No folder name is special. `Templates/` is in the generated `exclude` because
 the daily-note template lives there and an unexpanded template is not one of
 your notes; put templates elsewhere and the `exclude` entry moves with them.
 `daily_notes.template` is read by path, so excluding its folder does not stop
-`knapper daily`. If that template is configured and cannot be read, `knapper
+`pkm daily`. If that template is configured and cannot be read, `pkm
 daily` fails and writes nothing at all, rather than inventing a note body —
-which is why `knapper init` creates the template it configures rather than
+which is why `pkm init` creates the template it configures rather than
 leaving a fresh vault one command short of working.
 
 ### Links that are meant to stay unresolved
@@ -1147,8 +1147,8 @@ ignore_links:
   - Archive/Old Index
 ```
 
-They then go unreported by `knapper lint`, `knapper broken-links`,
-`knapper repair-links` and `query --where 'broken>0'` alike — all four resolve
+They then go unreported by `pkm lint`, `pkm broken-links`,
+`pkm repair-links` and `query --where 'broken>0'` alike — all four resolve
 targets the same way and read the same ignore list, so a link is ignored by
 all of them or by none.
 
@@ -1157,8 +1157,8 @@ would hide a real mistake:
 
 - An entry matches a **whole link target**, never a substring. `Daily Tasks`
   says nothing about `[[Daily Tasks Archive]]` or `[[Sub/Daily Tasks]]`.
-- Comparison is **case-insensitive**, matching how knapper resolves links.
-- The target compared is the one knapper resolves, so `[[Daily Tasks]]`,
+- Comparison is **case-insensitive**, matching how pkm resolves links.
+- The target compared is the one pkm resolves, so `[[Daily Tasks]]`,
   `[[Daily Tasks#2026]]`, `[[Daily Tasks|things to do]]` and
   `[Daily Tasks](Daily%20Tasks.md)` are all the same entry.
 - An entry may be written the way the link is written in a note:
@@ -1181,7 +1181,7 @@ lint:
         required: [Bio, Relationship, Interactions, Sources]
 ```
 
-Run `knapper lint --check headings --format json`. Each missing title produces
+Run `pkm lint --check headings --format json`. Each missing title produces
 an issue with `type: headings`, `file`, `heading`, `detail`, and `severity`;
 `summary.missing_headings` counts missing titles. Text output lists the file and
 missing title. Like other lint checks, the command exits 1 when any findings
@@ -1202,17 +1202,17 @@ following the other lint checks. Top-level `exclude` always applies.
 
 ### Broken-link inspection scope
 
-`knapper broken-links` respects the broken-links policies used by ordinary
-`knapper lint`, including enablement, include/exclude, ordered path and metadata
+`pkm broken-links` respects the broken-links policies used by ordinary
+`pkm lint`, including enablement, include/exclude, ordered path and metadata
 rules, and target patterns. Its output retains detailed occurrence locations.
-Use `knapper broken-links --all` to bypass those lint policies for investigation;
+Use `pkm broken-links --all` to bypass those lint policies for investigation;
 top-level `exclude` and `ignore_links` still apply. `repair-links` retains its
 unfiltered diagnostic scope.
 
 The complete accepted configuration keys, types and defaults are defined
-in the [JSON Schema](../schema/knapper.schema.json). The
+in the [JSON Schema](../schema/pkm.schema.json). The
 [starter configuration](../src/default_config.yaml) includes task status,
-created-date and template settings. Validate changes with `knapper config check`.
+created-date and template settings. Validate changes with `pkm config check`.
 
 ## Arguments and options
 
@@ -1220,17 +1220,17 @@ The following help output is captured from the current source build. When
 changing CLI arguments, refresh the affected entries with the matching
 `--help` command. Global options are repeated so each entry stands alone.
 
-[knapper](#knapper) · [knapper links](#knapper-links) · [knapper backlinks](#knapper-backlinks) · [knapper orphans](#knapper-orphans) · [knapper hubs](#knapper-hubs) · [knapper broken-links](#knapper-broken-links) · [knapper repair-links](#knapper-repair-links) · [knapper init](#knapper-init) · [knapper config](#knapper-config) · [knapper config check](#knapper-config-check) · [knapper config schema](#knapper-config-schema) · [knapper skill](#knapper-skill) · [knapper self-update](#knapper-self-update) · [knapper context](#knapper-context) · [knapper frontmatter](#knapper-frontmatter) · [knapper frontmatter get](#knapper-frontmatter-get) · [knapper frontmatter set](#knapper-frontmatter-set) · [knapper frontmatter delete](#knapper-frontmatter-delete) · [knapper lint](#knapper-lint) · [knapper daily](#knapper-daily) · [knapper rename](#knapper-rename) · [knapper demote](#knapper-demote) · [knapper dql](#knapper-dql) · [knapper query](#knapper-query) · [knapper fields](#knapper-fields) · [knapper move](#knapper-move) · [knapper tasks](#knapper-tasks) · [knapper tasks new](#knapper-tasks-new) · [knapper tasks done](#knapper-tasks-done) · [knapper tasks wip](#knapper-tasks-wip) · [knapper tasks cancel](#knapper-tasks-cancel) · [knapper tasks set](#knapper-tasks-set) · [knapper tags](#knapper-tags) · [knapper refs](#knapper-refs) · [knapper resolve](#knapper-resolve) · [knapper provider](#knapper-provider) · [knapper provider list](#knapper-provider-list) · [knapper provider set](#knapper-provider-set) · [knapper provider remove](#knapper-provider-remove)
+[pkm](#pkm) · [pkm links](#pkm-links) · [pkm backlinks](#pkm-backlinks) · [pkm orphans](#pkm-orphans) · [pkm hubs](#pkm-hubs) · [pkm broken-links](#pkm-broken-links) · [pkm repair-links](#pkm-repair-links) · [pkm init](#pkm-init) · [pkm config](#pkm-config) · [pkm config check](#pkm-config-check) · [pkm config schema](#pkm-config-schema) · [pkm skill](#pkm-skill) · [pkm self-update](#pkm-self-update) · [pkm context](#pkm-context) · [pkm frontmatter](#pkm-frontmatter) · [pkm frontmatter get](#pkm-frontmatter-get) · [pkm frontmatter set](#pkm-frontmatter-set) · [pkm frontmatter delete](#pkm-frontmatter-delete) · [pkm lint](#pkm-lint) · [pkm daily](#pkm-daily) · [pkm rename](#pkm-rename) · [pkm demote](#pkm-demote) · [pkm dql](#pkm-dql) · [pkm query](#pkm-query) · [pkm fields](#pkm-fields) · [pkm move](#pkm-move) · [pkm tasks](#pkm-tasks) · [pkm tasks new](#pkm-tasks-new) · [pkm tasks done](#pkm-tasks-done) · [pkm tasks wip](#pkm-tasks-wip) · [pkm tasks cancel](#pkm-tasks-cancel) · [pkm tasks set](#pkm-tasks-set) · [pkm tags](#pkm-tags) · [pkm refs](#pkm-refs) · [pkm resolve](#pkm-resolve) · [pkm provider](#pkm-provider) · [pkm provider list](#pkm-provider-list) · [pkm provider set](#pkm-provider-set) · [pkm provider remove](#pkm-provider-remove)
 
-### knapper
+### pkm
 
 ```text
-knapper - a headless CLI for markdown knowledge bases.
+pkm - a headless CLI for markdown knowledge bases.
 
 Reads and writes markdown files directly; nothing needs to be running.
 Resolves both [[wikilinks]] and [inline](links.md).
 
-Usage: knapper [OPTIONS] <COMMAND>
+Usage: pkm [OPTIONS] <COMMAND>
 
 Commands:
   links         List outgoing links from a file
@@ -1239,8 +1239,8 @@ Commands:
   hubs          Find hub notes (most linked-to notes)
   broken-links  Find links to missing notes, headings, or block IDs
   repair-links  Plan repairs for broken links. Reports only; writes nothing
-  init          Initialize a new knapper config file
-  config        Inspect or print the knapper YAML configuration schema
+  init          Initialize a new pkm config file
+  config        Inspect or print the pkm YAML configuration schema
   skill         Print the embedded agent skill, or register it with the agents here
   self-update   Verify release provenance and replace this binary with the newest release
   context       Get comprehensive context for a file or a '#tag' (for LLMs)
@@ -1255,7 +1255,7 @@ Commands:
   move          Move a note or a directory to a different folder and update all links
   tasks         Find and filter tasks (- [ ] items) in the vault
   tags          List tags
-  refs          List external references (knapper://provider/locator) in the vault
+  refs          List external references (pkm://provider/locator) in the vault
   resolve       Read the value behind one reference, through its provider's command
   provider      Configure the commands that resolve references
   help          Print this message or the help of the given subcommand(s)
@@ -1274,12 +1274,12 @@ Options:
           Print version
 ```
 
-### knapper links
+### pkm links
 
 ```text
 List outgoing links from a file
 
-Usage: knapper links [OPTIONS] <FILE>
+Usage: pkm links [OPTIONS] <FILE>
 
 Arguments:
   <FILE>  
@@ -1293,12 +1293,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper backlinks
+### pkm backlinks
 
 ```text
 List incoming links to a file, or the notes carrying a '#tag'
 
-Usage: knapper backlinks [OPTIONS] <FILE|#TAG>
+Usage: pkm backlinks [OPTIONS] <FILE|#TAG>
 
 Arguments:
   <FILE|#TAG>  A note, or a '#tag' to look up as a topic
@@ -1312,12 +1312,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper orphans
+### pkm orphans
 
 ```text
 Find orphan notes (not linked by any other note)
 
-Usage: knapper orphans [OPTIONS]
+Usage: pkm orphans [OPTIONS]
 
 Options:
   -c, --config <CONFIG>  Path to config file
@@ -1327,12 +1327,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper hubs
+### pkm hubs
 
 ```text
 Find hub notes (most linked-to notes)
 
-Usage: knapper hubs [OPTIONS]
+Usage: pkm hubs [OPTIONS]
 
 Options:
   -c, --config <CONFIG>  Path to config file
@@ -1342,12 +1342,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper broken-links
+### pkm broken-links
 
 ```text
 Find links to missing notes, headings, or block IDs
 
-Usage: knapper broken-links [OPTIONS]
+Usage: pkm broken-links [OPTIONS]
 
 Options:
       --all              Ignore lint enablement, scopes and patterns; retain exclude and ignore_links
@@ -1357,13 +1357,13 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper repair-links
+### pkm repair-links
 
 ```text
 Plan repairs for links that are already broken.
 
 This is the other half of `rename` and `move`: they keep links intact through a
-refactor knapper performs, and this reports the ones that broke while knapper was
+refactor pkm performs, and this reports the ones that broke while pkm was
 not looking -- a folder reorganised elsewhere, an exporter's stale path.
 
 A repair is proposed only where the filesystem settles it: exactly one file, reached
@@ -1373,7 +1373,7 @@ and left alone.
 
 V1 is read-only. --dry-run is required, and nothing is ever written.
 
-Usage: knapper repair-links [OPTIONS]
+Usage: pkm repair-links [OPTIONS]
 
 Options:
   -c, --config <CONFIG>
@@ -1392,12 +1392,12 @@ Options:
           Print help (see a summary with '-h')
 ```
 
-### knapper init
+### pkm init
 
 ```text
-Initialize a new knapper config file
+Initialize a new pkm config file
 
-Usage: knapper init [OPTIONS]
+Usage: pkm init [OPTIONS]
 
 Options:
   -c, --config <CONFIG>  Path to config file
@@ -1406,12 +1406,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper config
+### pkm config
 
 ```text
-Inspect or print the knapper YAML configuration schema
+Inspect or print the pkm YAML configuration schema
 
-Usage: knapper config [OPTIONS] <COMMAND>
+Usage: pkm config [OPTIONS] <COMMAND>
 
 Commands:
   check   Validate the discovered config without scanning the vault
@@ -1424,12 +1424,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper config check
+### pkm config check
 
 ```text
 Validate the discovered config without scanning the vault
 
-Usage: knapper config check [OPTIONS]
+Usage: pkm config check [OPTIONS]
 
 Options:
   -c, --config <CONFIG>  Path to config file
@@ -1438,12 +1438,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper config schema
+### pkm config schema
 
 ```text
 Print the JSON Schema used by YAML-aware editors
 
-Usage: knapper config schema [OPTIONS]
+Usage: pkm config schema [OPTIONS]
 
 Options:
   -c, --config <CONFIG>  Path to config file
@@ -1451,12 +1451,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper skill
+### pkm skill
 
 ```text
 Print the embedded agent skill, or register it with the agents here
 
-Usage: knapper skill [OPTIONS]
+Usage: pkm skill [OPTIONS]
 
 Options:
   -c, --config <CONFIG>  Path to config file
@@ -1465,12 +1465,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper self-update
+### pkm self-update
 
 ```text
 Verify release provenance and replace this binary with the newest release
 
-Usage: knapper self-update [OPTIONS]
+Usage: pkm self-update [OPTIONS]
 
 Options:
   -c, --config <CONFIG>  Path to config file
@@ -1482,12 +1482,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper context
+### pkm context
 
 ```text
 Get comprehensive context for a file or a '#tag' (for LLMs)
 
-Usage: knapper context [OPTIONS] <FILE|#TAG>
+Usage: pkm context [OPTIONS] <FILE|#TAG>
 
 Arguments:
   <FILE|#TAG>  A note, or a '#tag' to read as a virtual topic
@@ -1508,12 +1508,12 @@ Options:
   -h, --help                       Print help
 ```
 
-### knapper frontmatter
+### pkm frontmatter
 
 ```text
 Read and write frontmatter
 
-Usage: knapper frontmatter [OPTIONS] <COMMAND>
+Usage: pkm frontmatter [OPTIONS] <COMMAND>
 
 Commands:
   get     Get frontmatter value(s)
@@ -1527,12 +1527,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper frontmatter get
+### pkm frontmatter get
 
 ```text
 Get frontmatter value(s)
 
-Usage: knapper frontmatter get [OPTIONS] <FILE> [KEY]
+Usage: pkm frontmatter get [OPTIONS] <FILE> [KEY]
 
 Arguments:
   <FILE>  
@@ -1545,12 +1545,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper frontmatter set
+### pkm frontmatter set
 
 ```text
 Set frontmatter value
 
-Usage: knapper frontmatter set [OPTIONS] <FILE> <KEY> <VALUE>
+Usage: pkm frontmatter set [OPTIONS] <FILE> <KEY> <VALUE>
 
 Arguments:
   <FILE>   
@@ -1563,12 +1563,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper frontmatter delete
+### pkm frontmatter delete
 
 ```text
 Delete frontmatter key
 
-Usage: knapper frontmatter delete [OPTIONS] <FILE> <KEY>
+Usage: pkm frontmatter delete [OPTIONS] <FILE> <KEY>
 
 Arguments:
   <FILE>  
@@ -1580,12 +1580,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper lint
+### pkm lint
 
 ```text
 Check vault health (exit 1 when any issues are found)
 
-Usage: knapper lint [OPTIONS] [FILE]...
+Usage: pkm lint [OPTIONS] [FILE]...
 
 Arguments:
   [FILE]...  Vault-relative or absolute note filenames (repeatable)
@@ -1599,12 +1599,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper daily
+### pkm daily
 
 ```text
 Create or get daily note
 
-Usage: knapper daily [OPTIONS] [DATE]
+Usage: pkm daily [OPTIONS] [DATE]
 
 Arguments:
   [DATE]  
@@ -1617,12 +1617,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper rename
+### pkm rename
 
 ```text
 Rename a note and update all links to it
 
-Usage: knapper rename [OPTIONS] <OLD> <NEW>
+Usage: pkm rename [OPTIONS] <OLD> <NEW>
 
 Arguments:
   <OLD>  
@@ -1636,7 +1636,7 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper demote
+### pkm demote
 
 ```text
 Demote a wikilink target to a tag.
@@ -1646,7 +1646,7 @@ topic reference: it labels a note and promises no note exists. This rewrites the
 exact form -- [[X]] becomes #X -- and reports every occurrence it will not touch,
 such as [[X|alias]], [[X#heading]], ![[X]] and [[folder/X]].
 
-Usage: knapper demote [OPTIONS] <TARGET>
+Usage: pkm demote [OPTIONS] <TARGET>
 
 Arguments:
   <TARGET>
@@ -1675,7 +1675,7 @@ Options:
           Print help (see a summary with '-h')
 ```
 
-### knapper dql
+### pkm dql
 
 See [the DQL guide](../dql/README.md) for examples and build instructions, and
 [spec.md](../spec.md) for exact Obsidian/plugin compatibility boundaries.
@@ -1683,7 +1683,7 @@ See [the DQL guide](../dql/README.md) for examples and build instructions, and
 ```text
 Execute a Dataview DQL query using the embedded engine
 
-Usage: knapper dql [OPTIONS] [QUERY]
+Usage: pkm dql [OPTIONS] [QUERY]
 
 Arguments:
   [QUERY]
@@ -1711,12 +1711,12 @@ Options:
           Print help
 ```
 
-### knapper query
+### pkm query
 
 ```text
 Filter notes by frontmatter, inline fields, and link counts
 
-Usage: knapper query [OPTIONS]
+Usage: pkm query [OPTIONS]
 
 Options:
   -c, --config <CONFIG>  Path to config file
@@ -1730,12 +1730,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper fields
+### pkm fields
 
 ```text
 List what query can filter on, computed and declared
 
-Usage: knapper fields [OPTIONS]
+Usage: pkm fields [OPTIONS]
 
 Options:
   -c, --config <CONFIG>  Path to config file
@@ -1744,12 +1744,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper move
+### pkm move
 
 ```text
 Move a note or a directory to a different folder and update all links
 
-Usage: knapper move [OPTIONS] <SOURCE> <DESTINATION>
+Usage: pkm move [OPTIONS] <SOURCE> <DESTINATION>
 
 Arguments:
   <SOURCE>       
@@ -1764,12 +1764,12 @@ Options:
   -h, --help                    Print help
 ```
 
-### knapper tasks
+### pkm tasks
 
 ```text
 Find and filter tasks (- [ ] items) in the vault
 
-Usage: knapper tasks [OPTIONS] [COMMAND]
+Usage: pkm tasks [OPTIONS] [COMMAND]
 
 Commands:
   new     Create a new task
@@ -1848,12 +1848,12 @@ Options:
           Print help
 ```
 
-### knapper tasks new
+### pkm tasks new
 
 ```text
 Create a new task
 
-Usage: knapper tasks new [OPTIONS] <TEXT>
+Usage: pkm tasks new [OPTIONS] <TEXT>
 
 Arguments:
   <TEXT>  
@@ -1870,12 +1870,12 @@ Options:
   -h, --help                   Print help
 ```
 
-### knapper tasks done
+### pkm tasks done
 
 ```text
 Mark a task as done
 
-Usage: knapper tasks done [OPTIONS] <TEXT>
+Usage: pkm tasks done [OPTIONS] <TEXT>
 
 Arguments:
   <TEXT>  
@@ -1888,12 +1888,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper tasks wip
+### pkm tasks wip
 
 ```text
 Mark a task as in progress
 
-Usage: knapper tasks wip [OPTIONS] <TEXT>
+Usage: pkm tasks wip [OPTIONS] <TEXT>
 
 Arguments:
   <TEXT>  
@@ -1906,12 +1906,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper tasks cancel
+### pkm tasks cancel
 
 ```text
 Mark a task as cancelled
 
-Usage: knapper tasks cancel [OPTIONS] <TEXT>
+Usage: pkm tasks cancel [OPTIONS] <TEXT>
 
 Arguments:
   <TEXT>  
@@ -1924,12 +1924,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper tasks set
+### pkm tasks set
 
 ```text
 Transition a task to a named status
 
-Usage: knapper tasks set [OPTIONS] <STATUS> <TEXT>
+Usage: pkm tasks set [OPTIONS] <STATUS> <TEXT>
 
 Arguments:
   <STATUS>  
@@ -1943,12 +1943,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper tags
+### pkm tags
 
 ```text
 List tags
 
-Usage: knapper tags [OPTIONS] [FILE]
+Usage: pkm tags [OPTIONS] [FILE]
 
 Arguments:
   [FILE]  
@@ -1961,12 +1961,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper refs
+### pkm refs
 
 ```text
-List external references (knapper://provider/locator) in the vault
+List external references (pkm://provider/locator) in the vault
 
-Usage: knapper refs [OPTIONS] [FILE]
+Usage: pkm refs [OPTIONS] [FILE]
 
 Arguments:
   [FILE]  
@@ -1979,15 +1979,15 @@ Options:
   -h, --help                 Print help
 ```
 
-### knapper resolve
+### pkm resolve
 
 ```text
 Read the value behind one reference, through its provider's command
 
-Usage: knapper resolve [OPTIONS] <REFERENCE>
+Usage: pkm resolve [OPTIONS] <REFERENCE>
 
 Arguments:
-  <REFERENCE>  knapper://<provider>/<locator>
+  <REFERENCE>  pkm://<provider>/<locator>
 
 Options:
   -c, --config <CONFIG>  Path to config file
@@ -1997,12 +1997,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper provider
+### pkm provider
 
 ```text
 Configure the commands that resolve references
 
-Usage: knapper provider [OPTIONS] <COMMAND>
+Usage: pkm provider [OPTIONS] <COMMAND>
 
 Commands:
   list    List the configured providers and the commands they run
@@ -2016,12 +2016,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper provider list
+### pkm provider list
 
 ```text
 List the configured providers and the commands they run
 
-Usage: knapper provider list [OPTIONS]
+Usage: pkm provider list [OPTIONS]
 
 Options:
   -c, --config <CONFIG>  Path to config file
@@ -2030,12 +2030,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper provider set
+### pkm provider set
 
 ```text
 Define or replace one provider's command
 
-Usage: knapper provider set [OPTIONS] <NAME> -- <COMMAND>...
+Usage: pkm provider set [OPTIONS] <NAME> -- <COMMAND>...
 
 Arguments:
   <NAME>        
@@ -2047,12 +2047,12 @@ Options:
   -h, --help             Print help
 ```
 
-### knapper provider remove
+### pkm provider remove
 
 ```text
 Forget one provider
 
-Usage: knapper provider remove [OPTIONS] <NAME>
+Usage: pkm provider remove [OPTIONS] <NAME>
 
 Arguments:
   <NAME>  
@@ -2066,10 +2066,10 @@ Options:
 ### Obsidian Tasks query engine
 
 ```sh
-knapper tasks --query 'not done
+pkm tasks --query 'not done
 sort by due
 limit 10' --format json
-knapper licenses
+pkm licenses
 ```
 
 This is the pinned read-only Tasks 8.4.0 subset in [spec.md](../spec.md#tasks-query-contract).
@@ -2079,12 +2079,12 @@ query. It uses default plugin settings, not installed Tasks data.json.
 ### Selected Linter rules and QuickAdd Capture
 
 ```sh
-knapper format-note Note.md --rule trailing-spaces --format json
-knapper format-note Note.md --rule heading-blank-lines --rule trailing-spaces --apply
-knapper capture Log.md --text 'A new entry' --format json
-knapper capture Log.md --text 'A new entry' --position top --apply
-knapper capture New.md --text 'A new entry' --create --apply
-knapper capture Log.md --text 'A new entry' --template CaptureTemplate.md --apply
+pkm format-note Note.md --rule trailing-spaces --format json
+pkm format-note Note.md --rule heading-blank-lines --rule trailing-spaces --apply
+pkm capture Log.md --text 'A new entry' --format json
+pkm capture Log.md --text 'A new entry' --position top --apply
+pkm capture New.md --text 'A new entry' --create --apply
+pkm capture Log.md --text 'A new entry' --template CaptureTemplate.md --apply
 ```
 
 Formatting and capture preview the resulting note by default. `--apply` writes;
@@ -2108,9 +2108,9 @@ lint:
 ```
 
 ```sh
-knapper lint --check dataview
-knapper lint --check dataview:daily-steps --format json
-knapper lint Diary/2026-10-03.md --check dataview:daily-steps
+pkm lint --check dataview
+pkm lint --check dataview:daily-steps --format json
+pkm lint Diary/2026-10-03.md --check dataview:daily-steps
 ```
 
 Plain lint includes enabled DQL rules. An explicit check runs disabled rules too.

@@ -10,7 +10,7 @@ fn fixture() -> TempDir {
     fs::create_dir(vault.path().join("Diary")).unwrap();
     fs::create_dir(vault.path().join("Excluded")).unwrap();
     fs::write(
-        vault.path().join("knapper.yaml"),
+        vault.path().join("pkm.yaml"),
         "vault_path: .\nexclude: [Excluded]\n",
     )
     .unwrap();
@@ -36,9 +36,9 @@ fn fixture() -> TempDir {
 }
 
 fn run(vault: &TempDir, query: &str, extras: &[&str]) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_knapper"))
+    Command::new(env!("CARGO_BIN_EXE_pkm"))
         .current_dir(vault.path())
-        .env("KNAPPER_NO_UPDATE_CHECK", "1")
+        .env("PKM_NO_UPDATE_CHECK", "1")
         .args(["dql", query, "--format", "json", "--timezone", "Asia/Tokyo"])
         .args(extras)
         .output()
@@ -364,9 +364,9 @@ fn invalid_queries_origins_and_timezones_fail_clearly() {
         assert!(!result.status.success());
         assert!(!result.stderr.is_empty());
     }
-    let result = Command::new(env!("CARGO_BIN_EXE_knapper"))
+    let result = Command::new(env!("CARGO_BIN_EXE_pkm"))
         .current_dir(v.path())
-        .env("KNAPPER_NO_UPDATE_CHECK", "1")
+        .env("PKM_NO_UPDATE_CHECK", "1")
         .args(["dql", "LIST", "--timezone", "Invalid/Zone"])
         .output()
         .unwrap();
@@ -396,7 +396,7 @@ fn partial_row_errors_are_reported_instead_of_silent_loss() {
 #[test]
 fn licenses_are_available_without_a_vault() {
     let dir = TempDir::new().unwrap();
-    let r = Command::new(env!("CARGO_BIN_EXE_knapper"))
+    let r = Command::new(env!("CARGO_BIN_EXE_pkm"))
         .current_dir(dir.path())
         .args(["dql", "--licenses"])
         .output()
@@ -418,13 +418,13 @@ fn licenses_are_available_without_a_vault() {
 fn copied_binary_executes_dql_without_node_or_sidecars() {
     let vault = fixture();
     let directory = TempDir::new().unwrap();
-    let binary = directory.path().join("knapper");
-    fs::copy(env!("CARGO_BIN_EXE_knapper"), &binary).unwrap();
+    let binary = directory.path().join("pkm");
+    fs::copy(env!("CARGO_BIN_EXE_pkm"), &binary).unwrap();
     let output = Command::new(&binary)
         .current_dir(vault.path())
         .env_clear()
         .env("PATH", "/no-programs")
-        .env("KNAPPER_NO_UPDATE_CHECK", "1")
+        .env("PKM_NO_UPDATE_CHECK", "1")
         .args([
             "dql",
             "TABLE WITHOUT ID sum(rows.messages) FROM \"Diary\" GROUP BY true",

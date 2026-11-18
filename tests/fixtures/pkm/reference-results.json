@@ -1,6 +1,6 @@
 {
   "verifiedAt": "2026-10-03",
-  "knapperDataviewVersion": "0.5.70",
+  "pkmDataviewVersion": "0.5.70",
   "upstreamCommit": "5ad0994ff384cbb797de382e7edff2388141b73a",
   "baseline": {
     "verifiedAt": "2026-10-03T05:48:29.762917+00:00",
@@ -9,7 +9,7 @@
       {
         "id": "reading-list",
         "query": "TABLE WITHOUT ID file.name, rating, status FROM \"Books\" SORT rating DESC",
-        "knapper": {
+        "pkm": {
           "type": "table",
           "values": [
             [
@@ -46,7 +46,7 @@
       {
         "id": "todo-status-and-priority",
         "query": "TABLE WITHOUT ID t.text, t.status, t.completed, t.p FROM \"Tasks\" FLATTEN file.tasks AS t SORT t.line",
-        "knapper": {
+        "pkm": {
           "type": "table",
           "values": [
             [
@@ -123,7 +123,7 @@
       {
         "id": "todo-due-date",
         "query": "TABLE WITHOUT ID t.p, dateformat(t.due, \"yyyy-MM-dd\") FROM \"Tasks\" FLATTEN file.tasks AS t WHERE t.due",
-        "knapper": {
+        "pkm": {
           "type": "table",
           "values": [
             [
@@ -148,7 +148,7 @@
       {
         "id": "daily-aggregate",
         "query": "TABLE WITHOUT ID length(rows), sum(rows.messages) FROM \"Daily\" GROUP BY true",
-        "knapper": {
+        "pkm": {
           "type": "table",
           "values": [
             [
@@ -173,7 +173,7 @@
       {
         "id": "author-link",
         "query": "TABLE WITHOUT ID file.name, meta(author).path FROM \"Books\" SORT file.name",
-        "knapper": {
+        "pkm": {
           "type": "table",
           "values": [
             [
@@ -206,7 +206,7 @@
       {
         "id": "bookmark-membership",
         "query": "LIST WITHOUT ID file.path WHERE file.starred SORT file.path",
-        "knapper": {
+        "pkm": {
           "type": "list",
           "values": [
             "Books/Field Guide.md",
@@ -227,7 +227,7 @@
       {
         "id": "open-tasks",
         "query": "TASK FROM \"Tasks\" WHERE !completed SORT line",
-        "knapper": {
+        "pkm": {
           "type": "task",
           "tasks": [
             {
@@ -289,7 +289,7 @@
         {
           "id": "reading-list",
           "query": "TABLE WITHOUT ID file.name, rating, status FROM \"Books\" SORT rating DESC",
-          "knapper": {
+          "pkm": {
             "type": "table",
             "values": [
               [
@@ -326,7 +326,7 @@
         {
           "id": "todo-status-and-priority",
           "query": "TABLE WITHOUT ID t.text, t.status, t.completed, t.p FROM \"Tasks\" FLATTEN file.tasks AS t SORT t.line",
-          "knapper": {
+          "pkm": {
             "type": "table",
             "values": [
               [
@@ -403,7 +403,7 @@
         {
           "id": "todo-due-date",
           "query": "TABLE WITHOUT ID t.p, dateformat(t.due, \"yyyy-MM-dd\") FROM \"Tasks\" FLATTEN file.tasks AS t WHERE t.due",
-          "knapper": {
+          "pkm": {
             "type": "table",
             "values": [
               [
@@ -428,7 +428,7 @@
         {
           "id": "daily-aggregate",
           "query": "TABLE WITHOUT ID length(rows), sum(rows.messages) FROM \"Daily\" GROUP BY true",
-          "knapper": {
+          "pkm": {
             "type": "table",
             "values": [
               [
@@ -453,7 +453,7 @@
         {
           "id": "author-link",
           "query": "TABLE WITHOUT ID file.name, meta(author).path FROM \"Books\" SORT file.name",
-          "knapper": {
+          "pkm": {
             "type": "table",
             "values": [
               [
@@ -486,7 +486,7 @@
         {
           "id": "bookmark-membership",
           "query": "LIST WITHOUT ID file.path WHERE file.starred SORT file.path",
-          "knapper": {
+          "pkm": {
             "type": "list",
             "values": [
               "Books/Field Guide.md",
@@ -509,7 +509,7 @@
         {
           "id": "open-tasks",
           "query": "TASK FROM \"Tasks\" WHERE !completed SORT line",
-          "knapper": {
+          "pkm": {
             "type": "task",
             "tasks": [
               {

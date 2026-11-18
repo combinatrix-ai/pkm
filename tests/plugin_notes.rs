@@ -7,7 +7,7 @@ use tempfile::TempDir;
 fn fixture() -> TempDir {
     let v = TempDir::new().unwrap();
     fs::write(
-        v.path().join("knapper.yaml"),
+        v.path().join("pkm.yaml"),
         "vault_path: .\nexclude: [Excluded]\n",
     )
     .unwrap();
@@ -15,8 +15,8 @@ fn fixture() -> TempDir {
     v
 }
 fn run(v: &TempDir, args: &[&str]) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_knapper"))
-        .env("KNAPPER_NO_UPDATE_CHECK", "1")
+    Command::new(env!("CARGO_BIN_EXE_pkm"))
+        .env("PKM_NO_UPDATE_CHECK", "1")
         .current_dir(v.path())
         .args(args)
         .output()

@@ -1,6 +1,6 @@
 //! Soft topic references: the `#tag` selector.
 //!
-//! knapper has two kinds of reference and they mean different things.
+//! pkm has two kinds of reference and they mean different things.
 //!
 //! `[[X]]` is a **hard note reference**. It names a note, it becomes an edge
 //! in the link graph, and a missing target is a broken link worth reporting.
@@ -101,7 +101,7 @@ impl TagSelector {
     }
 }
 
-/// True when `name` is a tag knapper's own parser would find.
+/// True when `name` is a tag pkm's own parser would find.
 ///
 /// Asking the parser rather than restating its character class is the point:
 /// a name is taggable exactly when writing `#name` produces `name` back. That

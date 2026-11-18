@@ -1,5 +1,5 @@
 {
-  "name": "knapper-dql-engine",
+  "name": "pkm-dql-engine",
   "private": true,
   "type": "module",
   "scripts": {

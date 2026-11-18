@@ -3,7 +3,7 @@
 Normal Rust builds embed generated bundles and need no Node at runtime.
 Development uses `npm ci --prefix plugins --ignore-scripts` and
 `npm run build --prefix plugins`. CI regenerates bundles/notices and checks drift.
-`knapper licenses` prints the embedded notices outside any vault.
+`pkm licenses` prints the embedded notices outside any vault.
 
 Tasks 8.4.0's query/parser source is unchanged in `vendor/tasks`; adapters live
 here and in `src/tasks_query.rs`. Four selected unchanged upstream suites (40

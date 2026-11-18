@@ -111,7 +111,7 @@ function wire(value: any): any {
   return value ?? null;
 }
 
-(globalThis as any).knapperDql = async (raw: string) => {
+(globalThis as any).pkmDql = async (raw: string) => {
   const input = JSON.parse(raw);
   const timezone = input.timezone ?? 'UTC';
   if (typeof (Intl.DateTimeFormat as any).__setDefaultTimeZone === 'function')

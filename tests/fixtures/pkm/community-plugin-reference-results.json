@@ -48,7 +48,7 @@
           }
         ]
       },
-      "knapper": {
+      "pkm": {
         "type": "tasks",
         "total": 3,
         "beforeLimit": 3,
@@ -114,7 +114,7 @@
           }
         ]
       },
-      "knapper": {
+      "pkm": {
         "type": "tasks",
         "total": 1,
         "beforeLimit": 1,
@@ -198,7 +198,7 @@
           }
         ]
       },
-      "knapper": {
+      "pkm": {
         "type": "tasks",
         "total": 4,
         "beforeLimit": 4,
@@ -282,7 +282,7 @@
           }
         ]
       },
-      "knapper": {
+      "pkm": {
         "type": "tasks",
         "total": 1,
         "beforeLimit": 2,
@@ -330,7 +330,7 @@
           }
         ]
       },
-      "knapper": {
+      "pkm": {
         "type": "tasks",
         "total": 1,
         "beforeLimit": 1,
@@ -378,7 +378,7 @@
           }
         ]
       },
-      "knapper": {
+      "pkm": {
         "type": "tasks",
         "total": 1,
         "beforeLimit": 1,
@@ -406,7 +406,7 @@
       "id": "trailing-protected",
       "plugin": "obsidian-linter",
       "obsidian": "text\n```\nkeep   \n```\n<!-- linter-disable -->\nkeep   \n<!-- linter-enable -->\nafter",
-      "knapper": "text\n```\nkeep   \n```\n<!-- linter-disable -->\nkeep   \n<!-- linter-enable -->\nafter",
+      "pkm": "text\n```\nkeep   \n```\n<!-- linter-disable -->\nkeep   \n<!-- linter-enable -->\nafter",
       "liveEqual": true,
       "baselineEqual": true
     },
@@ -414,7 +414,7 @@
       "id": "multiple-protected",
       "plugin": "obsidian-linter",
       "obsidian": "words here\n```\nkeep   here\n```\n- [ ] task words",
-      "knapper": "words here\n```\nkeep   here\n```\n- [ ] task words",
+      "pkm": "words here\n```\nkeep   here\n```\n- [ ] task words",
       "liveEqual": true,
       "baselineEqual": true
     },
@@ -422,7 +422,7 @@
       "id": "heading-yaml",
       "plugin": "obsidian-linter",
       "obsidian": "---\ntitle: Example\n---\n\n# Heading\n\nbody\n\n## Next\n\ntext",
-      "knapper": "---\ntitle: Example\n---\n\n# Heading\n\nbody\n\n## Next\n\ntext",
+      "pkm": "---\ntitle: Example\n---\n\n# Heading\n\nbody\n\n## Next\n\ntext",
       "liveEqual": true,
       "baselineEqual": true
     },
@@ -430,7 +430,7 @@
       "id": "combined",
       "plugin": "obsidian-linter",
       "obsidian": "# Heading\n\nbody text\n```\nkeep   \n```",
-      "knapper": "# Heading\n\nbody text\n```\nkeep   \n```",
+      "pkm": "# Heading\n\nbody text\n```\nkeep   \n```",
       "liveEqual": true,
       "baselineEqual": true
     },
@@ -438,7 +438,7 @@
       "id": "disabled-frontmatter",
       "plugin": "obsidian-linter",
       "obsidian": "---\ndisabled rules: [all]\n---\ntext   ",
-      "knapper": "---\ndisabled rules: [all]\n---\ntext   ",
+      "pkm": "---\ndisabled rules: [all]\n---\ntext   ",
       "liveEqual": true,
       "baselineEqual": true
     },
@@ -446,7 +446,7 @@
       "id": "unicode",
       "plugin": "obsidian-linter",
       "obsidian": "日本語 の  メモ",
-      "knapper": "日本語 の  メモ",
+      "pkm": "日本語 の  メモ",
       "liveEqual": true,
       "baselineEqual": true
     },
@@ -454,7 +454,7 @@
       "id": "append",
       "plugin": "quickadd",
       "obsidian": "old\n記録",
-      "knapper": "old\n記録",
+      "pkm": "old\n記録",
       "liveEqual": true,
       "baselineEqual": true
     },
@@ -462,7 +462,7 @@
       "id": "top-yaml",
       "plugin": "quickadd",
       "obsidian": "---\ntitle: Example\n---\n\n記録\n# Body\n",
-      "knapper": "---\ntitle: Example\n---\n\n記録\n# Body\n",
+      "pkm": "---\ntitle: Example\n---\n\n記録\n# Body\n",
       "liveEqual": true,
       "baselineEqual": true
     },
@@ -470,7 +470,7 @@
       "id": "cursor-unicode",
       "plugin": "quickadd",
       "obsidian": "old\nbefore😀内容after",
-      "knapper": "old\nbefore😀内容after",
+      "pkm": "old\nbefore😀内容after",
       "liveEqual": true,
       "baselineEqual": true
     },
@@ -478,7 +478,7 @@
       "id": "literal-tokens",
       "plugin": "quickadd",
       "obsidian": "{{CURSOR}} <% literal %>",
-      "knapper": "{{CURSOR}} <% literal %>",
+      "pkm": "{{CURSOR}} <% literal %>",
       "liveEqual": true,
       "baselineEqual": true
     },
@@ -486,7 +486,7 @@
       "id": "empty",
       "plugin": "quickadd",
       "obsidian": "old",
-      "knapper": "old",
+      "pkm": "old",
       "liveEqual": true,
       "baselineEqual": true
     },
@@ -494,7 +494,7 @@
       "id": "crlf-top",
       "plugin": "quickadd",
       "obsidian": "---\r\ntitle: Example\r\n---\r\n\r\n記録\n# Body\r\n",
-      "knapper": "---\r\ntitle: Example\r\n---\r\n\r\n記録\n# Body\r\n",
+      "pkm": "---\r\ntitle: Example\r\n---\r\n\r\n記録\n# Body\r\n",
       "liveEqual": true,
       "baselineEqual": true
     }
@@ -506,7 +506,7 @@
         "item2",
         "item10"
       ],
-      "knapper": [
+      "pkm": [
         "item10",
         "item2"
       ],

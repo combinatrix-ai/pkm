@@ -1,4 +1,4 @@
-//! `knapper move` on a directory.
+//! `pkm move` on a directory.
 //!
 //! The link rewriting itself is pinned in `contract/cases.yaml`, where it
 //! belongs: it is what a caller sees. What is here instead is everything that
@@ -23,11 +23,11 @@ struct Run {
 }
 
 impl Vault {
-    /// A vault holding these files, with a config so knapper finds it.
+    /// A vault holding these files, with a config so pkm finds it.
     fn new(files: &[(&str, &str)]) -> Self {
         let root = tempfile::tempdir().unwrap();
         let vault = Vault { root };
-        vault.write("knapper.yaml", "vault_path: .\n");
+        vault.write("pkm.yaml", "vault_path: .\n");
         for (path, content) in files {
             vault.write(path, content);
         }
@@ -66,11 +66,11 @@ impl Vault {
     }
 
     fn run(&self, args: &[&str]) -> Run {
-        let output = Command::new(env!("CARGO_BIN_EXE_knapper"))
+        let output = Command::new(env!("CARGO_BIN_EXE_pkm"))
             .args(args)
             .current_dir(self.path())
             .output()
-            .expect("knapper runs");
+            .expect("pkm runs");
         Run {
             code: output.status.code().unwrap_or(-1),
             stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
@@ -395,13 +395,13 @@ fn a_symlinked_directory_is_refused() {
     assert!(vault.exists("Guide/README.md"));
 }
 
-/// An excluded subtree is one knapper was told not to read. Moving into or
+/// An excluded subtree is one pkm was told not to read. Moving into or
 /// out of it would mean rewriting links against a vault it cannot see.
 #[test]
 fn an_excluded_source_or_destination_is_refused() {
     for (source, destination) in [("Logs/Old", "Archive/"), ("Guide", "Logs/")] {
         let vault = guide_vault();
-        vault.write("knapper.yaml", "vault_path: .\nexclude:\n  - Logs\n");
+        vault.write("pkm.yaml", "vault_path: .\nexclude:\n  - Logs\n");
         vault.write("Logs/Old/note.md", "# Old\n");
 
         let run = vault.run(&["move", source, destination]);
@@ -434,7 +434,7 @@ fn a_note_that_cannot_be_read_stops_the_move() {
 /// A symlink is a hole in every path check that works on the text of a path.
 /// `Elsewhere/Guide` normalizes to something perfectly vault-relative, and
 /// `rename` would follow it clean out of the vault -- moving the directory
-/// somewhere knapper can no longer see, while rewriting every inbound link to
+/// somewhere pkm can no longer see, while rewriting every inbound link to
 /// a path that does not exist.
 #[cfg(unix)]
 #[test]
@@ -503,13 +503,13 @@ fn a_file_that_looks_like_a_temp_file_is_never_touched() {
         ("top.md", "[[Guide/README]]\n"),
     ]);
     // Exactly the name the first implementation used.
-    vault.write(".top.md.knapper-tmp", "somebody else's file\n");
+    vault.write(".top.md.pkm-tmp", "somebody else's file\n");
 
     vault.run(&["move", "Guide", "Archive/"]).ok();
 
     assert_eq!(vault.read("top.md"), "[[Archive/Guide/README]]\n");
     assert_eq!(
-        vault.read(".top.md.knapper-tmp"),
+        vault.read(".top.md.pkm-tmp"),
         "somebody else's file\n",
         "a bystander file was overwritten or removed"
     );
@@ -528,13 +528,13 @@ fn no_temp_file_survives_a_successful_move() {
 
     let left: Vec<String> = tree(&vault.path())
         .into_iter()
-        .filter(|p| p.contains("knapper-") || p.ends_with(".tmp"))
+        .filter(|p| p.contains("pkm-") || p.ends_with(".tmp"))
         .collect();
     assert_eq!(left, Vec::<String>::new(), "temp files were left behind");
 }
 
 /// A note somebody made read-only, or opened up for a shared vault, should
-/// still be that way after knapper rewrites a link in it. The rewrite goes
+/// still be that way after pkm rewrites a link in it. The rewrite goes
 /// through a fresh file, which starts from this process's umask instead.
 #[cfg(unix)]
 #[test]
@@ -559,7 +559,7 @@ fn a_notes_permissions_survive_a_rewrite() {
 }
 
 /// `all_notes` follows a symlink to decide a file is a note, so a symlinked
-/// note is one knapper reads and rewrites. Renaming a temp file over the link
+/// note is one pkm reads and rewrites. Renaming a temp file over the link
 /// would replace it with a regular file -- silently detaching a note the user
 /// had deliberately shared into the vault -- so the rewrite goes through the
 /// link to the file it names, exactly as `fs::write` does everywhere else.
@@ -619,7 +619,7 @@ fn a_symlinked_referrer_stays_a_symlink_and_its_target_is_updated() {
     );
     let left: Vec<String> = tree(&external)
         .into_iter()
-        .filter(|p| p.contains("knapper-"))
+        .filter(|p| p.contains("pkm-"))
         .collect();
     assert_eq!(left, Vec::<String>::new(), "temp files were left behind");
 }
@@ -824,7 +824,7 @@ fn a_plain_href_is_encoded_when_the_destination_needs_it() {
 
 // --------------------------------------------------------------------- org --
 
-/// knapper reads org but does not rewrite it. An inbound org link into a
+/// pkm reads org but does not rewrite it. An inbound org link into a
 /// directory that is about to move is therefore a link this move would
 /// silently break, which is the one case worth refusing outright.
 #[test]

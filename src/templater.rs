@@ -38,7 +38,7 @@ fn format_date(format: &str, date: NaiveDate) -> String {
 }
 
 /// `{{time}}` means the moment the note is being created, which is now even
-/// when the note itself is dated in the past (`knapper daily yesterday`).
+/// when the note itself is dated in the past (`pkm daily yesterday`).
 fn format_time(format: &str) -> String {
     let now = Local::now();
     let format = if format.is_empty() { "HH:mm" } else { format };

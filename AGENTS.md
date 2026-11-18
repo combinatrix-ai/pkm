@@ -1,4 +1,4 @@
-# knapper development
+# pkm development
 
 ## Obsidian and plugin compatibility
 
@@ -7,7 +7,7 @@ feature contract and capability registry. Update the applicable entry in the
 same change as implementation and tests, including input formats, source/plugin
 versions, missing or malformed input, known gaps, and verification.
 
-Distinguish native knapper adapters from the embedded Dataview adapter. Passing
+Distinguish native pkm adapters from the embedded Dataview adapter. Passing
 upstream parser/expression tests does not establish Obsidian metadata parity.
 Use synthetic committed fixtures and record actual-Obsidian comparisons with
 explicit app/plugin versions. Use the isolated App + official CLI differential
@@ -15,7 +15,7 @@ workflow in `spec.md` for metadata-dependent checks; keep recorded-reference
 CI replay distinct from a live desktop run. Keep private Vault/account data out of this repo.
 Expand `tests/fixtures/pkm` and its `cases.json` for relevant new plugin/metadata
 behavior and regressions. Follow its README extension contract; keep expectations
-independent of knapper output and record live App/CLI evidence.
+independent of pkm output and record live App/CLI evidence.
 Do not execute arbitrary installed plugins to implement data compatibility.
 
 Build and verification requirements are in `.github/workflows/ci.yml`.

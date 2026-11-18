@@ -13,7 +13,7 @@ impl Vault {
     fn new(config: &str, files: &[(&str, &str)]) -> Self {
         let root = tempdir().unwrap();
         fs::write(
-            root.path().join("knapper.yaml"),
+            root.path().join("pkm.yaml"),
             format!("vault_path: .\n{config}"),
         )
         .unwrap();
@@ -26,9 +26,9 @@ impl Vault {
     }
 
     fn run(&self, args: &[&str]) -> Output {
-        Command::new(env!("CARGO_BIN_EXE_knapper"))
+        Command::new(env!("CARGO_BIN_EXE_pkm"))
             .args(args)
-            .env("KNAPPER_NO_UPDATE_CHECK", "1")
+            .env("PKM_NO_UPDATE_CHECK", "1")
             .current_dir(self.root.path())
             .output()
             .unwrap()
@@ -337,7 +337,7 @@ fn unmatched_path_rules_leave_global_rule_behavior_unchanged() {
 #[test]
 fn unknown_cli_check_is_rejected_as_usage_error() {
     let root = tempdir().unwrap();
-    let output = Command::new(env!("CARGO_BIN_EXE_knapper"))
+    let output = Command::new(env!("CARGO_BIN_EXE_pkm"))
         .args(["lint", "--check", "not-a-rule"])
         .current_dir(root.path())
         .output()
@@ -771,7 +771,7 @@ fn git_diff_reference_and_nested_vault_use_repo_relative_git_paths() {
     fs::write(vault.root.path().join("Nested/A.md"), "z").unwrap();
     fs::write(vault.root.path().join("Outside.md"), "z").unwrap();
     fs::write(vault.root.path().join("Nested/new.md"), "x").unwrap();
-    let output = Command::new(env!("CARGO_BIN_EXE_knapper"))
+    let output = Command::new(env!("CARGO_BIN_EXE_pkm"))
         .args([
             "--vault",
             vault.root.path().join("Nested").to_str().unwrap(),
@@ -953,7 +953,7 @@ fn dataview_steps_rule_reads_yaml_and_inline_fields_and_only_reports_missing() {
 fn dataview_selection_does_not_change_query_input_and_deduplicates_rows() {
     let vault = Vault::new("", &[]);
     // Use a cross-note expression: the selected note sees another indexed note.
-    fs::write(vault.root.path().join("knapper.yaml"), "vault_path: .\nexclude: [Excluded]\nlint:\n  dataview:\n    cross-note:\n      query: 'LIST WITHOUT ID file.path FROM \"Diary\" FLATTEN [1, 2] AS n WHERE [[Other]].required = true'\n      message: required\n").unwrap();
+    fs::write(vault.root.path().join("pkm.yaml"), "vault_path: .\nexclude: [Excluded]\nlint:\n  dataview:\n    cross-note:\n      query: 'LIST WITHOUT ID file.path FROM \"Diary\" FLATTEN [1, 2] AS n WHERE [[Other]].required = true'\n      message: required\n").unwrap();
     fs::create_dir_all(vault.root.path().join("Diary")).unwrap();
     fs::write(vault.root.path().join("Diary/One.md"), "Daily entry\n").unwrap();
     fs::write(vault.root.path().join("Diary/Two.md"), "Daily entry\n").unwrap();
@@ -1055,13 +1055,13 @@ fn dataview_invalid_config_queries_and_rows_fail_closed() {
 #[test]
 fn dataview_fixture_rule_matches_registered_expected_paths() {
     let fixture = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/pkm");
-    let output = Command::new(env!("CARGO_BIN_EXE_knapper"))
-        .env("KNAPPER_NO_UPDATE_CHECK", "1")
+    let output = Command::new(env!("CARGO_BIN_EXE_pkm"))
+        .env("PKM_NO_UPDATE_CHECK", "1")
         .args([
             "-v",
             fixture.to_str().unwrap(),
             "-c",
-            fixture.join("knapper.yaml").to_str().unwrap(),
+            fixture.join("pkm.yaml").to_str().unwrap(),
             "lint",
             "--check",
             "dataview:daily-steps",

@@ -27,7 +27,7 @@
               false
             ]
           ],
-          "knapper": {
+          "pkm": {
             "type": "table",
             "headers": [
               "file.path",
@@ -58,7 +58,7 @@
             "A.md",
             "B.md"
           ],
-          "knapper": {
+          "pkm": {
             "type": "list",
             "headers": null,
             "values": [
@@ -134,7 +134,7 @@
               false
             ]
           ],
-          "knapper": {
+          "pkm": {
             "type": "table",
             "headers": [
               "file.path",
@@ -162,7 +162,7 @@
           "type": "list",
           "headers": null,
           "values": [],
-          "knapper": {
+          "pkm": {
             "type": "list",
             "headers": null,
             "values": []
@@ -173,7 +173,7 @@
       "lifecycle": "cold-start-disabled"
     }
   ],
-  "knapperDataviewVersion": "0.5.70",
+  "pkmDataviewVersion": "0.5.70",
   "verifiedAt": "2026-10-03",
-  "warmDisableDifference": "Obsidian retains loaded bookmark items after live disable; knapper follows saved state as at cold start."
+  "warmDisableDifference": "Obsidian retains loaded bookmark items after live disable; pkm follows saved state as at cold start."
 }

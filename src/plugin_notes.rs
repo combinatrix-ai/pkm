@@ -51,7 +51,7 @@ pub fn format_note(
     .collect();
     let result = crate::tasks_query::evaluate_engine(
         include_str!("../plugins/linter-engine.js"),
-        "knapperLinter",
+        "pkmLinter",
         &json!({"text":before,"rules":ordered}),
     )?;
     let after = result["text"]
@@ -143,7 +143,7 @@ pub fn capture(config: &Config, file: &str, options: &CaptureOptions<'_>) -> Res
         .transpose()?;
     let result = crate::tasks_query::evaluate_engine(
         include_str!("../plugins/quickadd-engine.js"),
-        "knapperCapture",
+        "pkmCapture",
         &json!({"before":before,"text":options.text,"template":template,"position":options.position}),
     )?;
     let after = result["text"]

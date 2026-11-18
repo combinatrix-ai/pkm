@@ -16,7 +16,7 @@
   "case": {
     "id": "daily-steps-missing",
     "query": "LIST WITHOUT ID file.path FROM \"Diary\" WHERE steps = null SORT file.path",
-    "knapper": {
+    "pkm": {
       "type": "list",
       "values": [
         "Diary/2026-10-03.md",

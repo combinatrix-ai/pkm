@@ -212,7 +212,7 @@ fn plan_note(
     target: &str,
     tag: &str,
 ) -> (Option<FileEdit>, Vec<Skipped>) {
-    let Ok(content) = std::fs::read_to_string(path) else {
+    let Ok(content) = crate::note::read_note(path) else {
         return (None, Vec::new());
     };
     let file = relative_path(&config.vault_path, path);
@@ -360,8 +360,8 @@ fn apply(config: &Config, plan: &Plan) -> Result<()> {
 
     for edit in &plan.edits {
         let path = config.vault_path.join(&edit.path);
-        let outcome = std::fs::read_to_string(&path)
-            .and_then(|original| std::fs::write(&path, &edit.content).map(|()| original));
+        let outcome = crate::note::read_note(&path)
+            .and_then(|original| crate::note::write_note(&path, &edit.content).map(|()| original));
 
         let err = match outcome {
             Ok(original) => {
@@ -376,7 +376,9 @@ fn apply(config: &Config, plan: &Plan) -> Result<()> {
         // in a state nobody can reason about.
         let stuck: Vec<&str> = written
             .iter()
-            .filter(|(done, before)| std::fs::write(config.vault_path.join(done), before).is_err())
+            .filter(|(done, before)| {
+                crate::note::write_note(config.vault_path.join(done), before).is_err()
+            })
             .map(|(done, _)| *done)
             .collect();
 

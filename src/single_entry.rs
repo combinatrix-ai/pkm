@@ -62,7 +62,7 @@ pub fn parse(value: &serde_yaml::Value) -> Result<Vec<Layout>> {
 }
 
 fn matches_entry(path: &Path, layout: &Layout) -> Result<bool> {
-    let text = std::fs::read_to_string(path)?;
+    let text = crate::note::read_note(path)?;
     let note = crate::note::parse_note(path, &text);
     Ok(layout
         .entry

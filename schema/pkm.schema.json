@@ -56,6 +56,7 @@
           "additionalProperties": false,
           "description": "Per-check settings. Every check is enabled by default.",
           "properties": {
+            "unreadable": { "$ref": "#/$defs/lintRule" },
             "broken-links": { "$ref": "#/$defs/lintRule" },
             "orphans": { "$ref": "#/$defs/lintRule" },
             "duplicates": { "$ref": "#/$defs/lintRule" },
@@ -175,6 +176,7 @@
           "items": { "type": "string", "minLength": 1 },
           "description": "Query expressions, all of which must match. Combined with path using AND."
         },
+        "unreadable": { "$ref": "#/$defs/lintPathBasic" },
         "broken-links": { "$ref": "#/$defs/lintPathBrokenLinks" },
         "orphans": { "$ref": "#/$defs/lintPathBasic" },
         "duplicates": { "$ref": "#/$defs/lintPathBasic" },

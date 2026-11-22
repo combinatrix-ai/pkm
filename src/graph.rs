@@ -296,7 +296,7 @@ impl LinkResolver {
             .markdown_anchors
             .get(resolved)?
             .get_or_init(|| {
-                std::fs::read_to_string(self.vault_path.join(resolved))
+                crate::note::read_note(self.vault_path.join(resolved))
                     .ok()
                     .map(|content| extract_anchor_inventory(&content))
             })
@@ -478,7 +478,7 @@ fn parse_sources(vault_path: &Path, paths: &[PathBuf]) -> Vec<Parsed> {
     paths
         .par_iter()
         .filter_map(|path| {
-            let content = std::fs::read_to_string(path).ok()?;
+            let content = crate::note::read_note(path).ok()?;
             let relative = relative_path(vault_path, path);
 
             if is_org(path) {

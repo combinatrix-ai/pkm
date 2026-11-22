@@ -171,7 +171,7 @@ pub(crate) fn build_record(
     graph: Option<&LinkGraph>,
     today: DateTime<Local>,
 ) -> Option<serde_json::Map<String, Value>> {
-    let content = std::fs::read_to_string(path).ok()?;
+    let content = crate::note::read_note(path).ok()?;
     let note = parse_note(path, &content);
 
     let mut record = serde_json::Map::new();
@@ -468,7 +468,7 @@ pub fn fields(config: &Config, format: &str) -> Result<()> {
     let mut declared: BTreeMap<String, usize> = BTreeMap::new();
 
     for path in all_notes(config) {
-        let Ok(content) = std::fs::read_to_string(&path) else {
+        let Ok(content) = crate::note::read_note(&path) else {
             continue;
         };
         let note = parse_note(&path, &content);

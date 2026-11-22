@@ -352,7 +352,7 @@ struct Scanner<'a> {
 
 impl Scanner<'_> {
     fn note(&self, path: &Path) -> Vec<Occurrence> {
-        let Ok(content) = std::fs::read_to_string(path) else {
+        let Ok(content) = crate::note::read_note(path) else {
             return Vec::new();
         };
         let source = relative_path(&self.config.vault_path, path);

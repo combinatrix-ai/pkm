@@ -11,13 +11,13 @@ use regex::Regex;
 use serde_json::{json, Value};
 use unicode_normalization::UnicodeNormalization;
 
-use crate::graph::build_link_graph;
+use crate::graph::{broken_links_in, build_link_graph};
 use crate::note::{parse_note, split_frontmatter};
 use crate::output::print_json;
 use crate::parser::{fold_name, name_pattern, same_name};
 use crate::vault::{
-    all_notes, relative_path, resolve_path, Config, FrontmatterFieldType, FrontmatterPolicy,
-    LintRuleConfig, LINT_RULE_NAMES,
+    all_notes, list_vault, relative_path, resolve_path, Config, FrontmatterFieldType,
+    FrontmatterPolicy, LintRuleConfig, LINT_RULE_NAMES,
 };
 
 static HEADING: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?m)^(#{1,6})\s+(.+)$").unwrap());
@@ -760,7 +760,8 @@ pub fn lint(
         }
     }
 
-    let notes = all_notes(config);
+    let listing = list_vault(config);
+    let notes = listing.notes(config);
     let selection = crate::lint_selection::select(config, &notes, files, diff)?;
     let included = |path: &str| selection.as_ref().is_none_or(|set| set.contains(path));
     if selection.as_ref().is_some_and(|set| set.is_empty()) {
@@ -773,23 +774,38 @@ pub fn lint(
         }
         return Ok(0);
     }
-    let graph_needed = config
-        .lint_paths
-        .iter()
-        .flat_map(|r| &r.predicates)
-        .any(|p| crate::query::GRAPH_FIELDS.contains(&p.field.as_str()))
-        || ["broken-links", "orphans"].iter().any(|name| {
-            if !checks.is_empty() {
-                checks.iter().any(|c| c == name)
-            } else {
-                config.lint_rules.get(*name).is_none_or(|r| r.enabled)
-                    || config
-                        .lint_paths
-                        .iter()
-                        .any(|p| p.rules.get(*name).is_some_and(|r| r.enabled))
-            }
-        });
-    let graph = graph_needed.then(|| build_link_graph(config));
+    let may_run = |name: &str| {
+        if !checks.is_empty() {
+            checks.iter().any(|c| c == name)
+        } else {
+            config.lint_rules.get(name).is_none_or(|r| r.enabled)
+                || config
+                    .lint_paths
+                    .iter()
+                    .any(|p| p.rules.get(name).is_some_and(|r| r.enabled))
+        }
+    };
+    // Incoming links can come from any note, so orphans and graph predicates
+    // need every note parsed. Broken links belong to the note that wrote
+    // them, so a selection is checked without parsing the rest of the vault.
+    let whole_graph_needed = may_run("orphans")
+        || config
+            .lint_paths
+            .iter()
+            .flat_map(|r| &r.predicates)
+            .any(|p| crate::query::GRAPH_FIELDS.contains(&p.field.as_str()));
+    let graph = (whole_graph_needed || (may_run("broken-links") && selection.is_none()))
+        .then(|| build_link_graph(config));
+    let selected_broken = match (&graph, &selection) {
+        (None, Some(sources)) if may_run("broken-links") => {
+            Some(broken_links_in(config, &listing, sources))
+        }
+        _ => None,
+    };
+    let broken = graph
+        .as_ref()
+        .map(|g| &g.broken)
+        .or(selected_broken.as_ref());
     let compare_all_duplicates = if checks.is_empty() {
         config
             .lint_rules
@@ -867,9 +883,8 @@ pub fn lint(
     }
 
     if selected.contains(&"broken-links") {
-        let graph = graph.as_ref().unwrap();
-        let count: usize = graph
-            .broken
+        let broken = broken.unwrap();
+        let count: usize = broken
             .iter()
             .map(|(file, links)| {
                 let (rule, _) = effective("broken-links", file);
@@ -887,7 +902,7 @@ pub fn lint(
             .sum();
         summary.insert("broken_links".into(), json!(count));
         total += count;
-        for (file, links) in &graph.broken {
+        for (file, links) in broken {
             let (rule, _) = effective("broken-links", file);
             if !scope("broken-links", file, explicit) {
                 continue;

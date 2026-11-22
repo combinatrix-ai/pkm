@@ -1283,14 +1283,34 @@ pub fn relative_path(vault: &Path, file: &Path) -> String {
         .replace('\\', "/")
 }
 
-/// Every file in the vault, newest first.
+/// One walk of the vault: every file, newest first, and every directory.
 ///
-/// This is deliberately broader than `all_notes`: the link graph needs to
-/// know about excluded notes and leaf attachments without parsing either as
-/// source notes. Callers that need the user's note set should use
-/// `all_notes`, which applies extension and exclude filtering below.
-pub fn all_files(config: &Config) -> Vec<PathBuf> {
-    let mut files: Vec<(std::time::SystemTime, PathBuf)> = WalkDir::new(&config.vault_path)
+/// Walking is a fixed cost that grows with the vault, so a command that needs
+/// both the note set and the link targets takes them from one listing.
+pub struct VaultListing {
+    pub files: Vec<PathBuf>,
+    /// Vault-relative, the root included as the empty string.
+    pub directories: Vec<String>,
+}
+
+impl VaultListing {
+    /// The user's notes, newest first.
+    pub fn notes(&self, config: &Config) -> Vec<PathBuf> {
+        self.files
+            .iter()
+            .filter(|path| {
+                is_note_path(path)
+                    && !is_excluded(&relative_path(&config.vault_path, path), &config.exclude)
+            })
+            .cloned()
+            .collect()
+    }
+}
+
+pub fn list_vault(config: &Config) -> VaultListing {
+    let mut files: Vec<(std::time::SystemTime, PathBuf)> = Vec::new();
+    let mut directories = Vec::new();
+    for entry in WalkDir::new(&config.vault_path)
         .into_iter()
         .filter_entry(|e| {
             // Hidden directories are skipped wholesale, which also keeps the
@@ -1301,38 +1321,51 @@ pub fn all_files(config: &Config) -> Vec<PathBuf> {
                 .unwrap_or(false)
         })
         .filter_map(|e| e.ok())
+    {
+        let path = entry.path();
+        if entry.file_type().is_dir() {
+            directories.push(relative_path(&config.vault_path, path));
+            continue;
+        }
         // A symlinked *file* is still a note, so stat through the link. A
         // symlinked *directory* is not descended into: it can point outside
         // the vault or back into it, and following it both duplicates notes
         // and risks a cycle.
-        .filter(|e| e.path().is_file())
-        .filter_map(|entry| {
-            let path = entry.path();
-            // pkm's own config is not one of the user's notes.
-            if path.file_name()?.to_str()? == CONFIG_FILENAME {
-                return None;
-            }
-            let mtime = std::fs::metadata(path)
-                .ok()
-                .and_then(|m| m.modified().ok())
-                .unwrap_or(std::time::UNIX_EPOCH);
-            Some((mtime, path.to_path_buf()))
-        })
-        .collect();
+        if !path.is_file() {
+            continue;
+        }
+        // pkm's own config is not one of the user's notes.
+        match path.file_name().and_then(|name| name.to_str()) {
+            Some(name) if name != CONFIG_FILENAME => {}
+            _ => continue,
+        }
+        let mtime = std::fs::metadata(path)
+            .ok()
+            .and_then(|m| m.modified().ok())
+            .unwrap_or(std::time::UNIX_EPOCH);
+        files.push((mtime, path.to_path_buf()));
+    }
 
     files.sort_by_key(|(mtime, _)| std::cmp::Reverse(*mtime));
-    files.into_iter().map(|(_, p)| p).collect()
+    VaultListing {
+        files: files.into_iter().map(|(_, p)| p).collect(),
+        directories,
+    }
+}
+
+/// Every file in the vault, newest first.
+///
+/// This is deliberately broader than `all_notes`: the link graph needs to
+/// know about excluded notes and leaf attachments without parsing either as
+/// source notes. Callers that need the user's note set should use
+/// `all_notes`, which applies extension and exclude filtering below.
+pub fn all_files(config: &Config) -> Vec<PathBuf> {
+    list_vault(config).files
 }
 
 /// Every note in the vault, newest first.
 pub fn all_notes(config: &Config) -> Vec<PathBuf> {
-    all_files(config)
-        .into_iter()
-        .filter(|path| {
-            is_note_path(path)
-                && !is_excluded(&relative_path(&config.vault_path, path), &config.exclude)
-        })
-        .collect()
+    list_vault(config).notes(config)
 }
 
 /// Resolve a user-supplied file argument against the vault.

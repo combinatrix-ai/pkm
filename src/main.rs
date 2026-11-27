@@ -772,7 +772,7 @@ fn run() -> Result<()> {
                     &format,
                 )
             } else {
-                notes_cmd::move_note(&config, &source, &destination, dry_run, &format)
+                move_tree::relocate_note(&config, &source, &destination, false, dry_run, &format)
             }
         }
         Command::Lint {
@@ -812,7 +812,7 @@ fn run() -> Result<()> {
             new,
             dry_run,
             format,
-        } => notes_cmd::rename(&config, &old, &new, dry_run, &format),
+        } => move_tree::relocate_note(&config, &old, &new, true, dry_run, &format),
         Command::Demote {
             target,
             tag,

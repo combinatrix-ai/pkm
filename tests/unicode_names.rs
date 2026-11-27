@@ -79,7 +79,7 @@ fn links_resolve_across_normalization_and_case() {
 }
 
 #[test]
-fn moving_a_decomposed_file_rewrites_its_composed_links() {
+fn moving_a_decomposed_file_keeps_resolvable_short_links() {
     for (file, link) in spellings() {
         let dir = vault(&[
             (file.as_str(), "body\n"),
@@ -88,7 +88,11 @@ fn moving_a_decomposed_file_rewrites_its_composed_links() {
         let plan = json(dir.path(), &["move", &file, "Archive/", "--dry-run"]);
         assert_eq!(
             plan["files_to_update"],
-            serde_json::json!(["Index.md"]),
+            if link.contains('/') {
+                serde_json::json!(["Index.md"])
+            } else {
+                serde_json::json!([])
+            },
             "{file:?} <- [[{link}]]: {plan}"
         );
 
@@ -97,7 +101,11 @@ fn moving_a_decomposed_file_rewrites_its_composed_links() {
         // The rewritten link is composed, however the file name was stored.
         let index = fs::read_to_string(dir.path().join("Index.md")).unwrap();
         assert_eq!(index, index.nfc().collect::<String>(), "{index:?}");
-        assert!(index.starts_with("See [[Archive/"), "{index:?}");
+        if link.contains('/') {
+            assert!(index.starts_with("See [[Archive/"), "{index:?}");
+        } else {
+            assert_eq!(index, format!("See [[{link}]].\n"));
+        }
     }
 }
 
@@ -108,9 +116,5 @@ fn a_composed_path_finds_a_decomposed_file() {
         ("Index.md", "See [[Café]].\n"),
     ]);
     let plan = json(dir.path(), &["move", "Café.md", "Archive/", "--dry-run"]);
-    assert_eq!(
-        plan["files_to_update"],
-        serde_json::json!(["Index.md"]),
-        "{plan}"
-    );
+    assert_eq!(plan["files_to_update"], serde_json::json!([]), "{plan}");
 }

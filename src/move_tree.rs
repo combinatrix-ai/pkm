@@ -239,11 +239,11 @@ struct Index {
     lower: BTreeMap<String, String>,
     by_name: BTreeMap<String, Vec<String>>,
     by_stem: BTreeMap<String, Vec<String>>,
-    by_alias: BTreeMap<String, String>,
+    by_alias: BTreeMap<String, Vec<String>>,
 }
 
 impl Index {
-    fn build(files: &[String], aliases: &BTreeMap<String, String>) -> Self {
+    fn build(files: &[String], aliases: &BTreeMap<String, Vec<String>>) -> Self {
         let mut lower = BTreeMap::new();
         let mut by_name: BTreeMap<String, Vec<String>> = BTreeMap::new();
         let mut by_stem: BTreeMap<String, Vec<String>> = BTreeMap::new();
@@ -291,7 +291,12 @@ impl Index {
         let aliases = self
             .by_alias
             .iter()
-            .map(|(a, p)| (a.clone(), remap(p, source, dest)))
+            .map(|(a, paths)| {
+                (
+                    a.clone(),
+                    paths.iter().map(|p| remap(p, source, dest)).collect(),
+                )
+            })
             .collect();
         Index::build(&files, &aliases)
     }
@@ -367,7 +372,10 @@ impl Index {
                 }
             }
         }
-        self.by_alias.get(&lower).cloned()
+        self.by_alias
+            .get(&lower)
+            .and_then(|paths| paths.first())
+            .cloned()
     }
 
     /// A markdown href. The bool says the link was read relative to the note
@@ -416,6 +424,7 @@ struct Change {
     line: usize,
     before: String,
     after: String,
+    resolved: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -489,6 +498,7 @@ fn walk_vault(vault: &Path) -> Vec<String> {
 
 fn build_plan(config: &Config, source: &str, destination: &str) -> Result<Plan> {
     let vault = &config.vault_path;
+    let single = vault.join(source).is_file();
     let entries = walk_subtree(vault, &vault.join(source));
 
     // Reading comes first and completely: a note that cannot be read is a
@@ -510,10 +520,13 @@ fn build_plan(config: &Config, source: &str, destination: &str) -> Result<Plan> 
     // Aliases have to be known before anything resolves: `[[an alias]]` names
     // the note declaring it, wherever that note lives. `parse_note` dispatches
     // on extension, so an org file's aliases arrive the same way.
-    let mut aliases: BTreeMap<String, String> = BTreeMap::new();
+    let mut aliases: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for (relative, content, _) in &docs {
         for alias in parse_note(Path::new(relative), content).aliases {
-            aliases.entry(alias).or_insert_with(|| relative.clone());
+            let paths = aliases.entry(fold_name(&alias)).or_default();
+            if !paths.contains(relative) {
+                paths.push(relative.clone());
+            }
         }
     }
 
@@ -551,16 +564,44 @@ fn build_plan(config: &Config, source: &str, destination: &str) -> Result<Plan> 
         let mut spans: Vec<(Range<usize>, String)> = Vec::new();
 
         for link in scan_links(content) {
-            let Some(replacement) = rewrite(
-                &index,
-                &after,
-                relative,
-                &new_relative,
-                &link,
-                source,
-                destination,
-            ) else {
-                continue;
+            let (replacement, resolved) = if single {
+                let Some((replacement, resolved)) = relocate_link(
+                    &index,
+                    &after,
+                    relative,
+                    &new_relative,
+                    &link,
+                    source,
+                    destination,
+                )
+                .map_err(|e| anyhow!("{relative}:{}: {e}", line_of(content, link.range.start)))?
+                else {
+                    continue;
+                };
+                // A newly introduced display alias needs an escaped separator in a table cell.
+                let replacement = if link.kind == Kind::Wiki
+                    && link.alias.is_empty()
+                    && replacement.contains('|')
+                    && in_table_row(content, link.range.start)
+                {
+                    replacement.replacen('|', "\\|", 1)
+                } else {
+                    replacement
+                };
+                (replacement, Some(resolved))
+            } else {
+                let Some(replacement) = rewrite(
+                    &index,
+                    &after,
+                    relative,
+                    &new_relative,
+                    &link,
+                    source,
+                    destination,
+                ) else {
+                    continue;
+                };
+                (replacement, None)
             };
             let before = content[link.range.clone()].to_string();
             if replacement == before {
@@ -570,6 +611,7 @@ fn build_plan(config: &Config, source: &str, destination: &str) -> Result<Plan> 
                 line: line_of(content, link.range.start),
                 before,
                 after: replacement.clone(),
+                resolved,
             });
             spans.push((link.range, replacement));
         }
@@ -619,6 +661,236 @@ fn build_plan(config: &Config, source: &str, destination: &str) -> Result<Plan> 
         unsupported,
         warnings,
     })
+}
+
+fn in_table_row(content: &str, offset: usize) -> bool {
+    let line_start = content[..offset].rfind('\n').map_or(0, |i| i + 1);
+    let separator = |line: &str| {
+        line.contains('|')
+            && line.trim().trim_matches('|').split('|').all(|cell| {
+                let rule = cell.trim().trim_matches(':');
+                !rule.is_empty() && rule.bytes().all(|b| b == b'-')
+            })
+    };
+    content[..line_start]
+        .lines()
+        .rev()
+        .take_while(|line| line.contains('|'))
+        .any(separator)
+        || content[line_start..].lines().nth(1).is_some_and(separator)
+}
+
+fn candidates(index: &Index, from: &str, link: &RawLink) -> Vec<String> {
+    if link.path.is_empty() {
+        return vec![];
+    }
+    if link.kind == Kind::Markdown {
+        return index
+            .resolve_markdown(from, &link.path)
+            .map(|(p, _)| p)
+            .into_iter()
+            .collect();
+    }
+    let target = link.path.trim().replace('\\', "/");
+    let local = normalize(&join_rel(dir_of(from), &target)).and_then(|p| index.lookup(&p));
+    if target.starts_with("./") || target.starts_with("../") {
+        return local.into_iter().collect();
+    }
+    if target.contains('/') {
+        let exact: BTreeSet<_> = local.into_iter().chain(index.lookup(&target)).collect();
+        if !exact.is_empty() {
+            return exact.into_iter().collect();
+        }
+    } else if let Some(path) = local {
+        return vec![path];
+    }
+    let basename = target.rsplit('/').next().unwrap();
+    let key = fold_name(basename);
+    let suffix = format!("/{}", fold_name(&target));
+    let paths: Vec<_> = index
+        .by_name
+        .get(&key)
+        .or_else(|| index.by_stem.get(&key))
+        .into_iter()
+        .flatten()
+        .filter(|p| {
+            !target.contains('/')
+                || fold_name(p).ends_with(&suffix)
+                || fold_name(p).ends_with(&format!("{suffix}.md"))
+        })
+        .cloned()
+        .collect();
+    if paths.is_empty() {
+        index
+            .by_alias
+            .get(&fold_name(&target))
+            .cloned()
+            .unwrap_or_default()
+    } else {
+        paths
+    }
+}
+
+fn relocate_link(
+    before: &Index,
+    after: &Index,
+    from: &str,
+    new_from: &str,
+    link: &RawLink,
+    source: &str,
+    dest: &str,
+) -> Result<Option<(String, String)>> {
+    use unicode_normalization::UnicodeNormalization;
+    let original = candidates(before, from, link);
+    let current = candidates(after, new_from, link);
+    let old = match original.as_slice() {
+        [] => return Ok(None),
+        [only] => only,
+        many if many.iter().any(|p| p == source) || current != original => {
+            bail!("Ambiguous link {}: {}", link.path, many.join(", "))
+        }
+        _ => return Ok(None),
+    };
+    let expected = remap(old, source, dest);
+    if current.as_slice() == [expected.as_str()] {
+        return Ok(None);
+    }
+    let mut path = if link.kind == Kind::Markdown {
+        relative_from(dir_of(new_from), &expected)
+    } else {
+        expected.clone()
+    };
+    path = strip_unwritten_extension(&link.path, &path).nfc().collect();
+    if path.ends_with(".md") && link.path.to_ascii_lowercase().ends_with(".md") {
+        path.truncate(path.len() - 3);
+        path.push_str(&link.path[link.path.len() - 3..]);
+    }
+    let mut written = link.clone();
+    if written.kind == Kind::Wiki
+        && written.alias.is_empty()
+        && path.contains('/')
+        && !link.path.contains('/')
+        && !link.embed
+    {
+        let label = Path::new(&expected).file_stem().unwrap().to_string_lossy();
+        written.alias = format!("|{label}{}", link.anchor);
+    }
+    let rendered = render(&written, &path);
+    let parsed = scan_links(&rendered);
+    if parsed.len() != 1
+        || parsed[0].range != (0..rendered.len())
+        || candidates(after, new_from, &parsed[0]).as_slice() != [expected.as_str()]
+    {
+        bail!("Cannot write an unambiguous link to {expected}: {rendered}");
+    }
+    Ok(Some((rendered, old.clone())))
+}
+
+pub fn relocate_note(
+    config: &Config,
+    source: &str,
+    target: &str,
+    rename: bool,
+    dry_run: bool,
+    format: &str,
+) -> Result<()> {
+    let input = vault_relative(config, source)?;
+    let explicit = source.contains('/') || source.contains('\\') || input.ends_with(".md");
+    let mut hits = Vec::new();
+    for path in all_notes(config) {
+        let relative = relative_path(&config.vault_path, &path);
+        let matched = if explicit {
+            crate::parser::same_name(&relative, &input)
+                || (!input.ends_with(".md")
+                    && crate::parser::same_name(&relative, &format!("{input}.md")))
+        } else {
+            path.file_stem()
+                .and_then(|s| s.to_str())
+                .is_some_and(|s| crate::parser::same_name(s, &input))
+        };
+        if matched {
+            hits.push(relative);
+        }
+    }
+    hits.sort();
+    let source = match hits.as_slice() {
+        [] => bail!("Note not found: {source}"),
+        [only] => only,
+        many => bail!("Ambiguous note {source}: {}", many.join(", ")),
+    };
+    let filename = source.rsplit('/').next().unwrap();
+    let dest = if rename {
+        if target.contains(['/', '\\']) || target.trim_end_matches(".md").is_empty() {
+            bail!("Expected a note name: {target}");
+        }
+        join_rel(
+            dir_of(source),
+            &format!("{}.md", target.trim_end_matches(".md")),
+        )
+    } else {
+        let path = vault_relative(config, target)?;
+        if target.ends_with('/') || config.vault_path.join(&path).is_dir() || !path.ends_with(".md")
+        {
+            join_rel(&path, filename)
+        } else {
+            path
+        }
+    };
+    ensure_inside_vault(config, source, "Source")?;
+    ensure_inside_vault(config, &dest, "Destination")?;
+    if config.vault_path.join(&dest).symlink_metadata().is_ok() {
+        bail!("Target already exists: {dest}");
+    }
+    if is_excluded(&dest, &config.exclude) {
+        bail!("Destination is excluded: {dest}");
+    }
+    let plan = build_plan(config, source, &dest)?;
+    if let Some(item) = plan.unsupported.first() {
+        bail!("{}: {}: {}", item.file, item.link, item.reason);
+    }
+    if !dry_run {
+        apply(config, &plan)?;
+    }
+    if format == "json" {
+        if dry_run {
+            let changes:Vec<_> = plan.edits.iter().flat_map(|e|e.changes.iter().map(|c|json!({"file":e.path,"line":c.line,"before":c.before,"resolved":c.resolved,"after":c.after}))).collect();
+            print_json(
+                &json!({"old_path":source,"new_path":dest,"dry_run":true,"files_to_update":plan.edits.iter().map(|e|&e.path).collect::<Vec<_>>(),"changes":changes}),
+            );
+        } else {
+            print_json(
+                &json!({"old_path":source,"new_path":dest,"files_updated":plan.edits.iter().map(|e|&e.new_path).collect::<Vec<_>>(),"links_updated":plan.links_updated()}),
+            );
+        }
+    } else {
+        println!("{source} -> {dest}");
+        println!("Found {} files with links to update", plan.edits.len());
+        if dry_run {
+            println!("[DRY RUN] Would update:");
+        }
+        for edit in &plan.edits {
+            if dry_run {
+                println!("  {} ({} links)", edit.path, edit.changes.len());
+                for c in &edit.changes {
+                    println!(
+                        "    {}:{}  {} -> {} -> {}",
+                        edit.path,
+                        c.line,
+                        c.before,
+                        c.resolved.as_deref().unwrap_or(""),
+                        c.after
+                    );
+                }
+            } else {
+                println!(
+                    "  Updated {} links in {}",
+                    edit.changes.len(),
+                    edit.new_path
+                );
+            }
+        }
+    }
+    Ok(())
 }
 
 /// What one link must say afterwards, or `None` to leave it exactly as it is.
@@ -862,6 +1134,17 @@ fn apply(config: &Config, plan: &Plan) -> Result<()> {
     let from = vault.join(&plan.source);
     let to = vault.join(&plan.destination);
 
+    if to.symlink_metadata().is_ok() {
+        bail!("Target already exists: {}", plan.destination);
+    }
+    for edit in &plan.edits {
+        if crate::note::read_note(vault.join(&edit.path))? != edit.original {
+            bail!(
+                "{} changed while planning the move; rerun the command",
+                edit.path
+            );
+        }
+    }
     let created = match to.parent() {
         Some(parent) => create_dirs(parent)?,
         None => Vec::new(),

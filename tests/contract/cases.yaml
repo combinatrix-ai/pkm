@@ -936,17 +936,13 @@
       "source.md":
         contains: ["pkm://personal/Target"]
 
-- name: refactor / a link inside a code fence is rewritten too
+- name: refactor / code examples keep their literal link text
   vault: refactor
   args: [rename, Target, Renamed]
-  # Known and deliberate for now, but not obviously right: everywhere else
-  # pkm treats fenced content as not-prose, and a fenced [[Target]] is
-  # excluded from the link graph. Rewriting it here is the one place that
-  # rule does not hold. Pinned so that changing it is a visible edit.
   expect:
     file:
       "source.md":
-        excludes: ["[[Target]]"]
+        contains: ["[[Target]]"]
 
 - name: refactor / a folder prefix survives a rename
   vault: refactor
@@ -994,17 +990,17 @@
   vault: md-extension
   args: [move, Recipe.md, Archive/]
   expect:
-    stdout_contains: ["Updated 7 links in Index.md"]
+    stdout_contains: ["Found 0 files with links to update"]
     file:
       "Index.md":
         contains:
-          - "bare: [[Archive/Recipe.md]]"
-          - "[[Archive/Recipe.md#Heading]]"
-          - "[[Archive/Recipe.md^block]]"
-          - "[[Archive/Recipe.md|the recipe]]"
-          - "![[Archive/Recipe.md]]"
-          - "[[Archive/Recipe.MD]]"
-          - "stay without it: [[Archive/Recipe]]"
+          - "bare: [[Recipe.md]]"
+          - "[[Recipe.md#Heading]]"
+          - "[[Recipe.md^block]]"
+          - "[[Recipe.md|the recipe]]"
+          - "![[Recipe.md]]"
+          - "[[Recipe.MD]]"
+          - "stay without it: [[Recipe]]"
           - "[[Recipe.mdx]]"
           - "[[Recipe.md.bak]]"
           - "[[Recipe2]]"
@@ -1078,11 +1074,11 @@
     file:
       "Folder.md":
         contains:
-          - "bare: [[Final.md]]"
-          - "[[Final.md#Heading]]"
-          - "[[Final.md^block]]"
-          - "[[Final.md|the draft]]"
-          - "![[Final.md]]"
+          - "bare: [[Papers/Final.md|Final]]"
+          - "[[Papers/Final.md#Heading|Final#Heading]]"
+          - "[[Papers/Final.md^block|Final^block]]"
+          - "[[Papers/Final.md|the draft]]"
+          - "![[Papers/Final.md]]"
           - "[[Draft.mdx]]"
           - "[[Draft.png]]"
           - "[[Draft.md.bak]]"
@@ -1237,7 +1233,7 @@
           - "prose: Guide/README.md is where it lives"
           - "`[[Guide/README]]`"
           - "%% [[Guide/README]] %%"
-          # Unlike a single-note rename, a directory move honours the fence:
+          # The move honours the fence:
           # content that is not prose holds no links to rewrite.
           - "```\n[[Guide/README]]\n```"
 

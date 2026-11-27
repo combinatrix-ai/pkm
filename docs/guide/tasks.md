@@ -33,6 +33,15 @@ pkm tasks done "pay rent" --no-recur    # complete without the next occurrence
 pkm tasks --prose-only                  # skip checkboxes in fenced examples
 ```
 
+Use exact, case-sensitive tag names without the leading hash. Repeat
+`--tag` to require every named tag on the checkbox line, or repeat
+`--exclude-tag` to omit a task with any of those tags. Other tasks in
+the same note remain eligible.
+
+```sh
+pkm tasks --overdue --exclude-tag someday --exclude-tag to-read
+```
+
 `tasks done` and `tasks cancel` accept multiple task texts with an exact
 vault-relative `--file`. Every text must match one distinct task in that file.
 The command checks all matches before writing once; an unmatched, ambiguous,

@@ -100,3 +100,35 @@ fn ambiguous_source_or_affected_reference_stops_before_the_move() {
         assert_eq!(fs::read_to_string(p.join("B/Note.md")).unwrap(), "b");
     }
 }
+
+#[test]
+fn lint_backlinks_and_rename_agree_on_a_nonexistent_folder() {
+    let root = vault(&[
+        ("Notes/Thesis.md", "# Thesis"),
+        ("Short.md", "[[Thesis]]"),
+        ("Qualified.md", "[[Notes/Thesis]]"),
+        ("Wrong.md", "[[Wrong/Thesis.md]]"),
+    ]);
+    let json = |args: &[&str], code| {
+        let output = run(root.path(), &[args, &["--format", "json"]].concat());
+        assert_eq!(output.status.code(), Some(code));
+        serde_json::from_slice::<serde_json::Value>(&output.stdout).unwrap()
+    };
+    let lint = json(&["lint", "--check", "broken-links"], 1);
+    assert_eq!(lint["summary"]["broken_links"], 1);
+    assert_eq!(lint["issues"][0]["file"], "Wrong.md");
+    let backlinks = json(&["backlinks", "Notes/Thesis.md"], 0);
+    let mut sources: Vec<_> = backlinks
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|b| b["source"].as_str().unwrap())
+        .collect();
+    sources.sort();
+    assert_eq!(sources, ["Qualified.md", "Short.md"]);
+    let plan = json(&["rename", "Notes/Thesis.md", "Paper", "--dry-run"], 0);
+    assert_eq!(
+        plan["files_to_update"],
+        serde_json::json!(["Qualified.md", "Short.md"])
+    );
+}

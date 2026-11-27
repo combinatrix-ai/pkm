@@ -49,3 +49,15 @@ key. These write commands have no dry-run flag.
 
 Tags are covered in [Hard links and soft tags](links-and-tags.md): `pkm tags`
 lists them and `pkm tags --find NAME` finds the notes that carry one.
+
+## Filter whole notes by tag
+
+`--tag` requires an exact, case-sensitive tag. Repeat it to require all
+named tags. Repeat `--exclude-tag` to omit notes with any named tag.
+Use names without the leading hash. Frontmatter tags and tags anywhere in
+the parsed body count, including tags on task lines. These filters combine
+with `--where` and apply before sorting and limiting results.
+
+```sh
+pkm query --tag project --exclude-tag archived --format paths
+```

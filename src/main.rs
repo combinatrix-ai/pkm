@@ -26,6 +26,7 @@ mod refs;
 mod repair;
 mod single_entry;
 mod skill;
+mod tag_filter;
 mod tasks;
 mod templater;
 mod topic;
@@ -427,6 +428,8 @@ enum Command {
     },
     /// Filter notes by frontmatter, inline fields, and link counts.
     Query {
+        #[command(flatten)]
+        tags: tag_filter::TagFilter,
         #[arg(
             short = 'w',
             long = "where",
@@ -512,8 +515,8 @@ enum Command {
         file: Option<String>,
         #[arg(long = "exclude", help = "Exclude files/folders (repeatable)")]
         exclude: Vec<String>,
-        #[arg(long = "tag", help = "Filter by tag")]
-        tag: Option<String>,
+        #[command(flatten)]
+        tags: tag_filter::TagFilter,
         #[arg(long = "status", help = "Filter by status name (repeatable)")]
         status: Vec<String>,
         #[arg(short = 'A', long = "after", help = "Lines of context after task")]
@@ -830,6 +833,7 @@ fn run() -> Result<()> {
             &format,
         ),
         Command::Query {
+            tags,
             r#where,
             field,
             from,
@@ -838,6 +842,7 @@ fn run() -> Result<()> {
             format,
         } => {
             let args = query::QueryArgs {
+                tags,
                 where_: &r#where,
                 fields: &field,
                 from: from.as_deref(),
@@ -957,7 +962,7 @@ fn run() -> Result<()> {
             done_to,
             file,
             exclude,
-            tag,
+            tags,
             status,
             after,
             before,
@@ -976,7 +981,7 @@ fn run() -> Result<()> {
                 available,
                 file: file.as_deref(),
                 exclude: &exclude,
-                tag: tag.as_deref(),
+                tags,
                 status: &status,
                 due_on: due_on.as_deref(),
                 due_from: due_from.as_deref(),

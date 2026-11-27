@@ -61,7 +61,9 @@ Options:
       --exclude <EXCLUDE>
           Exclude files/folders (repeatable)
       --tag <TAG>
-          Filter by tag
+          Require this exact tag (repeat to require all)
+      --exclude-tag <TAG>
+          Exclude results with this exact tag (repeat to exclude any)
       --status <STATUS>
           Filter by status name (repeatable)
   -A, --after <AFTER>

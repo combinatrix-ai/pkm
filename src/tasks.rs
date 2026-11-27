@@ -417,7 +417,7 @@ pub struct Filters<'a> {
     pub available: bool,
     pub file: Option<&'a str>,
     pub exclude: &'a [String],
-    pub tag: Option<&'a str>,
+    pub tags: crate::tag_filter::TagFilter,
     pub status: &'a [String],
     pub due_on: Option<&'a str>,
     pub due_from: Option<&'a str>,
@@ -685,10 +685,11 @@ pub fn find_tasks(config: &Config, f: &Filters) -> Result<Vec<Task>> {
                     _ => continue,
                 }
             }
-            if let Some(tag) = f.tag {
-                if !task.tags.iter().any(|t| t == tag) {
-                    continue;
-                }
+            if !f
+                .tags
+                .matches(|name| task.tags.iter().any(|tag| tag == name))
+            {
+                continue;
             }
 
             tasks.push(task);

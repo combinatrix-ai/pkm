@@ -275,6 +275,7 @@ fn yaml_to_json(value: &serde_yaml::Value) -> Value {
 
 #[derive(Default)]
 pub struct QueryArgs<'a> {
+    pub tags: crate::tag_filter::TagFilter,
     pub where_: &'a [String],
     pub fields: &'a [String],
     pub from: Option<&'a str>,
@@ -314,6 +315,13 @@ pub fn query(config: &Config, args: &QueryArgs) -> Result<()> {
         .filter_map(|path| {
             let relative = relative_path(&config.vault_path, path);
             build_record(path, &relative, graph.as_ref(), today)
+        })
+        .filter(|r| {
+            args.tags.matches(|name| {
+                r["tags"]
+                    .as_array()
+                    .is_some_and(|tags| tags.iter().any(|tag| tag.as_str() == Some(name)))
+            })
         })
         .filter(|r| predicates.iter().all(|p| matches(r, p)))
         .collect();

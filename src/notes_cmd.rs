@@ -15,8 +15,8 @@ use crate::graph::{broken_links_in, build_link_graph};
 use crate::note::{parse_note, split_frontmatter};
 use crate::output::print_json;
 use crate::vault::{
-    all_notes, list_vault, relative_path, resolve_path, Config, FrontmatterFieldType,
-    FrontmatterPolicy, LintRuleConfig, LINT_RULE_NAMES,
+    list_vault, relative_path, resolve_path, Config, FrontmatterFieldType, FrontmatterPolicy,
+    LintRuleConfig, LINT_RULE_NAMES,
 };
 
 static HEADING: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?m)^(#{1,6})\s+(.+)$").unwrap());

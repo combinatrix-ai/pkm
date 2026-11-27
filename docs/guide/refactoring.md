@@ -1,36 +1,22 @@
 # Renames that don't break anything
 
-The command that earns the install. Rename or move a note, and every inbound
-link is rewritten — wikilinks and inline links alike:
-
-```
-$ pkm rename "Recipe" "Cookbook"
-Renaming: Projects/Recipe.md -> Projects/Cookbook.md
-Found 2 files with links to update
-  Updated 1 links in Notes/Experiment Plan.md
-  Updated 1 links in Notes/Lit Review.md
-
-Done! Renamed and updated 2 links in 2 files.
-```
-
-```diff
- # Notes/Lit Review.md
--Related: [[Projects/Recipe]].
-+Related: [[Projects/Cookbook]].
-
- # Notes/Experiment Plan.md
--Links back to [the recipe](../Projects/Recipe.md).
-+Links back to [the recipe](../Projects/Cookbook.md).
-```
-
-Link text, folder prefixes, `#anchors`, and `%20` percent-encoding are all
-preserved; external URLs and image embeds are left alone. Preview any refactor
-with `--dry-run`:
+Supply a vault-relative path to select a specific note. A bare name must
+identify one note. Preview the original spelling, its resolved target, and
+the replacement before applying the same plan:
 
 ```bash
-pkm rename "old-name" "new-name" --dry-run
-pkm move "note.md" "Archive/" --dry-run
+pkm rename "Projects/Recipe.md" "Cookbook" --dry-run
+pkm move "Projects/Recipe.md" "Archive/Cookbook.md" --dry-run
 ```
+
+A short wikilink stays short if it still resolves to the intended file.
+Rewritten wikilinks use a vault-relative path. Explicit display names,
+embeds and fragments survive the change. Markdown links are recalculated
+from the note that contains them, including links inside the relocated
+note. Code examples keep their literal text.
+
+If an affected wikilink has multiple plausible targets, the command reports
+its location and candidates before writing. Qualify that link and retry.
 
 ## Moving a whole directory
 

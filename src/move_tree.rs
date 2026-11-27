@@ -507,7 +507,7 @@ fn build_plan(config: &Config, source: &str, destination: &str) -> Result<Plan> 
     let mut docs: Vec<(String, String, bool)> = Vec::new();
     for path in all_notes(config) {
         let relative = relative_path(vault, &path);
-        match std::fs::read_to_string(&path) {
+        match crate::note::read_note(&path) {
             Ok(content) => docs.push((relative, content, is_org(&path))),
             Err(err) => bail!(
                 "Cannot read {relative}: {err}\n\
@@ -1053,7 +1053,7 @@ fn write_atomic(path: &Path, content: &str) -> std::io::Result<()> {
     let (temp, mut file) = create_temp(path)?;
 
     let written = file
-        .write_all(content.as_bytes())
+        .write_all(&crate::note::encode_for(path, content))
         .and_then(|()| file.sync_all());
     drop(file);
 
@@ -1090,7 +1090,7 @@ fn roll_back(
         // `fs::write` follows a symlink, which is what put the content there
         // in the first place, so a symlinked note is restored through the
         // link rather than replaced by one.
-        if let Err(err) = std::fs::write(path, original) {
+        if let Err(err) = crate::note::write_note(path, original) {
             failures.push(format!("{} is still rewritten ({err})", path.display()));
         }
     }
@@ -1138,7 +1138,7 @@ fn apply(config: &Config, plan: &Plan) -> Result<()> {
         bail!("Target already exists: {}", plan.destination);
     }
     for edit in &plan.edits {
-        if std::fs::read_to_string(vault.join(&edit.path))? != edit.original {
+        if crate::note::read_note(vault.join(&edit.path))? != edit.original {
             bail!(
                 "{} changed while planning the move; rerun the command",
                 edit.path

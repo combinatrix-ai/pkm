@@ -1,6 +1,6 @@
 # Lint rules
 
-`pkm lint` checks the vault for broken links, orphans, duplicate names, empty notes, frontmatter and required headings. Rules are configured in `pkm.yaml` and can be scoped by path or by metadata.
+`pkm lint` checks the vault for unreadable notes, broken links, orphans, duplicate names, empty notes, frontmatter and required headings. Rules are configured in `pkm.yaml` and can be scoped by path or by metadata.
 
 ## Selecting files for lint
 
@@ -34,7 +34,7 @@ for `Quick Start`), including numbered duplicate slugs. Required-heading policie
 still compare heading titles, not slugs.
 
 `lint.rules` controls the checks reported by `pkm lint`:
-`broken-links`, `orphans`, `duplicates`, `empty`, `frontmatter`, `headings` and `single-entry`. Every rule
+`unreadable`, `broken-links`, `orphans`, `duplicates`, `empty`, `frontmatter`, `headings` and `single-entry`. Every rule
 is enabled with no configuration, preserving the default all-checks report.
 Set `enabled: false` to omit a rule from a plain `pkm lint`; an explicit
 `pkm lint --check RULE` always runs that rule. `--check` may be repeated.
@@ -106,6 +106,30 @@ your notes; put templates elsewhere and the `exclude` entry moves with them.
 daily` fails and writes nothing at all, rather than inventing a note body —
 which is why `pkm init` creates the template it configures rather than
 leaving a fresh vault one command short of working.
+
+## Notes that cannot be read
+
+Notes are UTF-8. A note in another encoding, such as Shift_JIS or UTF-16, is
+left out of every command: its tasks, tags and links are not counted, and no
+command edits it. `unreadable` is the rule that says so:
+
+```json
+{
+  "type": "unreadable",
+  "file": "Imports/old-memo.md",
+  "detail": "Not valid UTF-8 (first invalid byte at offset 418)",
+  "severity": "error"
+}
+```
+
+A note the operating system refuses to open is reported the same way, with the
+system's reason as `detail`. pkm does not guess or convert encodings. Save the
+note as UTF-8, for example with `iconv -f SHIFT_JIS -t UTF-8`.
+
+A UTF-8 byte order mark at the start of a note is not an error. It is ignored
+when the note is read, so frontmatter and a first-line heading work as they do
+without it, and it is kept when pkm rewrites the note. Notes pkm creates
+do not start with one.
 
 ## Links that are meant to stay unresolved
 

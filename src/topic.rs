@@ -178,7 +178,7 @@ fn occurrences_in(
     path: &std::path::Path,
     selector: &TagSelector,
 ) -> Vec<Occurrence> {
-    let Ok(content) = std::fs::read_to_string(path) else {
+    let Ok(content) = crate::note::read_note(path) else {
         return Vec::new();
     };
     let source = relative_path(&config.vault_path, path);
@@ -291,7 +291,7 @@ pub fn backlinks(
                     });
                     if before > 0 || after > 0 {
                         if let Ok(content) =
-                            std::fs::read_to_string(config.vault_path.join(&occurrence.source))
+                            crate::note::read_note(config.vault_path.join(&occurrence.source))
                         {
                             let lines: Vec<&str> = content.lines().collect();
                             if let Some(window) =
@@ -315,7 +315,7 @@ pub fn backlinks(
                 );
                 if before > 0 || after > 0 {
                     if let Ok(content) =
-                        std::fs::read_to_string(config.vault_path.join(&occurrence.source))
+                        crate::note::read_note(config.vault_path.join(&occurrence.source))
                     {
                         let lines: Vec<&str> = content.lines().collect();
                         if let Some(window) = context_window(&lines, occurrence.line, before, after)

@@ -28,7 +28,7 @@ pub fn links(config: &Config, file: &str, format: &str, before: usize, after: us
         return Err(anyhow!("File not found: {}", path.display()));
     }
 
-    let content = std::fs::read_to_string(&path)?;
+    let content = crate::note::read_note(&path)?;
     // Scan masked lines so a link inside a code fence or a %%comment%% is not
     // reported; masking preserves line numbers.
     let masked = mask_noncontent(&content);
@@ -92,7 +92,7 @@ pub fn backlinks(
         if source == path {
             continue;
         }
-        let Ok(content) = std::fs::read_to_string(&source) else {
+        let Ok(content) = crate::note::read_note(&source) else {
             continue;
         };
         let masked = mask_noncontent(&content);
@@ -319,7 +319,7 @@ pub fn tags(config: &Config, file: Option<&str>, find: Option<&str>, format: &st
     if let Some(needle) = find {
         let mut matched = Vec::new();
         for path in all_notes(config) {
-            let Ok(content) = std::fs::read_to_string(&path) else {
+            let Ok(content) = crate::note::read_note(&path) else {
                 continue;
             };
             if parse_note(&path, &content).tags.iter().any(|t| t == needle) {
@@ -336,7 +336,7 @@ pub fn tags(config: &Config, file: Option<&str>, find: Option<&str>, format: &st
 
     if let Some(file) = file {
         let path = resolve_path(&config.vault_path, file);
-        let content = std::fs::read_to_string(&path)?;
+        let content = crate::note::read_note(&path)?;
         let tags = parse_note(&path, &content).tags;
         match format {
             "json" => print_json(&json!(tags)),
@@ -347,7 +347,7 @@ pub fn tags(config: &Config, file: Option<&str>, find: Option<&str>, format: &st
 
     let mut counts: BTreeMap<String, usize> = BTreeMap::new();
     for path in all_notes(config) {
-        let Ok(content) = std::fs::read_to_string(&path) else {
+        let Ok(content) = crate::note::read_note(&path) else {
             continue;
         };
         for tag in parse_note(&path, &content).tags {

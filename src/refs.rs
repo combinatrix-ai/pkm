@@ -157,7 +157,7 @@ fn collect(config: &Config, file: Option<&str>) -> Result<Vec<Reference>> {
 
     let mut refs = Vec::new();
     for path in paths {
-        let content = std::fs::read_to_string(&path)?;
+        let content = crate::note::read_note(&path)?;
         let relative = relative_path(&config.vault_path, &path);
         refs.extend(parse_refs(&relative, &content));
     }

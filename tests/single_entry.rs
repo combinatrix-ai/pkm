@@ -162,3 +162,37 @@ fn disabled_rule_is_only_run_explicitly_and_unicode_names_collide() {
     let r: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
     assert!(r["summary"].get("single_entry").is_none());
 }
+
+#[test]
+fn unreadable_layout_notes_do_not_hide_other_lint_diagnostics() {
+    let v = vault(
+        CONFIG,
+        &[
+            ("Projects/Unit.md", ""),
+            ("Projects/Unit/README.md", ""),
+            ("Projects/Unit/support.md", ""),
+            ("Projects/Unit/extra.md", ENTRY),
+            ("Index.md", "[[Missing]]"),
+        ],
+    );
+    for path in [
+        "Projects/Unit.md",
+        "Projects/Unit/README.md",
+        "Projects/Unit/support.md",
+    ] {
+        fs::write(v.path().join(path), [0xff]).unwrap();
+    }
+    let output = run(&v, &["lint", "--format", "json"]);
+    assert_eq!(output.status.code(), Some(1));
+    let value: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(value["summary"]["unreadable"], 3);
+    assert_eq!(value["summary"]["broken_links"], 1);
+    let codes: Vec<_> = value["issues"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|issue| issue["type"] == "single-entry")
+        .map(|issue| issue["code"].as_str().unwrap())
+        .collect();
+    assert_eq!(codes, ["duplicate-unit", "extra-entry"]);
+}

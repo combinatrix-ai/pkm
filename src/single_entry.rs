@@ -61,13 +61,17 @@ pub fn parse(value: &serde_yaml::Value) -> Result<Vec<Layout>> {
     Ok(layouts)
 }
 
-fn matches_entry(path: &Path, layout: &Layout) -> Result<bool> {
-    let text = std::fs::read_to_string(path)?;
+fn matches_entry(path: &Path, layout: &Layout) -> Option<bool> {
+    // Only the unreadable rule diagnoses read failures. Missing metadata
+    // cannot be inferred from bytes we could not read.
+    let text = crate::note::read_note(path).ok()?;
     let note = crate::note::parse_note(path, &text);
-    Ok(layout
-        .entry
-        .iter()
-        .all(|(key, value)| note.frontmatter.get(key.as_str()) == Some(value)))
+    Some(
+        layout
+            .entry
+            .iter()
+            .all(|(key, value)| note.frontmatter.get(key.as_str()) == Some(value)),
+    )
 }
 
 pub fn check(
@@ -143,7 +147,7 @@ pub fn check(
                     continue;
                 }
                 if selected(&path) {
-                    if !matches_entry(&path, layout)? {
+                    if matches_entry(&path, layout) == Some(false) {
                         report(
                             &path,
                             "entry-metadata",
@@ -172,7 +176,7 @@ pub fn check(
                     && std::fs::symlink_metadata(&main)
                         .is_ok_and(|m| m.is_file() && !m.file_type().is_symlink())
                 {
-                    if !matches_entry(&main, layout)? {
+                    if matches_entry(&main, layout) == Some(false) {
                         report(
                             &main,
                             "entry-metadata",
@@ -196,7 +200,7 @@ pub fn check(
                     if member.file_type().is_file()
                         && member.path() != main
                         && is_note_path(member.path())
-                        && matches_entry(member.path(), layout)?
+                        && matches_entry(member.path(), layout) == Some(true)
                     {
                         report(
                             member.path(),

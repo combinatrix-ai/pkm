@@ -5,6 +5,56 @@ use std::path::Path;
 
 use crate::parser;
 
+const BOM: char = '\u{feff}';
+
+/// Read a note as text, without the byte order mark some editors put first.
+///
+/// Notes are UTF-8. Guessing another encoding is refused rather than tried:
+/// a wrong guess reads fine and then writes the note back damaged.
+pub fn read_note(path: impl AsRef<Path>) -> std::io::Result<String> {
+    let mut text = String::from_utf8(std::fs::read(path)?).map_err(|err| {
+        std::io::Error::new(
+            std::io::ErrorKind::InvalidData,
+            format!(
+                "not valid UTF-8 (first invalid byte at offset {})",
+                err.utf8_error().valid_up_to()
+            ),
+        )
+    })?;
+    if text.starts_with(BOM) {
+        text.drain(..BOM.len_utf8());
+    }
+    Ok(text)
+}
+
+/// The bytes that replace the note at `path` with `content`.
+///
+/// A mark the file already starts with is kept. An edit to one link or task
+/// should not also change the first bytes of the file, and an editor that
+/// writes the mark would put it back on its next save.
+pub fn encode_for(path: &Path, content: &str) -> Vec<u8> {
+    let mut bytes = Vec::with_capacity(content.len() + BOM.len_utf8());
+    if starts_with_bom(path) && !content.starts_with(BOM) {
+        bytes.extend_from_slice(BOM.encode_utf8(&mut [0; 4]).as_bytes());
+    }
+    bytes.extend_from_slice(content.as_bytes());
+    bytes
+}
+
+pub fn write_note(path: impl AsRef<Path>, content: impl AsRef<str>) -> std::io::Result<()> {
+    let path = path.as_ref();
+    std::fs::write(path, encode_for(path, content.as_ref()))
+}
+
+fn starts_with_bom(path: &Path) -> bool {
+    use std::io::Read;
+
+    let mut head = [0; 3];
+    std::fs::File::open(path)
+        .and_then(|mut file| file.read_exact(&mut head))
+        .is_ok_and(|()| head == [0xEF, 0xBB, 0xBF])
+}
+
 #[derive(Debug, Default, Clone)]
 pub struct Note {
     pub title: String,

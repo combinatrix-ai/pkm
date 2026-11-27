@@ -25,6 +25,7 @@ pub fn is_note_path(path: impl AsRef<Path>) -> bool {
 
 /// The checks exposed by `pkm lint`, in the order used by its reports.
 pub const LINT_RULE_NAMES: &[&str] = &[
+    "unreadable",
     "broken-links",
     "orphans",
     "duplicates",

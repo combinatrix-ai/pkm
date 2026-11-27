@@ -37,7 +37,7 @@ listed in [Resolving](../guide/external-references.md#resolving).
 | [`pkm config schema`](commands/config.md) | Print the JSON Schema for YAML-aware editors |
 | [`pkm query`](commands/query.md) | Filter notes by frontmatter, inline fields and link counts |
 | [`pkm fields`](commands/fields.md) | List what `query` can filter on |
-| [`pkm lint`](commands/lint.md) | Vault health: `broken-links`, `orphans`, `duplicates`, `empty`, `frontmatter`, `headings` |
+| [`pkm lint`](commands/lint.md) | Vault health: `unreadable`, `broken-links`, `orphans`, `duplicates`, `empty`, `frontmatter`, `headings`, `single-entry` |
 | [`pkm backlinks FILE`](commands/backlinks.md) | Incoming links to a file, or the notes carrying a `'#tag'` |
 | [`pkm links FILE`](commands/links.md) | Outgoing links from a file |
 | [`pkm orphans`](commands/orphans.md) | Notes no other note links to |

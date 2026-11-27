@@ -562,7 +562,7 @@ pub fn find_tasks(config: &Config, f: &Filters) -> Result<Vec<Task>> {
             continue;
         }
 
-        let Ok(content) = std::fs::read_to_string(&path) else {
+        let Ok(content) = crate::note::read_note(&path) else {
             continue;
         };
         let lines: Vec<&str> = content.split('\n').collect();
@@ -847,7 +847,7 @@ fn locate_task(
                 continue;
             }
         }
-        let Ok(content) = std::fs::read_to_string(&path) else {
+        let Ok(content) = crate::note::read_note(&path) else {
             continue;
         };
         for (index, line) in content.split('\n').enumerate() {
@@ -970,7 +970,7 @@ pub fn set_status(
             (path, file.to_string())
         }
     };
-    let content = std::fs::read_to_string(&path)?;
+    let content = crate::note::read_note(&path)?;
     let lines: Vec<&str> = content.split('\n').collect();
     let today = chrono::Local::now().date_naive();
     let mut edits: BTreeMap<usize, Edit> = BTreeMap::new();
@@ -1060,7 +1060,7 @@ pub fn set_status(
         }
     }
     if !dry_run {
-        std::fs::write(&path, output.join("\n"))?;
+        crate::note::write_note(&path, output.join("\n"))?;
     }
     for warning in warnings {
         eprintln!("{warning}");
@@ -1236,19 +1236,19 @@ pub fn new_task(
     }
 
     if path.exists() {
-        let mut content = std::fs::read_to_string(&path)?;
+        let mut content = crate::note::read_note(&path)?;
         if !content.ends_with('\n') {
             content.push('\n');
         }
         content.push_str(&line);
         content.push('\n');
-        std::fs::write(&path, content)?;
+        crate::note::write_note(&path, content)?;
         println!("✅ Created task: {target}");
     } else {
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent)?;
         }
-        std::fs::write(&path, format!("# Tasks\n\n{line}\n"))?;
+        crate::note::write_note(&path, format!("# Tasks\n\n{line}\n"))?;
         println!("✅ Created task in new file: {target}");
     }
     println!("   {line}");

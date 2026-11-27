@@ -7,6 +7,7 @@ use std::sync::LazyLock;
 
 use anyhow::{anyhow, Result};
 use chrono::{Duration, Local, NaiveDate};
+use rayon::prelude::*;
 use regex::Regex;
 use serde_json::{json, Value};
 
@@ -14,8 +15,8 @@ use crate::graph::{broken_links_in, build_link_graph};
 use crate::note::{parse_note, split_frontmatter};
 use crate::output::print_json;
 use crate::vault::{
-    all_notes, list_vault, relative_path, resolve_path, Config, FrontmatterFieldType,
-    FrontmatterPolicy, LintRuleConfig, LINT_RULE_NAMES,
+    list_vault, relative_path, resolve_path, Config, FrontmatterFieldType, FrontmatterPolicy,
+    LintRuleConfig, LINT_RULE_NAMES,
 };
 
 static HEADING: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?m)^(#{1,6})\s+(.+)$").unwrap());
@@ -46,7 +47,7 @@ pub fn context(config: &Config, file: &str, format: &str, options: &ContextOptio
     if !path.exists() {
         return Err(anyhow!("File not found: {}", path.display()));
     }
-    let content = std::fs::read_to_string(&path)?;
+    let content = crate::note::read_note(&path)?;
     if options.line.is_some()
         || options.before.is_some()
         || options.after.is_some()
@@ -709,7 +710,7 @@ fn focused_context(
 
 pub fn frontmatter_get(config: &Config, file: &str, key: Option<&str>, format: &str) -> Result<()> {
     let path = resolve_path(&config.vault_path, file);
-    let content = std::fs::read_to_string(&path)?;
+    let content = crate::note::read_note(&path)?;
     let (meta, _) = split_frontmatter(&content);
 
     match key {
@@ -818,9 +819,13 @@ pub fn lint(
             {
                 continue;
             }
-            let record = crate::query::build_record(path, &relative, graph.as_ref(), today)
-                .ok_or_else(|| anyhow!("cannot read note for lint filter: {relative}"))?;
-            records.insert(relative, record);
+            // A note that cannot be read matches no filter. Reporting it is
+            // the `unreadable` rule's job, and stopping here would hide every
+            // other issue behind one bad file.
+            if let Some(record) = crate::query::build_record(path, &relative, graph.as_ref(), today)
+            {
+                records.insert(relative, record);
+            }
         }
     }
     let effective =
@@ -866,6 +871,48 @@ pub fn lint(
         println!("Running lint checks...\n");
         if let Some(files) = &selection {
             println!("Selected notes: {}", files.len());
+        }
+    }
+
+    if selected.contains(&"unreadable") {
+        let candidates: Vec<(&PathBuf, String)> = notes
+            .iter()
+            .map(|path| (path, relative_path(&config.vault_path, path)))
+            .filter(|(_, relative)| scope("unreadable", relative, explicit))
+            // The graph holds every note it could read, so with one built
+            // only the notes it left out need opening again for the reason.
+            .filter(|(_, relative)| graph.as_ref().is_none_or(|g| !g.files.contains(relative)))
+            .collect();
+        let mut unreadable: Vec<(String, String)> = candidates
+            .into_par_iter()
+            .filter_map(|(path, relative)| {
+                let reason = crate::note::read_note(path).err()?.to_string();
+                let mut chars = reason.chars();
+                let detail = chars
+                    .next()
+                    .map(|first| first.to_uppercase().chain(chars).collect())
+                    .unwrap_or_default();
+                Some((relative, detail))
+            })
+            .collect();
+        unreadable.sort();
+        summary.insert("unreadable".into(), json!(unreadable.len()));
+        total += unreadable.len();
+        if format == "text" {
+            if unreadable.is_empty() {
+                println!("✅ Unreadable notes: 0");
+            } else {
+                println!("❌ Unreadable notes: {}", unreadable.len());
+                for (file, detail) in &unreadable {
+                    println!("  {file}: {detail}");
+                }
+            }
+        }
+        for (file, detail) in unreadable {
+            issues.push(json!({
+                "type": "unreadable", "file": file,
+                "detail": detail, "severity": "error"
+            }));
         }
     }
 
@@ -993,7 +1040,7 @@ pub fn lint(
             if !scope("empty", &relative, explicit) {
                 continue;
             }
-            let Ok(content) = std::fs::read_to_string(path) else {
+            let Ok(content) = crate::note::read_note(path) else {
                 continue;
             };
             let (_, body) = split_frontmatter(&content);
@@ -1028,7 +1075,7 @@ pub fn lint(
             if !scope("frontmatter", &relative, explicit) {
                 continue;
             }
-            let Ok(content) = std::fs::read_to_string(path) else {
+            let Ok(content) = crate::note::read_note(path) else {
                 continue;
             };
             let (metadata, _) = split_frontmatter(&content);
@@ -1081,7 +1128,9 @@ pub fn lint(
             if rule.required_headings.is_empty() {
                 continue;
             }
-            let content = std::fs::read_to_string(path)?;
+            let Ok(content) = crate::note::read_note(path) else {
+                continue;
+            };
             let headings: std::collections::BTreeSet<String> =
                 if path.extension().and_then(|e| e.to_str()) == Some("org") {
                     crate::org::parse_org(&crate::org::mask_org_noncontent(&content))
@@ -1372,7 +1421,7 @@ pub fn new_note(
             path.display()
         ));
     }
-    let content = std::fs::read_to_string(&source).map_err(|err| {
+    let content = crate::note::read_note(&source).map_err(|err| {
         anyhow!(
             "Cannot read template {}: {err}. Nothing was written.",
             source.display()
@@ -1420,7 +1469,7 @@ pub fn daily(config: &Config, date: Option<&str>, path_only: bool, format: &str)
         let body = match &config.daily_template {
             Some(relative) => {
                 let template = config.vault_path.join(relative);
-                let content = std::fs::read_to_string(&template).map_err(|err| {
+                let content = crate::note::read_note(&template).map_err(|err| {
                     anyhow!(
                         "daily_notes.template is {relative:?}, which cannot be read: {err}\n\
                          Looked in {}. Create it, correct the path, or remove the setting \
@@ -1437,7 +1486,7 @@ pub fn daily(config: &Config, date: Option<&str>, path_only: bool, format: &str)
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent)?;
         }
-        std::fs::write(&path, body)?;
+        crate::note::write_note(&path, body)?;
     }
 
     if path_only {
@@ -1571,7 +1620,7 @@ fn rewrite_frontmatter(
     path: &Path,
     edit: impl FnOnce(&mut serde_yaml::Mapping) -> Result<()>,
 ) -> Result<()> {
-    let content = std::fs::read_to_string(path)?;
+    let content = crate::note::read_note(path)?;
     let (mut meta, body) = split_frontmatter(&content);
     let body = body.to_string();
 
@@ -1582,7 +1631,7 @@ fn rewrite_frontmatter(
     } else {
         format!("---\n{}---\n\n", serde_yaml::to_string(&meta)?)
     };
-    std::fs::write(path, format!("{header}{body}"))?;
+    crate::note::write_note(path, format!("{header}{body}"))?;
     Ok(())
 }
 

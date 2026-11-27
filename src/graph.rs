@@ -1,7 +1,8 @@
 //! The link graph, and the resolver that turns a link target into a path.
 
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
-use std::path::{Component, Path};
+use std::path::{Component, Path, PathBuf};
+use std::sync::OnceLock;
 
 use rayon::prelude::*;
 
@@ -12,29 +13,85 @@ use crate::parser::{
     anchor_kind, extract_anchor_inventory, fold_name, normalize_markdown_path,
     normalize_wikilink_target, strip_anchor, AnchorInventory, AnchorKind,
 };
-use crate::vault::{all_files, all_notes, is_note_extension, is_org, relative_path, Config};
+use crate::vault::{is_note_extension, is_org, list_vault, relative_path, Config, VaultListing};
 
 pub const MISSING_HEADING: &str = "missing-heading";
 pub const MISSING_BLOCK: &str = "missing-block";
+
+/// What notes declare in their content rather than in their file names.
+#[derive(Default)]
+struct DeclaredNames {
+    by_alias: HashMap<String, String>,
+    // org only: :ID: properties, and heading text for [[*Heading]] links,
+    // which org resolves across every file.
+    by_id: HashMap<String, String>,
+    by_heading: HashMap<String, String>,
+}
+
+impl DeclaredNames {
+    fn new(
+        aliases: BTreeMap<String, String>,
+        ids: BTreeMap<String, String>,
+        headings: BTreeMap<String, String>,
+    ) -> Self {
+        Self {
+            by_alias: aliases
+                .into_iter()
+                .map(|(a, p)| (fold_name(&a), p))
+                .collect(),
+            by_id: ids.into_iter().collect(),
+            by_heading: headings.into_iter().collect(),
+        }
+    }
+
+    /// The first note to declare a name keeps it, in the order given.
+    fn declared_by(parsed: &[Parsed]) -> Self {
+        let mut aliases = BTreeMap::new();
+        let mut ids = BTreeMap::new();
+        let mut headings = BTreeMap::new();
+        for entry in parsed {
+            for alias in &entry.aliases {
+                aliases
+                    .entry(alias.clone())
+                    .or_insert(entry.relative.clone());
+            }
+            for id in &entry.ids {
+                ids.entry(id.clone()).or_insert(entry.relative.clone());
+            }
+            for heading in &entry.headings {
+                headings
+                    .entry(heading.clone())
+                    .or_insert(entry.relative.clone());
+            }
+        }
+        Self::new(aliases, ids, headings)
+    }
+}
 
 /// Resolves link targets to vault-relative paths.
 ///
 /// Builds its lookup tables once, so resolving is a map hit rather than a scan
 /// of every file. Resolving per link against the whole file list is
 /// O(links x files) and becomes unusable well before a vault gets large.
+///
+/// File names answer most links, and listing them opens no file. What only a
+/// note's content can say -- its aliases, its anchors -- is read when a link
+/// first asks for it, because opening every note dominates the cost of a
+/// large vault and a check of a few notes rarely needs any of it.
 pub struct LinkResolver {
     /// All vault files, including excluded notes and non-note leaf files.
     by_path: HashMap<String, String>,
     /// Basename lookup remains note-only. A generic attachment basename is
     /// too ambiguous to resolve safely; attachments resolve by path.
     by_stem: HashMap<String, String>,
-    by_alias: HashMap<String, String>,
-    // org only: :ID: properties, and heading text for [[*Heading]] links,
-    // which org resolves across every file.
-    by_id: HashMap<String, String>,
-    by_heading: HashMap<String, String>,
-    markdown_anchors: HashMap<String, AnchorInventory>,
+    declared: OnceLock<DeclaredNames>,
+    /// Every Markdown file is a key; its anchors are read on first use, and
+    /// stay `None` when the file cannot be read.
+    markdown_anchors: HashMap<String, OnceLock<Option<AnchorInventory>>>,
     directories: HashMap<String, String>,
+    vault_path: PathBuf,
+    /// Read to fill `declared` if nothing filled it first. Newest first.
+    notes: Vec<PathBuf>,
 }
 
 impl LinkResolver {
@@ -61,42 +118,53 @@ impl LinkResolver {
         Self {
             by_path,
             by_stem,
-            by_alias: aliases
-                .into_iter()
-                .map(|(a, p)| (fold_name(&a), p))
-                .collect(),
-            by_id: ids.into_iter().collect(),
-            by_heading: headings.into_iter().collect(),
+            declared: OnceLock::from(DeclaredNames::new(aliases, ids, headings)),
             markdown_anchors: HashMap::new(),
             directories: HashMap::new(),
+            vault_path: PathBuf::new(),
+            notes: Vec::new(),
         }
     }
 
-    fn with_markdown_anchors(mut self, markdown_anchors: HashMap<String, AnchorInventory>) -> Self {
-        self.markdown_anchors = markdown_anchors;
-        self
+    /// A resolver that has opened no file yet.
+    fn from_listing(config: &Config, listing: &VaultListing, notes: Vec<PathBuf>) -> Self {
+        let relative = |path: &PathBuf| relative_path(&config.vault_path, path);
+        let mut resolver = Self::new(
+            notes.iter().map(relative).collect(),
+            listing.files.iter().map(relative).collect(),
+            BTreeMap::new(),
+            BTreeMap::new(),
+            BTreeMap::new(),
+        );
+        resolver.declared = OnceLock::new();
+        // Excluded notes remain valid path-qualified destinations, so their
+        // headings and blocks are available to anchor validation too.
+        resolver.markdown_anchors = listing
+            .files
+            .iter()
+            .filter(|path| {
+                path.extension()
+                    .and_then(|ext| ext.to_str())
+                    .is_some_and(|ext| {
+                        matches!(ext.to_ascii_lowercase().as_str(), "md" | "markdown" | "mdx")
+                    })
+            })
+            .map(|path| (relative(path), OnceLock::new()))
+            .collect();
+        resolver.directories = listing
+            .directories
+            .iter()
+            .map(|directory| (fold_name(directory), format!("{directory}/")))
+            .collect();
+        resolver.vault_path = config.vault_path.clone();
+        resolver.notes = notes;
+        resolver
     }
 
-    fn with_directories(mut self, config: &Config) -> Self {
-        let root = config.vault_path.canonicalize().ok();
-        for entry in walkdir::WalkDir::new(&config.vault_path)
-            .into_iter()
-            .filter_entry(|e| e.depth() == 0 || !e.file_name().to_string_lossy().starts_with('.'))
-            .filter_map(Result::ok)
-            .filter(|e| e.file_type().is_dir())
-        {
-            if let (Some(root), Ok(path)) = (&root, entry.path().canonicalize()) {
-                if !path.starts_with(root) {
-                    continue;
-                }
-            } else {
-                continue;
-            }
-            let relative = relative_path(&config.vault_path, entry.path());
-            self.directories
-                .insert(fold_name(&relative), format!("{relative}/"));
-        }
-        self
+    fn declared(&self) -> &DeclaredNames {
+        self.declared.get_or_init(|| {
+            DeclaredNames::declared_by(&parse_sources(&self.vault_path, &self.notes))
+        })
     }
 
     fn resolve_directory(&self, source: &str, target: &str) -> Option<String> {
@@ -119,10 +187,14 @@ impl LinkResolver {
         }
         // org id: and *Heading links carry their sigil through the parser.
         if let Some(id) = target.strip_prefix("id:") {
-            return self.by_id.get(id.trim()).cloned();
+            return self.declared().by_id.get(id.trim()).cloned();
         }
         if let Some(heading) = target.strip_prefix('*') {
-            return self.by_heading.get(&fold_name(heading.trim())).cloned();
+            return self
+                .declared()
+                .by_heading
+                .get(&fold_name(heading.trim()))
+                .cloned();
         }
 
         if let Some(hit) = self.resolve_path(target) {
@@ -149,7 +221,7 @@ impl LinkResolver {
             .get(&format!("{lower}.md"))
             .or_else(|| self.by_path.get(&format!("{lower}.org")))
             .or_else(|| self.by_stem.get(&lower))
-            .or_else(|| self.by_alias.get(&lower))
+            .or_else(|| self.declared().by_alias.get(&lower))
             // `[[Recipe.md]]` names the note `Recipe` wherever it lives. The
             // exact stem goes first so a file really called `Recipe.md.md`
             // keeps the link, and only `.md` is stripped because
@@ -179,7 +251,7 @@ impl LinkResolver {
             return self
                 .by_stem
                 .get(&basename)
-                .or_else(|| self.by_alias.get(&basename))
+                .or_else(|| self.declared().by_alias.get(&basename))
                 .cloned();
         }
         None
@@ -220,7 +292,15 @@ impl LinkResolver {
     /// resolved Markdown note. Non-Markdown targets have no Markdown anchor
     /// inventory and are left to their own viewer instead of being guessed at.
     pub fn missing_anchor_reason(&self, resolved: &str, anchor: &str) -> Option<&'static str> {
-        let inventory = self.markdown_anchors.get(resolved)?;
+        let inventory = self
+            .markdown_anchors
+            .get(resolved)?
+            .get_or_init(|| {
+                std::fs::read_to_string(self.vault_path.join(resolved))
+                    .ok()
+                    .map(|content| extract_anchor_inventory(&content))
+            })
+            .as_ref()?;
         if inventory.contains(anchor) {
             return None;
         }
@@ -394,44 +474,12 @@ fn broken_target(target: Option<&str>, anchor: &str) -> String {
     }
 }
 
-/// Read every note once, and build the resolver from what they declare.
-///
-/// Aliases must be known before anything is resolved, since `[[an alias]]`
-/// points at the note declaring it, so this pass has to finish before the
-/// first target is looked up.
-fn scan_vault(config: &Config) -> (Vec<Parsed>, BTreeSet<String>, LinkResolver) {
-    let paths = all_notes(config);
-    let disk_files = all_files(config);
-    let target_files: BTreeSet<String> = disk_files
-        .iter()
-        .map(|path| relative_path(&config.vault_path, path))
-        .collect();
-
-    // Excluded notes remain valid path-qualified destinations, so their
-    // headings and blocks must be available to anchor validation too.
-    let markdown_anchors: HashMap<String, AnchorInventory> = disk_files
-        .par_iter()
-        .filter(|path| {
-            path.extension()
-                .and_then(|ext| ext.to_str())
-                .is_some_and(|ext| {
-                    matches!(ext.to_ascii_lowercase().as_str(), "md" | "markdown" | "mdx")
-                })
-        })
-        .filter_map(|path| {
-            let content = std::fs::read_to_string(path).ok()?;
-            Some((
-                relative_path(&config.vault_path, path),
-                extract_anchor_inventory(&content),
-            ))
-        })
-        .collect();
-
-    let parsed: Vec<Parsed> = paths
+fn parse_sources(vault_path: &Path, paths: &[PathBuf]) -> Vec<Parsed> {
+    paths
         .par_iter()
         .filter_map(|path| {
             let content = std::fs::read_to_string(path).ok()?;
-            let relative = relative_path(&config.vault_path, path);
+            let relative = relative_path(vault_path, path);
 
             if is_org(path) {
                 let doc = org::parse_org(&content);
@@ -471,53 +519,58 @@ fn scan_vault(config: &Config) -> (Vec<Parsed>, BTreeSet<String>, LinkResolver) 
                 headings: Vec::new(),
             })
         })
-        .collect();
-
-    let files: BTreeSet<String> = parsed.iter().map(|p| p.relative.clone()).collect();
-
-    let mut aliases = BTreeMap::new();
-    let mut ids = BTreeMap::new();
-    let mut headings = BTreeMap::new();
-    for entry in &parsed {
-        for alias in &entry.aliases {
-            aliases
-                .entry(alias.clone())
-                .or_insert(entry.relative.clone());
-        }
-        for id in &entry.ids {
-            ids.entry(id.clone()).or_insert(entry.relative.clone());
-        }
-        for heading in &entry.headings {
-            headings
-                .entry(heading.clone())
-                .or_insert(entry.relative.clone());
-        }
-    }
-
-    let resolver = LinkResolver::new(files.clone(), target_files, aliases, ids, headings)
-        .with_markdown_anchors(markdown_anchors)
-        .with_directories(config);
-    (parsed, files, resolver)
+        .collect()
 }
 
 /// The resolver on its own, for a caller that has to ask whether one target
 /// names a real file without needing the whole graph around it.
 pub fn build_resolver(config: &Config) -> LinkResolver {
-    scan_vault(config).2
+    let listing = list_vault(config);
+    let notes = listing.notes(config);
+    LinkResolver::from_listing(config, &listing, notes)
 }
 
 /// Build the link graph.
 pub fn build_link_graph(config: &Config) -> LinkGraph {
-    let (parsed, files, resolver) = scan_vault(config);
+    let listing = list_vault(config);
+    let notes = listing.notes(config);
+    let parsed = parse_sources(&config.vault_path, &notes);
+    let resolver = LinkResolver::from_listing(config, &listing, notes);
+    // Every note is parsed for its links anyway, so nothing is read twice.
+    let _ = resolver.declared.set(DeclaredNames::declared_by(&parsed));
+    connect(config, &parsed, &resolver)
+}
 
+/// The broken links of `sources` alone, keyed by note.
+///
+/// Only those notes are parsed. Other notes are opened when one of their
+/// links needs an anchor or a declared name, so the cost follows the notes
+/// asked about rather than the size of the vault.
+pub fn broken_links_in(
+    config: &Config,
+    listing: &VaultListing,
+    sources: &BTreeSet<String>,
+) -> BTreeMap<String, Vec<String>> {
+    let notes = listing.notes(config);
+    let selected: Vec<PathBuf> = notes
+        .iter()
+        .filter(|path| sources.contains(&relative_path(&config.vault_path, path)))
+        .cloned()
+        .collect();
+    let parsed = parse_sources(&config.vault_path, &selected);
+    let resolver = LinkResolver::from_listing(config, listing, notes);
+    connect(config, &parsed, &resolver).broken
+}
+
+fn connect(config: &Config, parsed: &[Parsed], resolver: &LinkResolver) -> LinkGraph {
     let mut graph = LinkGraph {
-        files,
+        files: parsed.iter().map(|p| p.relative.clone()).collect(),
         ..Default::default()
     };
 
     let ignored = IgnoredLinks::new(&config.ignore_links);
 
-    for entry in &parsed {
+    for entry in parsed {
         for link in &entry.links {
             let resolved = match link.target.as_deref() {
                 Some(target) => resolver.resolve(&entry.relative, target),

@@ -940,3 +940,50 @@ fn broken_links_all_overrides_global_disablement() {
         1
     );
 }
+
+#[test]
+fn a_selected_note_reports_the_broken_links_the_whole_vault_reports_for_it() {
+    let vault = Vault::new(
+        "exclude: [Archive]\nignore_links: [Ignored]\n",
+        &[
+            ("Aliased.md", "---\naliases: [Nickname]\n---\n# Intro\n\nA paragraph. ^block\n"),
+            ("Dir/Nested.md", "## Deep heading\n"),
+            ("Archive/Old.md", "# Kept\n"),
+            ("image.png", "not a note"),
+            (
+                "ByName.md",
+                "[[Aliased]] [[Aliased#Intro]] [[Aliased#^block]] [[Dir/Nested#Deep heading]] [[Dir/]] ![[image.png]]\n",
+            ),
+            (
+                "ByContent.md",
+                "[[Nickname]] [[Nickname#Intro]] [[Nickname#Gone]] [[Archive/Old#Kept]] [[Ignored]]\n",
+            ),
+            (
+                "Broken.md",
+                "# Here\n\n[[Missing]] [[Aliased#Gone]] [[Aliased#^gone]] [[Archive/Old#Gone]] [[#Here]] [[#Nowhere]] [[Old]]\n",
+            ),
+        ],
+    );
+    let whole = vault.json(&["lint", "--check", "broken-links", "--format", "json"]);
+    let expected = |file: &str| -> Vec<serde_json::Value> {
+        whole["issues"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|issue| issue["file"] == file)
+            .cloned()
+            .collect()
+    };
+    assert!(expected("ByName.md").is_empty());
+    assert_eq!(expected("ByContent.md").len(), 1);
+    assert_eq!(expected("Broken.md").len(), 6);
+
+    for file in ["ByName.md", "ByContent.md", "Broken.md", "Aliased.md"] {
+        let selected = vault.json(&["lint", file, "--check", "broken-links", "--format", "json"]);
+        assert_eq!(
+            selected["issues"].as_array().unwrap(),
+            &expected(file),
+            "{file}"
+        );
+    }
+}

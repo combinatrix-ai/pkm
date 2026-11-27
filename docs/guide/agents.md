@@ -94,3 +94,34 @@ pkm skill --install    # write it into ~/.claude and ~/.codex
 `install.sh` registers it for you, and `pkm self-update` re-registers it,
 so the instructions an agent reads cannot drift behind the binary they
 describe. The source is [`assets/pkm-skill.md`](../../assets/pkm-skill.md).
+
+## Lint changed notes when an agent stops
+
+Copy [vault_lint.py](https://github.com/combinatrix-ai/pkm/blob/main/examples/hooks/vault_lint.py)
+to `hooks/vault_lint.py` inside your Git-backed vault, alongside a root-level
+`pkm.yaml`. Install Python 3.9+ and put `pkm` on the agent's PATH.
+
+Add this Stop entry to `.codex/hooks.json` for Codex and to
+`.claude/settings.json` for Claude Code. Merge it with any existing hooks.
+Replace the example path with the absolute path to the copied script.
+
+```json
+{
+  "hooks": {
+    "Stop": [{
+      "hooks": [{
+        "type": "command",
+        "command": "python3 \"/absolute/path/to/vault/hooks/vault_lint.py\"",
+        "timeout": 60,
+        "statusMessage": "Checking vault lint"
+      }]
+    }]
+  }
+}
+```
+
+The hook calls `pkm lint --format json --diff`. When it can determine the
+session start, it uses the preceding Git commit as the diff base and filters
+diagnostics by modification time. The first Stop returns any findings to the
+agent for correction. On a repeated Stop it reports remaining findings and
+allows the turn to finish. A clean check produces no message.

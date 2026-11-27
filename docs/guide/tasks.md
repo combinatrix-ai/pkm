@@ -65,3 +65,14 @@ Statuses are configurable: `open` `[ ]`, `wip` `[/]`, `done` `[x]`, and
 `cancel` `[-]` are built in, and `pkm.yaml` can override their
 markers or add custom statuses, which `pkm tasks set STATUS TEXT` and
 `--status` filters then understand.
+
+## Which date counts as today?
+
+Task completion dates and overdue checks use the local date of the process
+running pkm. Set the standard `TZ` environment variable when a VM, scheduled
+job, or developer machine should use the same calendar day:
+
+```sh
+TZ=Asia/Tokyo pkm tasks done --file Projects/Release.md "Review release notes"
+TZ=Asia/Tokyo pkm tasks --overdue
+```

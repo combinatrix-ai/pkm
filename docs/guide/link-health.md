@@ -47,3 +47,8 @@ alias separator, not as part of the heading.
 An anchor-only link stays local navigation and does not create a self-edge in
 the link graph. A path-qualified anchor still creates the ordinary edge to its
 note; if the anchor is absent, the same occurrence is additionally broken.
+
+A short wikilink such as `[[Thesis]]` can resolve to `Notes/Thesis.md`.
+If `[[Wrong/Thesis.md]]` has no matching folder path, lint reports a broken
+link. It contributes no backlink to `Notes/Thesis.md` and stays untouched
+when that note is renamed.

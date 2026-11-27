@@ -1100,7 +1100,13 @@ pub fn load_config(explicit: Option<&str>, vault_override: Option<&str>) -> Resu
     // resolving it needs to know where the file was found. An empty or `.`
     // declaration means "the folder this config is in".
     let declared = config.vault_path.to_string_lossy().into_owned();
-    let parent = path.parent().unwrap_or(Path::new(".")).to_path_buf();
+    // A bare filename has an empty parent, not a missing one, and an empty
+    // path names no folder: the walk finds nothing and reports a clean vault.
+    let parent = path
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+        .unwrap_or(Path::new("."))
+        .to_path_buf();
     config.vault_path = match vault_override {
         Some(v) => PathBuf::from(v),
         None if declared.is_empty() || declared == "." => parent,
